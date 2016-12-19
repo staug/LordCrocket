@@ -4,7 +4,10 @@ import random
 from os import path
 
 class Tile:
-    '''A tile of the map and its properties'''
+    """
+    A tile of the map and its properties
+    """
+
     # Type of Tiles
     VOID = '0'
     WALL = '1'
@@ -35,6 +38,7 @@ class Tile:
             return True
         return False
 
+
 class Room:
 
     def __init__(self, size, position=None):
@@ -45,23 +49,36 @@ class Room:
         """
         self.size = size
         self.position = position
-        self.name = Room.nameGenerator()
+        self.name = Room._name_generator()
         self.doors = []
         self.connecting_room = []
 
     @staticmethod
-    def nameGenerator():
-        roomNamePart1 = ('Accursed', 'Ancient', 'Baneful', 'Batrachian', 'Black', 'Bloodstained', 'Cold', 'Dark', 'Devouring', 'Diabolical', 'Ebon', 'Eldritch', 'Forbidden', 'Forgotten', 'Haunted', 'Hidden', 'Lonely', 'Lost', 'Malevolent', 'Misplaced', 'Nameless', 'Ophidian', 'Scarlet', 'Secret', 'Shrouded', 'Squamous', 'Strange', 'Tenebrous', 'Uncanny', 'Unspeakable', 'Unvanquishable', 'Unwholesome', 'Vanishing', 'Weird')
-        roomNamePart2 = ('room', 'hall', 'place', 'pit', 'shamble', 'crossing', 'location', 'center', 'cavity','cell', 'hollow', 'alcove', 'antechamber', 'wherabouts')
-        roomNamePart3 = ('the Axolotl', 'Blood', 'Bones', 'Chaos', 'Curses', 'the Dead', 'Death', 'Demons', 'Despair', 'Deviltry', 'Doom', 'Evil', 'Fire', 'Frost', 'the 8 Geases', 'Gloom', 'Hells', 'Horrors', 'Ichor', 'Ice', 'Id Insinuation', 'the Idol', 'Iron', 'Madness', 'Mirrors', 'Mists', 'Monsters', 'Mystery', 'Necromancy', 'Oblivion', 'Peril', 'Phantasms', 'Random Harlots', 'Secrets', 'Shadows', 'Sigils', 'Skulls', 'Slaughter', 'Sorcery', 'Syzygy', 'Terror', 'Torment', 'Treasure', 'the Undercity', 'the Underworld', 'the Unknown', 'Whispers')
-        return random.choice(roomNamePart1) + ' ' + random.choice(roomNamePart2) + ' of ' + random.choice(roomNamePart3)
+    def _name_generator():
+        room_name_part1 = ('Accursed', 'Ancient', 'Baneful', 'Batrachian', 'Black', 'Bloodstained', 'Cold', 'Dark',
+                           'Devouring', 'Diabolical', 'Ebon', 'Eldritch', 'Forbidden', 'Forgotten', 'Haunted', 'Hidden',
+                           'Lonely', 'Lost', 'Malevolent', 'Misplaced', 'Nameless', 'Ophidian', 'Scarlet', 'Secret',
+                           'Shrouded', 'Squamous', 'Strange', 'Tenebrous', 'Uncanny', 'Unspeakable', 'Unvanquishable',
+                           'Unwholesome', 'Vanishing', 'Weird')
+        room_name_part2 = ('room', 'hall', 'place', 'pit', 'shamble', 'crossing', 'location', 'center', 'cavity','cell',
+                           'hollow', 'alcove', 'antechamber', 'wherabouts')
+        room_name_part3 = ('the Axolotl', 'Blood', 'Bones', 'Chaos', 'Curses', 'the Dead', 'Death', 'Demons', 'Despair',
+                           'Deviltry', 'Doom', 'Evil', 'Fire', 'Frost', 'the 8 Geases', 'Gloom', 'Hells', 'Horrors',
+                           'Ichor', 'Ice', 'Id Insinuation', 'the Idol', 'Iron', 'Madness', 'Mirrors', 'Mists',
+                           'Monsters', 'Mystery', 'Necromancy', 'Oblivion', 'Peril', 'Phantasms', 'Random Harlots',
+                           'Secrets', 'Shadows', 'Sigils', 'Skulls', 'Slaughter', 'Sorcery', 'Syzygy', 'Terror',
+                           'Torment', 'Treasure', 'the Under City', 'the Underworld', 'the Unknown', 'Whispers')
+        return "{} {} of {}".format(random.choice(room_name_part1),
+                                    random.choice(room_name_part2),
+                                    random.choice(room_name_part3))
+
 
     def get_tile_list(self):
         tiles = []
-        (posx, posy) = self.position
-        (sizex, sizey) = self.size
-        for x in range(posx, posx + sizex):
-            for y in range(posy, posy + sizey):
+        (pos_x, pos_y) = self.position
+        (size_x, size_y) = self.size
+        for x in range(pos_x, pos_x + size_x):
+            for y in range(pos_y, pos_y + size_y):
                 tiles.append((x, y))
         return tiles
 
@@ -70,14 +87,22 @@ class Map:
     """
     The Map, representing a level. Mainly holds a reference to a set of tiles, as well as dimensions.
     """
-    def __init__(self, game, name, filename=None, dimension=(80, 120), room_size_range=((8,10), (12,17)), max_num_room=50):
+    def __init__(self, game, name, filename=None, dimension=(80, 120),
+                 room_size_range=((8,10), (12,17)), max_num_room=50):
+
         self.game = game
         self.name = name
         self._background = None
+        self.tilewidth = self.tileheight = 0
+        self.width = self.height = 0
+
+        self.rooms = []
+
         if filename is not None:
             self._generate_from_filename(filename)
         else:
-            # self._generate_room_type_dungeon(seed=None, dimension=dimension, room_size_range=room_size_range, max_num_room=max_num_room)
+            # self._generate_room_type_dungeon(seed=None, dimension=dimension,
+            #  room_size_range=room_size_range, max_num_room=max_num_room)
             # self._generate_pure_maze_dungeon()
             # self._generate_cave_type_dungeon()
             self._generate_maze_type_dungeon()
@@ -100,17 +125,18 @@ class Map:
         :return:
         """
         weight = 0
-        if y==0 or self.tiles[x][y-1].tile_type == Tile.WALL or (x, y-1) in door_list:
+        if y == 0 or self.tiles[x][y-1].tile_type == Tile.WALL or (x, y-1) in door_list:
             weight += 1
-        if x==0 or self.tiles[x-1][y].tile_type == Tile.WALL or (x - 1, y) in door_list:
+        if x == 0 or self.tiles[x-1][y].tile_type == Tile.WALL or (x - 1, y) in door_list:
             weight += 8
-        if y==self.tileheight - 1 or self.tiles[x][y+1].tile_type == Tile.WALL or (x, y+1) in door_list:
+        if y == self.tileheight - 1 or self.tiles[x][y+1].tile_type == Tile.WALL or (x, y+1) in door_list:
             weight += 4
-        if x==self.tilewidth - 1 or self.tiles[x+1][y].tile_type == Tile.WALL or (x + 1, y) in door_list:
+        if x == self.tilewidth - 1 or self.tiles[x+1][y].tile_type == Tile.WALL or (x + 1, y) in door_list:
             weight += 2
         return weight
 
-    def _generate_room_type_dungeon(self, seed=None, dimension=(80, 120), room_size_range=((6, 6), (9, 9)), max_num_room=60, tunnel=False):
+    def _generate_room_type_dungeon(self, seed=None, dimension=(80, 120), room_size_range=((6, 6), (9, 9)),
+                                    max_num_room=60, tunnel=False):
         """
         Run the dungeon generation program.
         :param seed: the seed to initialize the dungeon
@@ -257,7 +283,7 @@ class Map:
             print("DUNGEON MAZE: Rooms placed")
 
             # Now we fill almost everything else with maze
-            self._flood_maze(to_explore=(self.tilewidth * self.tileheight - count_explored) / 4 )
+            self._flood_maze(to_explore=(self.tilewidth * self.tileheight - count_explored) / 4)
             print("DUNGEON MAZE: Maze in position")
 
             # We place at least one door per room
@@ -312,9 +338,9 @@ class Map:
             print("DUNGEON MAZE: Non connected rooms removed")
 
             # Now, we want to remove some dead end
-            spareness = random.randint(1,5)
+            spareness = random.randint(1, 5)
             for i in range(spareness):
-                for x in range (1, self.tilewidth - 1):
+                for x in range(1, self.tilewidth - 1):
                     for y in range(1, self.tileheight - 1):
                         if self.tiles[x][y].tile_type == Tile.FLOOR:
                             delta = [(0, -1), (0, 1), (1, 0), (-1, 0)]
@@ -392,7 +418,7 @@ class Map:
         self.tiles = [[Tile(Tile.WALL)
                        for y in range(self.tileheight)]
                       for x in range(self.tilewidth)]
-        self._flood_maze(to_explore=(self.tilewidth - 1) * (self.tileheight - 1 ) / 4)
+        self._flood_maze(to_explore=(self.tilewidth - 1) * (self.tileheight - 1) / 4)
 
         # Now, we want to remove some dead end
         for i in range(spareness):
@@ -410,7 +436,6 @@ class Map:
         if remove_extra_walls:
             self._remove_extra_walls()
 
-
     def _flood_maze(self, to_explore=0):
         # 2. We pick a random cell, and flag it explored. Demarrage sur un impair!
         found = False
@@ -421,9 +446,11 @@ class Map:
                 forbidden_tiles = forbidden_tiles + room.get_tile_list()
         while not found:
             current_x = int(random.randint(0, self.tilewidth) / 2)
-            if current_x % 2 == 0: current_x += 1
+            if current_x % 2 == 0:
+                current_x += 1
             current_y = int(random.randint(0, self.tilewidth) / 2)
-            if current_y % 2 == 0: current_y += 1
+            if current_y % 2 == 0:
+                current_y += 1
             if not self.tiles[current_x][current_y].explored and not (current_x, current_y) in forbidden_tiles:
                 self.tiles[current_x][current_y].explored = True
                 found = True
@@ -434,13 +461,13 @@ class Map:
         trials = 0
         while len(explored) < to_explore and trials < (self.tilewidth * self.tileheight)/4:
             current_cell = self.tiles[current_x][current_y]
-            directions = [(2,0), (-2,0), (0,2), (0,-2)]
+            directions = [(2, 0), (-2, 0), (0, 2), (0, -2)]
             # 3. We pick a random direction
             random.shuffle(directions)
             found = False
             (dir_x, dir_y) = (0, 0)
 
-            while not found and len(directions)>0:
+            while not found and len(directions) > 0:
                 (dir_x, dir_y) = directions.pop()
                 # 3A: we test if this new cell is valid and not explored
                 if 0 < current_x + dir_x < self.tilewidth and 0 < current_y + dir_y < self.tileheight:
@@ -494,13 +521,13 @@ class Map:
                 size_y = random.randint(min_size[1], max_size[1])
         return Room((size_x, size_y))
 
-    def _place_room(self, room, gridposition):
-        room.position = gridposition
-        for y in range(gridposition[1], gridposition[1] + room.size[1]):
-            for x in range(gridposition[0], gridposition[0] + room.size[0]):
+    def _place_room(self, room, grid_position):
+        room.position = grid_position
+        for y in range(grid_position[1], grid_position[1] + room.size[1]):
+            for x in range(grid_position[0], grid_position[0] + room.size[0]):
                 self.tiles[x][y].room = room
-                if y in (gridposition[1], gridposition[1] + room.size[1] -1) or \
-                                x in (gridposition[0], gridposition[0] + room.size[0] -1):
+                if y in (grid_position[1], grid_position[1] + room.size[1] -1) or \
+                                x in (grid_position[0], grid_position[0] + room.size[0] -1):
                     self.tiles[x][y].tile_type = Tile.WALL
                 else:
                     self.tiles[x][y].tile_type = Tile.FLOOR
@@ -676,7 +703,7 @@ class Camera:
         """
         (screen_x, screen_y) = pos
         (cam_x, cam_y) = self.camera.topleft
-        return (screen_x - cam_x, screen_y - cam_y)
+        return screen_x - cam_x, screen_y - cam_y
 
 
 class Minimap:
@@ -685,7 +712,7 @@ class Minimap:
         self.game = game
         self._background = None
 
-    def build_background(self, zoom_factor = 2):
+    def build_background(self, zoom_factor=2):
         self._background = pg.Surface((self.game.map.tilewidth * zoom_factor, self.game.map.tileheight * zoom_factor))
         backpixels = pg.PixelArray(self._background)
         for x in range(self.game.map.tilewidth):
@@ -700,8 +727,10 @@ class Minimap:
         if hasattr(self.game, "player"):
             pos_x = self.game.player.x
             pos_y = self.game.player.y
-            backpixels[(pos_x - 1)* zoom_factor:(pos_x + 1) * zoom_factor + 1, pos_y * zoom_factor:pos_y * zoom_factor + 1] = GREEN
-            backpixels[pos_x * zoom_factor:pos_x * zoom_factor + 1, (pos_y - 1) * zoom_factor:(pos_y + 1 )* zoom_factor + 1] = GREEN
+            backpixels[(pos_x - 1) * zoom_factor:(pos_x + 1) * zoom_factor + 1,
+            pos_y * zoom_factor:pos_y * zoom_factor + 1] = GREEN
+            backpixels[pos_x * zoom_factor:pos_x * zoom_factor + 1,
+            (pos_y - 1) * zoom_factor:(pos_y + 1 )* zoom_factor + 1] = GREEN
 
         self._background = backpixels.make_surface()
         return self._background
@@ -841,6 +870,9 @@ class FieldOfView:
         """
         The Field of View algo
         :param entity: the entity for which the algo is done
+        :param radius: the number of tiles the user can go throught
+        :param flag_explored: any unexplored tile will become explored (good for player, but not NPC)
+        :param ignore_entity_at: will ignore any entity at positions (like player) - this is a list
         :return: the Field of view, with True for each tile that is visible
         """
         if not self._ready:
@@ -877,14 +909,16 @@ class FieldOfView:
 
                 round_x = int(round(x))
                 round_y = int(round(y))
-                if round_x < 0 or round_y < 0 or round_x > self.game.map.tilewidth or round_y > self.game.map.tileheight:  # Ray is out of range
+                if round_x < 0 or round_y < 0 or round_x > self.game.map.tilewidth or\
+                                round_y > self.game.map.tileheight:  # Ray is out of range
                     break
 
                 self.fov[round_x][round_y] = True  # Make tile visible
                 if flag_explored:
                     self.game.map.tiles[round_x][round_y].explored = True
                 if ignore_entity_at is not None:
-                    if (round_x, round_y) != ignore_entity_at and self.game.map.tiles[round_x][round_y].block_view_for(entity):
+                    if (round_x, round_y) not in ignore_entity_at and\
+                            self.game.map.tiles[round_x][round_y].block_view_for(entity):
                         break
                 elif self.game.map.tiles[round_x][round_y].block_view_for(entity):  # Stop ray if it hit
                     break

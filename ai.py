@@ -20,7 +20,7 @@ class AIEntity:
         return self.owner.move(dx, dy)
 
     def take_turn(self):
-        print( "The {} take turn".format(self.owner.name))
+        # print( "The {} take turn".format(self.owner.name))
         if self.owner.view(self.owner.game.player):
             pass
             # self.owner.game.textbox.add = "The {} growls".format(self.owner.name)

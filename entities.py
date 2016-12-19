@@ -117,7 +117,7 @@ class Entity(Sprite):
             return False
 
         vision_matrix = FieldOfView(self.game).get_vision_matrix_for(
-            self, radius=self.vision, ignore_entity_at=self.pos)
+            self, radius=self.vision, ignore_entity_at=[self.pos])
         return vision_matrix[other_entity.x][other_entity.y]
 
     def distance_to(self, other):
