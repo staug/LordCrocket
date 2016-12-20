@@ -125,13 +125,13 @@ class Map:
         :return:
         """
         weight = 0
-        if y == 0 or self.tiles[x][y-1].tile_type == Tile.WALL or (x, y-1) in door_list:
+        if y - 1 > 0 and (self.tiles[x][y-1].tile_type == Tile.WALL or (x, y-1) in door_list):
             weight += 1
-        if x == 0 or self.tiles[x-1][y].tile_type == Tile.WALL or (x - 1, y) in door_list:
+        if x - 1 > 0 and (self.tiles[x-1][y].tile_type == Tile.WALL or (x - 1, y) in door_list):
             weight += 8
-        if y == self.tileheight - 1 or self.tiles[x][y+1].tile_type == Tile.WALL or (x, y+1) in door_list:
+        if y+1 < self.tileheight and (self.tiles[x][y+1].tile_type == Tile.WALL or (x, y+1) in door_list):
             weight += 4
-        if x == self.tilewidth - 1 or self.tiles[x+1][y].tile_type == Tile.WALL or (x + 1, y) in door_list:
+        if x+1 < self.tilewidth and (self.tiles[x+1][y].tile_type == Tile.WALL or (x + 1, y) in door_list):
             weight += 2
         return weight
 
@@ -594,6 +594,13 @@ class Map:
             if self.tiles[x][y].tile_type == tile_type:
                 return (x, y)
 
+    @property
+    def doors_pos(self):
+        pos = []
+        for room in self.rooms:
+            pos += room.doors
+        return pos
+
     def get_all_available_tiles(self, tile_type, without_objects=False):
         """
         Return all tile matching the characteristics: given tile type
@@ -609,10 +616,12 @@ class Map:
             for entity in self.game.objects:
                 entity_pos_listing.append((entity.x, entity.y))
 
+        doors = self.doors_pos
+
         for x in range(self.tilewidth):
             for y in range(self.tileheight):
                 if self.tiles[x][y].tile_type == tile_type:
-                    if without_objects and (x, y) not in entity_pos_listing:
+                    if without_objects and (x, y) not in entity_pos_listing and (x, y) not in doors:
                         listing.append((x, y))
         random.shuffle(listing)
         return listing
