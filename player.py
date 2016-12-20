@@ -79,7 +79,7 @@ class PlayerHelper(Entity):
         return ("{}, Position [{},{}], "
                 "STR={} DEX={} MIND={} CHA={}, "
                 "HP={}/{} BP={}/{} AC={} vision={}".format(self.name, self.x, self.y, self.strength, self.dexterity, self.mind, self.charisma,
-                                                           self.fighter.hit_points, self.HP_base, self.fighter.body_points, self.BP_base, self.fighter.armor_class, self.vision
+                                                           self.fighter.hit_points, self.base_hit_points, self.fighter.body_points, self.base_body_points, self.fighter.armor_class, self.vision
                                                            ))
 
     def move(self, dx=0, dy=0):

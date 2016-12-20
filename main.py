@@ -10,6 +10,7 @@ from item import ItemEntity, EquipmentEntity
 from utilities_ui import TextBox, load_image, load_image_list, load_wall_structure_dawnlike
 from utilities import Ticker
 from entities import MonsterHelper, EquipmentHelper, ItemHelper
+from ktextsurfacewriter import KTextSurfaceWriter
 
 
 class Screen:
@@ -205,6 +206,47 @@ class MapScreen(Screen):
     def update(self):
         pass
 
+
+class CharacterScreen(Screen):
+
+    def __init__(self, game, default_back_state):
+        self.game = game
+        self.default_back_state = default_back_state
+        game_folder = path.dirname(__file__)
+        font_folder = path.join(game_folder, FONT_FOLDER)
+        self.font = pg.font.Font(path.join(font_folder, FONT_NAME), 12)
+        self.writer_part = KTextSurfaceWriter(self.game.screen.get_rect(), font = self.font)
+
+    def build_player_text(self):
+        return ("{}\n\n"
+                "STR={}\nDEX={}\nMIND={}\nCHA={}\n\n"
+                "HP={}/{}\nBP={}/{}\nAC={}\nvision={}".format(self.game.player.name, self.game.player.x, self.game.player.y, self.game.player.strength, self.game.player.dexterity, self.game.player.mind, self.game.player.charisma,
+                                                           self.game.player.fighter.hit_points, self.game.player.base_hit_points, self.game.player.fighter.body_points, self.game.player.base_body_points, self.game.player.fighter.armor_class, self.game.player.vision
+                                                           ))
+
+
+    def events(self):
+
+        # catch all events here
+        for event in pg.event.get():
+            if event.type == pg.QUIT:
+                self.game.quit()
+            if event.type == pg.KEYDOWN:
+                if event.key == pg.K_ESCAPE:
+                    self.game.game_state = self.default_back_state
+
+    def draw(self):
+        # Erase All
+        self.game.screen.fill(BGCOLOR)
+        self.writer_part.text=self.build_player_text()
+        self.writer_part.draw(self.game.screen)
+
+
+        pg.display.flip()
+
+    def update(self):
+        pass
+
 class PlayingScreen(Screen):
     
     def draw_health_bar(self, surf, x, y):
@@ -306,6 +348,8 @@ class PlayingScreen(Screen):
                     self.game.minimap_enable = not self.game.minimap_enable
                 if event.key == pg.K_p:
                     self.game.game_state = Game.GAME_STATE_MINIMAP
+                if event.key == pg.K_f:
+                    self.game.game_state = Game.GAME_STATE_CHARACTER
 
                 if event.key == pg.K_t: # TEST
                     self.game.textbox.add = "TESTING : EFFECT"
@@ -475,6 +519,7 @@ class Game:
         self.inventory_screen = InventoryScreen(self, Game.GAME_STATE_PLAYING)
         self.map_screen = MapScreen(self, Game.GAME_STATE_PLAYING)
         self.playing_screen = PlayingScreen(self, None)
+        self.character_screen = CharacterScreen(self, Game.GAME_STATE_PLAYING)
 
         # initializing map structure
         self.map = Map(self, "Dyn_level1")
@@ -628,6 +673,10 @@ class Game:
                 self.map_screen.events()
                 self.map_screen.update()
                 self.map_screen.draw()
+            elif self.game_state == Game.GAME_STATE_CHARACTER:
+                self.character_screen.events()
+                self.character_screen.update()
+                self.character_screen.draw()
 
     def quit(self):
         pg.quit()
