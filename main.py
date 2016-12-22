@@ -553,6 +553,7 @@ class Game:
         self.visible_player_array = self.fov.get_vision_matrix_for(self.player, flag_explored=True)
 
         # place doors - except if we are in a pure maze
+        # The line below can be replaced with teh property door_pos which is part of tilemap.
         # if hasattr(self.map, "rooms") and self.map.rooms is not None:
         #     for room in self.map.rooms:
         #         for door_pos in room.doors:

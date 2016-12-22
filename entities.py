@@ -2,6 +2,8 @@ from settings import *
 from pygame.sprite import Sprite
 from pygame.surface import Surface
 from item import ItemEntity, EquipmentEntity
+from tilemap import Tile
+from actionable import ActionableEntity
 from fighter import MonsterFighter
 from ai import AIEntity
 from tilemap import FieldOfView
@@ -23,6 +25,7 @@ class Entity(Sprite):
     @:parameter blocks: is this a blocking object?
     @:parameter fighter: the fighter component if any
     @:parameter ai: the ai component if any
+    @:parameter actionable: the actionable (remote or not) part if any
     """
     def __init__(self,
                  game,
@@ -37,7 +40,8 @@ class Entity(Sprite):
                  fighter=None,
                  ai=None,
                  item=None,
-                 equipment=None):
+                 equipment=None,
+                 actionable=None):
 
         Sprite.__init__(self)
         self.game = game
@@ -78,6 +82,10 @@ class Entity(Sprite):
             self.item = ItemEntity()
             self.item.owner = self
 
+        self.actionable = actionable
+        if self.actionable:
+            self.actionable.owner = self
+
         # and we register ourselves
         self.game.objects.append(self)
 
@@ -92,6 +100,15 @@ class Entity(Sprite):
         :param dy: the delta in y
         :return: True if the move was successfull
         """
+        # Action test
+        for entity in self.game.objects:
+            if entity != self and entity.actionable is not None and (self.x + dx, self.y + dy) in entity.actionable.action_field:
+                self.x += dx
+                self.y += dy
+                entity.actionable.action(self)
+                self.x -= dx
+                self.y -= dy
+
         # collision test: map data (floor, water, lava...)
         if not self.game.map.tiles[self.x + dx][self.y + dy].block_for(self):
             # now test the list of objects
@@ -262,6 +279,44 @@ class ItemHelper(Entity):
 
         entity.game.textbox.add = 'Your wounds start to feel better!'
         entity.fighter.heal(heal_amount)
+
+
+class DoorHelper(Entity):
+    """
+    Class used to create an Item
+    """
+    def __init__(self, game, pos, image_refs, closed=True, open_function=None, name=None):
+        """
+        Initialization method
+        :param game: reference to the game variable
+        :param pos: the pos (as tuple) of the item
+        :param image_refs: the reference for the images in this order:
+         horizontal_door_closed, horizontal_door_open, vertical_door_closed, vertical_door_open
+        :param open_function: the function to be used when open the door if any
+        Sample: open_function=lambda player=self.player: Item.cast_heal(player)
+        """
+        assert type(image_refs) is tuple and len(image_refs) == 4, "Doors images must be a tuple of 4, containing" \
+                                                                   "horizontal_door_closed, horizontal_door_open, " \
+                                                                   "vertical_door_closed, vertical_door_open"
+        index = 0
+        horizontal = True
+        if game.map.tiles[pos[0]][pos[1]+1].tile_type == Tile.WALL:
+            horizontal = False
+            index += 2
+        if not closed:
+            index += 1
+        Entity.__init__(self, game, "Door", pos, image_refs[index], blocks=closed,
+                        actionable=ActionableEntity(function=open_function))
+
+    @staticmethod
+    def open_door(door, entity_that_actioned):
+        door.blocks = False
+        door.actionable = None
+        print("The door {} has been opened by {}".format(door.name, entity_that_actioned.name))
+
+    def __str__(self):
+        return "Door {} opened:".format(self.name, not(self.blocks))
+
 
 class EquipmentHelper(Entity):
     """
