@@ -9,7 +9,7 @@ import pickle as pick
 from item import ItemEntity, EquipmentEntity
 from utilities_ui import TextBox, load_image, load_image_list, load_wall_structure_dawnlike
 from utilities import Ticker
-from entities import MonsterHelper, EquipmentHelper, ItemHelper
+from entities import MonsterHelper, EquipmentHelper, ItemHelper, DoorHelper
 from ktextsurfacewriter import KTextSurfaceWriter
 
 
@@ -554,6 +554,11 @@ class Game:
 
         # place doors - except if we are in a pure maze
         # The line below can be replaced with teh property door_pos which is part of tilemap.
+        pos_list = self.map.doors_pos[:]
+        for pos in pos_list:
+            print(pos)
+            DoorHelper(self, pos, ("DOOR_CLOSED", "DOOR_OPEN", "DOOR_CLOSED", "DOOR_OPEN"), name="Door {}".format(pos),
+                       open_function=DoorHelper.open_door)
         # if hasattr(self.map, "rooms") and self.map.rooms is not None:
         #     for room in self.map.rooms:
         #         for door_pos in room.doors:

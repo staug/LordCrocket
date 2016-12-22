@@ -298,24 +298,35 @@ class DoorHelper(Entity):
         assert type(image_refs) is tuple and len(image_refs) == 4, "Doors images must be a tuple of 4, containing" \
                                                                    "horizontal_door_closed, horizontal_door_open, " \
                                                                    "vertical_door_closed, vertical_door_open"
-        index = 0
+        self.index = 0
+        self.image_refs = image_refs
+
         horizontal = True
         if game.map.tiles[pos[0]][pos[1]+1].tile_type == Tile.WALL:
             horizontal = False
-            index += 2
+            self.index += 2
         if not closed:
-            index += 1
-        Entity.__init__(self, game, "Door", pos, image_refs[index], blocks=closed,
+            self.index += 1
+
+        if name is None:
+            name="Door"
+
+        Entity.__init__(self, game, name, pos, image_refs[self.index], blocks=closed,
                         actionable=ActionableEntity(function=open_function))
 
     @staticmethod
     def open_door(door, entity_that_actioned):
         door.blocks = False
         door.actionable = None
-        print("The door {} has been opened by {}".format(door.name, entity_that_actioned.name))
+        print()
+        door.game.textbox.add = "The door {} has been opened by {}".format(door.name, entity_that_actioned.name)
+        door.image_ref = door.image_refs[door.index + 1 % 4]
+        door.image = door.game.all_images[door.image_ref]
+        door.set_in_spritegroup(-1)
+
 
     def __str__(self):
-        return "Door {} opened:".format(self.name, not(self.blocks))
+        return "Door {} opened:{}".format(self.name, not(self.blocks))
 
 
 class EquipmentHelper(Entity):

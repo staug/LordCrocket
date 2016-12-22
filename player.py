@@ -84,6 +84,15 @@ class PlayerHelper(Entity):
 
     def move(self, dx=0, dy=0):
         """Try to move the player. Return True if an action was done (either move or attack)"""
+        # Action test
+        for entity in self.game.objects:
+            if entity != self and entity.actionable is not None and (self.x + dx, self.y + dy) in entity.actionable.action_field:
+                self.x += dx
+                self.y += dy
+                entity.actionable.action(self)
+                self.x -= dx
+                self.y -= dy
+
         # collision test: enemy
         for entity in self.game.objects:
             if entity != self and entity.fighter and entity.x == self.x + dx and entity.y == self.y + dy:

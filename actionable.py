@@ -19,13 +19,13 @@ class ActionableEntity:
             return self._action_field
         else:
             if self.owner is not None:
-                self._action_field = []
+                self._action_field = [self.owner.pos]
                 for i in range(-self.radius, self.radius):
                     if (self.owner.pos[0] + i, self.owner.pos[1]) not in self._action_field:
                         self._action_field.append((self.owner.pos[0] + i, self.owner.pos[1]))
                     if (self.owner.pos[0], self.owner.pos[1] + i) not in self._action_field:
                         self._action_field.append((self.owner.pos[0], self.owner.pos[1] + i))
-                    return self._action_field
+                return self._action_field
             else:
                 return []
 
@@ -35,8 +35,6 @@ class ActionableEntity:
         else:
             if self.actionable_by_player_only:
                 if entity_that_actioned == self.owner.game.player:
-                    self.function(entity_that_actioned)
-                else:
-                    print("only player can action")
+                    self.function(self.owner, entity_that_actioned)
             else:
                 self.function(entity_that_actioned)

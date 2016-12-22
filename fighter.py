@@ -93,9 +93,7 @@ class MonsterFighter(FighterEntity):
     def monster_death(self):
         print("GENERIC DEATH FUNCTION")
         # Attribute the xp
-        print("BEFORE PLAYER XP {}".format(self.owner.game.player.experience ))
         self.owner.game.player.experience += self.experience
-        print("BEFORE PLAYER XP {}".format(self.owner.game.player.experience ))
         # transform it into a nasty corpse! it doesn't block, can't be
         # attacked and doesn't move
         self.owner.game.textbox.add = self.owner.name.capitalize() + ' is dead!'

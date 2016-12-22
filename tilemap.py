@@ -598,7 +598,9 @@ class Map:
     def doors_pos(self):
         pos = []
         for room in self.rooms:
-            pos += room.doors
+            for door in room.doors:
+                if door not in pos:
+                    pos.append(door)
         return pos
 
     def get_all_available_tiles(self, tile_type, without_objects=False):
