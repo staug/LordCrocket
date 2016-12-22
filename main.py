@@ -1,16 +1,15 @@
-import pygame as pg
+import dill as pick
 import sys
+
 from os import path
-from settings import *
-from player import PlayerHelper
-from fighter import FighterEntity
-from tilemap import Map, Camera, Tile, FieldOfView, Minimap
-import pickle as pick
-from item import ItemEntity, EquipmentEntity
-from utilities_ui import TextBox, load_image, load_image_list, load_wall_structure_dawnlike
-from utilities import Ticker
-from entities import MonsterHelper, EquipmentHelper, ItemHelper, DoorHelper
+import pygame as pg
 from ktextsurfacewriter import KTextSurfaceWriter
+from entities import MonsterHelper, EquipmentHelper, ItemHelper, DoorHelper
+from player import PlayerHelper
+from settings import *
+from tilemap import Map, Camera, Tile, FieldOfView, Minimap
+from utilities import Ticker
+from utilities_ui import TextBox, load_image, load_image_list, load_wall_structure_dawnlike
 
 
 class Screen:
@@ -220,7 +219,10 @@ class CharacterScreen(Screen):
     def build_player_text(self):
         return ("{}\n\n"
                 "STR={}\nDEX={}\nMIND={}\nCHA={}\n\n"
-                "HP={}/{}\nBP={}/{}\nAC={}\nvision={}".format(self.game.player.name, self.game.player.x, self.game.player.y, self.game.player.strength, self.game.player.dexterity, self.game.player.mind, self.game.player.charisma,
+                "HP={}/{}\nBP={}/{}\nAC={}\nvision={}".format(self.game.player.name, self.game.player.x,
+                                                              self.game.player.y, self.game.player.strength,
+                                                              self.game.player.dexterity, self.game.player.mind,
+                                                              self.game.player.charisma,
                                                            self.game.player.fighter.hit_points, self.game.player.base_hit_points, self.game.player.fighter.body_points, self.game.player.base_body_points, self.game.player.fighter.armor_class, self.game.player.vision
                                                            ))
 
@@ -496,7 +498,8 @@ class Game:
             "WALLS": load_wall_structure_dawnlike(wall_image_src),
             "FLOOR": [[load_image(IMG_FOLDER, level_image_src, x, y) for x in range(4)] for y in range(15)],
             "FLOOR_EXT": [[load_image(IMG_FOLDER, level_image_src, x, y) for x in range(4, 6)] for y in range(15)],
-            "DOOR_OPEN": load_image(IMG_FOLDER, level_image_src, 15, 2),
+            "DOOR_V_OPEN": load_image(IMG_FOLDER, level_image_src, 15, 2),
+            "DOOR_H_OPEN": load_image(IMG_FOLDER, level_image_src, 16, 2),
             "DOOR_CLOSED": load_image(IMG_FOLDER, level_image_src, 14, 2),
             "SPECIAL_EFFECT": [load_image(IMG_FOLDER, level_image_src, x, 21) for x in range(4)]
         }
@@ -557,7 +560,7 @@ class Game:
         pos_list = self.map.doors_pos[:]
         for pos in pos_list:
             print(pos)
-            DoorHelper(self, pos, ("DOOR_CLOSED", "DOOR_OPEN", "DOOR_CLOSED", "DOOR_OPEN"), name="Door {}".format(pos),
+            DoorHelper(self, pos, ("DOOR_CLOSED", "DOOR_H_OPEN", "DOOR_CLOSED", "DOOR_V_OPEN"), name="Door {}".format(pos),
                        open_function=DoorHelper.open_door)
         # if hasattr(self.map, "rooms") and self.map.rooms is not None:
         #     for room in self.map.rooms:
@@ -627,10 +630,15 @@ class Game:
             self.map.game = self
 
             # Generic Game variables
-            self.turn = 0
+            self.ticker = Ticker()
             self.game_state = Game.GAME_STATE_PLAYING
             self.player_took_action = False
             self.minimap_enable = False
+
+            self.inventory_screen = InventoryScreen(self, Game.GAME_STATE_PLAYING)
+            self.map_screen = MapScreen(self, Game.GAME_STATE_PLAYING)
+            self.playing_screen = PlayingScreen(self, None)
+            self.character_screen = CharacterScreen(self, Game.GAME_STATE_PLAYING)
 
             # initializing map structure
             #self.map = Map(self, "Dyn_level1")
