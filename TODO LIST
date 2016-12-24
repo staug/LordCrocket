@@ -3,12 +3,16 @@ DUNGEON
 * [DONE] Make a Maze based dungeon
 * [Done] Create cavelike dungeon using cell generation algo
 * Make Dungeon beautiful
+* Split dungeon in subclasses
 
 PLAYER
 * [Basic done] Implement inventory
 * Inventory screen -> https://en.wikipedia.org/wiki/Role-playing_video_game#/media/File:Scourge_character_information.png
 * Make more characteristics for combat
 * Player in exploration mode (higher vision) and in combat mode (def penalty if not in combat mode?)
+
+NPC
+* Add NPC Companions that can be summoned
 
 GENERAL GAME
 * [DONE] Clean up the image loading
@@ -54,6 +58,9 @@ BUGS
 * In save, make sure the floor is always the same...
 * Textbox: if a line is multi line, then the number of messages displayed in the textbox is incorrect
 
+INVENTORY SCREEN:
+* Use items from inventory
+
 
 Notes:
 
@@ -62,8 +69,6 @@ Notes:
 
 OLD:
 
-
-XP: to give or current
 Gold
 
 

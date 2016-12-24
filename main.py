@@ -290,31 +290,38 @@ class PlayingScreen(Screen):
                 self.game.screen.blit(sprite.image, self.game.camera.apply(sprite))
 
         # FOV - TODO: Maybe could be optimized a bit... like redraw it only once until invalidated...
-        black = pg.Surface((TILESIZE_SCREEN, TILESIZE_SCREEN))
-        black.fill(BGCOLOR)
-        gray = pg.Surface((TILESIZE_SCREEN, TILESIZE_SCREEN), pg.SRCALPHA, 32)
-        gray.fill((0,0,0,120))
-        for x in range(self.game.map.tilewidth):
-            for y in range(self.game.map.tileheight):
-                if not self.game.visible_player_array[x][y]:
-                    if self.game.map.tiles[x][y].explored:
-                        self.game.screen.blit(gray, self.game.camera.apply_rect(
-                            pg.Rect(x*TILESIZE_SCREEN, y*TILESIZE_SCREEN, TILESIZE_SCREEN, TILESIZE_SCREEN)))
-                    else:
-                        self.game.screen.blit(black, self.game.camera.apply_rect(
-                            pg.Rect(x * TILESIZE_SCREEN, y * TILESIZE_SCREEN, TILESIZE_SCREEN, TILESIZE_SCREEN)))
+        if self.game.player.invalidate_fog_of_war:
 
-        # Text -> First line is to remove background
-        self.game.screen.fill(BGCOLOR, self.game.textbox._ktext.rect)
-        pg.draw.rect(self.game.screen, WHITE, self.game.textbox._ktext.rect.inflate(6, 6), 2)
-        self.game.textbox.draw(self.game.screen)
+            self.fog_of_war_mask = pg.Surface((self.game.screen.get_rect().width,
+                                              self.game.screen.get_rect().height), pg.SRCALPHA, 32)
 
+            black = pg.Surface((TILESIZE_SCREEN, TILESIZE_SCREEN))
+            black.fill(BGCOLOR)
+            gray = pg.Surface((TILESIZE_SCREEN, TILESIZE_SCREEN), pg.SRCALPHA, 32)
+            gray.fill((0,0,0,120))
+            for x in range(self.game.map.tilewidth):
+                for y in range(self.game.map.tileheight):
+                    if not self.game.visible_player_array[x][y]:
+                        if self.game.map.tiles[x][y].explored:
+                            self.fog_of_war_mask.blit(gray, self.game.camera.apply_rect(
+                                pg.Rect(x*TILESIZE_SCREEN, y*TILESIZE_SCREEN, TILESIZE_SCREEN, TILESIZE_SCREEN)))
+                        else:
+                            self.fog_of_war_mask.blit(black, self.game.camera.apply_rect(
+                                pg.Rect(x * TILESIZE_SCREEN, y * TILESIZE_SCREEN, TILESIZE_SCREEN, TILESIZE_SCREEN)))
+            self.game.player.invalidate_fog_of_war = False
+
+        self.game.screen.blit(self.fog_of_war_mask, (0, 0))
         # --- HUD SECTION ---
         # Player health
         self.draw_health_bar(self.game.screen, 10, 10)
         # Minimap
         if self.game.minimap_enable:
             self.game.screen.blit(self.game.minimap.background, (GAME_WIDTH - self.game.minimap.background.get_width() - 10, 10))
+
+        # Text -> First line is to remove background
+        self.game.screen.fill(BGCOLOR, self.game.textbox._ktext.rect)
+        pg.draw.rect(self.game.screen, WHITE, self.game.textbox._ktext.rect.inflate(6, 6), 2)
+        self.game.textbox.draw(self.game.screen)
 
         pg.display.flip()
 
@@ -559,18 +566,16 @@ class Game:
         # The line below can be replaced with teh property door_pos which is part of tilemap.
         pos_list = self.map.doors_pos[:]
         for pos in pos_list:
-            print(pos)
-            DoorHelper(self, pos, ("DOOR_CLOSED", "DOOR_H_OPEN", "DOOR_CLOSED", "DOOR_V_OPEN"), name="Door {}".format(pos),
+            DoorHelper(self, pos, ("DOOR_CLOSED", "DOOR_H_OPEN", "DOOR_CLOSED", "DOOR_V_OPEN"),
+                       name="Door {}".format(pos),
                        open_function=DoorHelper.open_door)
-        # if hasattr(self.map, "rooms") and self.map.rooms is not None:
-        #     for room in self.map.rooms:
-        #         for door_pos in room.doors:
-        #             Entity(self, "door", door_pos, 'DOOR_CLOSED', groups = self.player_min1_sprite_group, blocks=False)
 
         # place monsters
         for i in range(5):
             pos = self.map.get_random_available_tile(Tile.FLOOR)
-            MonsterHelper(self, "Bat"+str(i), pos, 'BAT', 10, (1, 4, 0), [("bite", (1, 2, 0)),("snicker", (1, 4, 0))], 6, 0, vision=2, speed=10)
+            MonsterHelper(self, "Bat"+str(i), pos, 'BAT', 10, (1, 4, 0),
+                          [("bite", (1, 2, 0)),("snicker", (1, 4, 0))],
+                          6, 0, vision=2, speed=10)
 
         all_pos = self.map.get_all_available_tiles(Tile.FLOOR, without_objects=True)
 
@@ -702,16 +707,6 @@ class Game:
             self.visible_player_array = self.fov.get_vision_matrix_for(self.player, flag_explored=True)
             self.minimap.build_background()
             self.ticker.advance_ticks(self.player.speed)
-
-
-
-
-
-
-
-
-
-
 
     def show_start_screen(self):
         pass

@@ -44,6 +44,8 @@ class PlayerHelper(Entity):
         self.inventory_max = 100
         self.speed = 10
 
+        self.invalidate_fog_of_war = True
+
     @property
     def strength(self):
         return self.base_strength
@@ -110,6 +112,8 @@ class PlayerHelper(Entity):
             self.y += dy
             if self.animated and (dx != 0 or dy != 0):
                 self.last_direction = (dx, dy)
+
+            self.invalidate_fog_of_war = True
 
             return True
 
