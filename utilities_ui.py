@@ -63,6 +63,13 @@ class TextBox:
     def draw(self, surface):
         self._ktext.draw(surface)
 
+    def resize(self, old_screen_width, old_screen_height, new_screen_width, new_screen_height):
+        new_rect_width = int(self._ktext.rect.width * new_screen_width / old_screen_width)
+        new_rect_height = int(self._ktext.rect.height * new_screen_height / old_screen_height)
+
+        self._ktext.rect.width = new_rect_width
+        self._ktext.rect.height = new_rect_height
+
 
 class Input:
     """ A text input for pygame apps """

@@ -289,7 +289,7 @@ class PlayingScreen(Screen):
             for sprite in group:
                 self.game.screen.blit(sprite.image, self.game.camera.apply(sprite))
 
-        # FOV - TODO: Maybe could be optimized a bit... like redraw it only once until invalidated...
+        # FOW
         if self.game.player.invalidate_fog_of_war:
 
             self.fog_of_war_mask = pg.Surface((self.game.screen.get_rect().width,
@@ -316,7 +316,8 @@ class PlayingScreen(Screen):
         self.draw_health_bar(self.game.screen, 10, 10)
         # Minimap
         if self.game.minimap_enable:
-            self.game.screen.blit(self.game.minimap.background, (GAME_WIDTH - self.game.minimap.background.get_width() - 10, 10))
+            self.game.screen.blit(self.game.minimap.background,
+                                  (self.game.screen.get_width() - self.game.minimap.background.get_width() - 10, 10))
 
         # Text -> First line is to remove background
         self.game.screen.fill(BGCOLOR, self.game.textbox._ktext.rect)
@@ -332,8 +333,14 @@ class PlayingScreen(Screen):
             if event.type == pg.QUIT:
                 self.game.quit()
             if event.type == pg.VIDEORESIZE:
+                old_w = self.game.screen.get_rect().width
+                old_h = self.game.screen.get_rect().height
+
                 self.screen = pg.display.set_mode((event.w, event.h),
                                                   pg.RESIZABLE)
+                self.game.player.invalidate_fog_of_war = True
+                self.game.textbox.resize(old_w, old_h, event.w, event.h)
+
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_ESCAPE:
                     self.game.quit()
@@ -412,17 +419,17 @@ class PlayingScreen(Screen):
 
                 else:
                     if button1:
-                        # TODO: only click the tiles explored and not void
                         (rev_x, rev_y) = self.game.camera.reverse((x, y))
                         (x, y) = (int(rev_x / TILESIZE_SCREEN), int(rev_y / TILESIZE_SCREEN))
-                        self.game.textbox.add = "Position {} {} Explored: {}".format(x, y, self.game.map.tiles[x][y].explored)
-                        room = self.game.map.get_room_at(x, y)
-                        if room is not None:
-                            self.game.textbox.add = room.name
-                        self.game.textbox.add = "Objects:"
-                        for entity in self.game.objects:
-                            if entity.x == x and entity.y == y:
-                                self.game.textbox.add = entity.name
+                        if self.game.map.tiles[x][y].explored and self.game.map.tiles[x][y].tile_type != Tile.VOID:
+                            self.game.textbox.add = "Position {} {}".format(x, y)
+                            room = self.game.map.get_room_at(x, y)
+                            if room is not None:
+                                self.game.textbox.add = room.name
+                            self.game.textbox.add = "Objects:"
+                            for entity in self.game.objects:
+                                if entity.x == x and entity.y == y:
+                                    self.game.textbox.add = entity.name
 
             if event.type == pg.MOUSEBUTTONUP and self.game.textbox.drag_drop_text_box:
                 (x, y) = pg.mouse.get_pos()
