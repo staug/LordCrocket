@@ -97,6 +97,7 @@ class Map:
         self.width = self.height = 0
 
         self.rooms = []
+        self._doors_pos = None
 
         if filename is not None:
             self._generate_from_filename(filename)
@@ -596,12 +597,13 @@ class Map:
 
     @property
     def doors_pos(self):
-        pos = []
-        for room in self.rooms:
-            for door in room.doors:
-                if door not in pos:
-                    pos.append(door)
-        return pos
+        if self._doors_pos is None:
+            self._doors_pos = []
+            for room in self.rooms:
+                for door in room.doors:
+                    if door not in self._doors_pos:
+                        self._doors_pos.append(door)
+        return self._doors_pos
 
     def get_all_available_tiles(self, tile_type, without_objects=False):
         """
@@ -618,12 +620,10 @@ class Map:
             for entity in self.game.objects:
                 entity_pos_listing.append((entity.x, entity.y))
 
-        doors = self.doors_pos
-
         for x in range(self.tilewidth):
             for y in range(self.tileheight):
                 if self.tiles[x][y].tile_type == tile_type:
-                    if without_objects and (x, y) not in entity_pos_listing and (x, y) not in doors:
+                    if without_objects and (x, y) not in entity_pos_listing and (x, y) not in self.doors_pos:
                         listing.append((x, y))
         random.shuffle(listing)
         return listing
