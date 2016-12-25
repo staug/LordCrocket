@@ -5,7 +5,7 @@ from item import ItemEntity, EquipmentEntity
 from tilemap import Tile
 from actionable import ActionableEntity
 from fighter import MonsterFighter
-from ai import AIEntity
+from ai import AIEntity, FollowingAIEntity
 from tilemap import FieldOfView
 import utilities as ut
 import pygame
@@ -395,6 +395,13 @@ class MonsterHelper(Entity):
                         fighter=MonsterFighter(armor_class=armor, hit_dice=hit_dice, attacks=attacks, morale=morale,
                                                saving_throw=saving_throw, specials=special,
                                                death_function=death_function))
+
+
+class NPCHelper(Entity):
+
+    def __init__(self, game, name, pos, image_ref):
+        ai = FollowingAIEntity(speed=game.player.speed)
+        Entity.__init__(self, game, name, pos, image_ref, ai=ai)
 
 
 class ThrowableHelper(Entity):

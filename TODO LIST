@@ -32,6 +32,7 @@ MOSNTER
 * More characteristics to hero and monster - http://www.roguebasin.com/index.php?title=A_Better_Monster_AI
 * Better AI and more personality to monster
 * Monster drops gold and xp!
+* Remains of monster should be a new class...
 
 ITEM
 * Eahc item has a weight
@@ -45,7 +46,7 @@ ITEM
 
 Spells and potions
 * Increase and decrease visibility radius
-* fireball
+* fireball -> First step done.
 
 BUGS
 * In save, make sure the floor is always the same...

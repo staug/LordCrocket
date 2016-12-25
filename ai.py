@@ -1,10 +1,9 @@
 from math import sqrt
 
 
-class AIEntity:
-    # AI for an entity.
-    def __init__(self, speed=1):
-        self.speed = speed # the speed represents
+class AI:
+
+    def __init__(self):
         self.owner = None
 
     def move_towards(self, pos):
@@ -15,9 +14,19 @@ class AIEntity:
 
         # normalize it to length 1 (preserving direction), then round it and
         # convert to integer so the movement is restricted to the map grid
-        dx = int(round(dx / distance))
-        dy = int(round(dy / distance))
+        if distance != 0:
+            dx = int(round(dx / distance))
+            dy = int(round(dy / distance))
+        else:
+            dx = dy = 0
         return self.owner.move(dx, dy)
+
+
+class AIEntity(AI):
+    # AI for an entity.
+    def __init__(self, speed=1):
+        AI.__init__(self)
+        self.speed = speed # the speed represents
 
     def take_turn(self):
         # print( "The {} take turn".format(self.owner.name))
@@ -32,3 +41,15 @@ class AIEntity:
 
         if self.owner.fighter and self.owner.fighter.hit_points > 0:
             self.owner.game.ticker.schedule_turn(self.speed, self)
+
+
+class FollowingAIEntity(AI):
+    # AI for an entity.
+    def __init__(self, speed=1):
+        AI.__init__(self)
+        self.speed = speed # the speed represents
+
+    def take_turn(self):
+        if self.owner.distance_to(self.owner.game.player) > 2:
+            self.move_towards(self.owner.game.player.pos)
+        self.owner.game.ticker.schedule_turn(self.speed, self)

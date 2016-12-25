@@ -4,7 +4,7 @@ import sys
 from os import path
 import pygame as pg
 from ktextsurfacewriter import KTextSurfaceWriter
-from entities import MonsterHelper, EquipmentHelper, ItemHelper, DoorHelper, ThrowableHelper
+from entities import MonsterHelper, EquipmentHelper, ItemHelper, DoorHelper, ThrowableHelper, NPCHelper
 from player import PlayerHelper
 from settings import *
 from tilemap import Map, Camera, Tile, FieldOfView, Minimap
@@ -437,6 +437,10 @@ class PlayingScreen(Screen):
                 if event.key == pg.K_y:
                     ThrowableHelper(self.game, self.game.player.pos, "FIREBALL", (1,0), ThrowableHelper.light_damage,
                                     stopped_by=[Tile.WALL, Tile.VOID])
+                if event.key == pg.K_h:
+                    (x, y) = self.game.player.pos
+                    x += 1
+                    NPCHelper(self.game, "Companion", (x, y), "DOG")
 
                 if event.key == pg.K_s:
                     print("SAVING and EXIT")
@@ -545,6 +549,8 @@ class Game:
             # ENEMIES
             "BAT": load_image_list(IMG_FOLDER, 'BatA.png'),
             "BEARD": load_image_list(IMG_FOLDER, 'BeardA.png'),
+            # NPC
+            "DOG": load_image_list(IMG_FOLDER, 'DogA.png'),
             # ITEMS
             "REMAINS": load_image(IMG_FOLDER, item_image_src, 44, 2),
             "POTION_R": load_image(IMG_FOLDER, item_image_src, 1, 1),
