@@ -1,4 +1,4 @@
-from entities import Entity
+from entities import Entity, EquipmentHelper
 from fighter import PlayerFighter
 import utilities as ut
 import random as rd
@@ -14,6 +14,8 @@ class PlayerHelper(Entity):
     CHAR_NAME = "charisma"
 
     def __init__(self, game, pos):
+
+        self.inventory = []
 
         # Rolling base stats
         self.base_strength = ut.roll(6, 3)
@@ -35,33 +37,39 @@ class PlayerHelper(Entity):
         self.experience = 0
         self.level = 1
 
-        self.inventory = []
-        self.speed = 10
+        self.base_speed = 10
 
         Entity.__init__(self, game, "Player", pos, "PLAYER", vision=4,
                         fighter=PlayerFighter(hit_points=self.base_hit_points, body_points=self.base_body_points,
                                               physical_combat_bonus=1, magical_combat_bonus=0))
         self.inventory_max = 100
-        self.speed = 10
+        self.base_speed = 10
 
         self.invalidate_fog_of_war = True
 
     @property
     def strength(self):
-        return self.base_strength
+        return self.base_strength + self.get_bonus(EquipmentHelper.BONUS_STR)
+
     @property
     def dexterity(self):
-        return self.base_dexterity
+        return self.base_dexterity + self.get_bonus(EquipmentHelper.BONUS_DEX)
+
     @property
     def mind(self):
-        return self.base_mind
+        return self.base_mind + self.get_bonus(EquipmentHelper.BONUS_MIND)
+
     @property
     def charisma(self):
-        return self.base_charisma
+        return self.base_charisma + self.get_bonus(EquipmentHelper.BONUS_CHARISMA)
+
+    @property
+    def speed(self):
+        return self.base_speed + self.get_bonus(EquipmentHelper.BONUS_SPEED)
 
     @property
     def vision(self):
-        return self.base_vision
+        return self.base_vision + self.get_bonus(EquipmentHelper.BONUS_VISION)
 
     # BONUS: Stat bonus = (STAT-10)/3, round toward zero.
     def get_stat_bonus(self, stat):
@@ -76,6 +84,12 @@ class PlayerHelper(Entity):
             return int((self.charisma - 10) / 3)
 
     # FUNCTIONS
+
+    def get_bonus(self, bonus_type):
+        bonus = 0
+        for equipped_object in self.get_equipped_objects():
+            bonus += equipped_object.equipment.modifiers.get(bonus_type, 0)
+        return bonus
 
     def __str__(self):
         return ("{}, Position [{},{}], "

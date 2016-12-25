@@ -21,7 +21,6 @@ MAP SCREEN
 
 INVENTORY SCREEN
 * Inventory text and display
-* Inventory affecting cahracteristics
 * Inventory: display x items max, and then move to the next ones...
 
 SPEED SYSTEM
@@ -37,12 +36,6 @@ MOSNTER
 ITEM
 * Eahc item has a weight
 * Each item has durability index
-* [DONE] test that equipping items actually helps player stats
-* Possible update from item:
-- Vision
-- Speed
-- Armor
-- Characteristics
 
 Spells and potions
 * Increase and decrease visibility radius

@@ -268,8 +268,7 @@ class CharacterScreen(Screen):
     def build_player_text(self):
         return ("{}\n\n"
                 "STR={}\nDEX={}\nMIND={}\nCHA={}\n\n"
-                "HP={}/{}\nBP={}/{}\nAC={}\nvision={}".format(self.game.player.name, self.game.player.x,
-                                                              self.game.player.y, self.game.player.strength,
+                "HP={}/{}\nBP={}/{}\nAC={}\nvision={}".format(self.game.player.name, self.game.player.strength,
                                                               self.game.player.dexterity, self.game.player.mind,
                                                               self.game.player.charisma,
                                                               self.game.player.fighter.hit_points,
@@ -635,7 +634,7 @@ class Game:
                        open_function=DoorHelper.open_door)
 
         # place monsters
-        for i in range(100):
+        for i in range(20):
             pos = self.map.get_random_available_tile(Tile.FLOOR)
             MonsterHelper(self, "Bat"+str(i), pos, 'BAT', 10, (1, 4, 0),
                           [("bite", (1, 2, 0)),("snicker", (1, 4, 0))],
@@ -643,16 +642,16 @@ class Game:
 
         all_pos = self.map.get_all_available_tiles(Tile.FLOOR, without_objects=True)
 
-        for i in range(100):
+        for i in range(200):
             pos = all_pos.pop()
             ItemHelper(self, "Healing Potion"+str(i), pos, "POTION_R",
                        use_function=lambda player=self.player: ItemHelper.cast_heal(player))
 
-            EquipmentHelper(self, "Sword", all_pos.pop(), "SWORD", slot=EquipmentHelper.SLOT_HAND_RIGHT, modifiers=[])
-            EquipmentHelper(self, "Helmet", all_pos.pop(), "HELMET", slot=EquipmentHelper.SLOT_HEAD, modifiers=[])
-            EquipmentHelper(self, "Cape", all_pos.pop(), "CAPE", slot=EquipmentHelper.SLOT_CAPE, modifiers=[])
-            EquipmentHelper(self, "Leg", all_pos.pop(), "LEG", slot=EquipmentHelper.SLOT_LEG, modifiers=[])
-            EquipmentHelper(self, "Armor", all_pos.pop(), "ARMOR", slot=EquipmentHelper.SLOT_TORSO, modifiers=[])
+            EquipmentHelper(self, "Sword", all_pos.pop(), "SWORD", slot=EquipmentHelper.SLOT_HAND_RIGHT, modifiers={EquipmentHelper.BONUS_STR: 2})
+            EquipmentHelper(self, "Helmet", all_pos.pop(), "HELMET", slot=EquipmentHelper.SLOT_HEAD, modifiers={EquipmentHelper.BONUS_STR: -1})
+            #EquipmentHelper(self, "Cape", all_pos.pop(), "CAPE", slot=EquipmentHelper.SLOT_CAPE, modifiers={})
+            #EquipmentHelper(self, "Leg", all_pos.pop(), "LEG", slot=EquipmentHelper.SLOT_LEG, modifiers={})
+            #EquipmentHelper(self, "Armor", all_pos.pop(), "ARMOR", slot=EquipmentHelper.SLOT_TORSO, modifiers={})
 
             # pos = self.map.get_random_available_tile(Tile.FLOOR)
             # item_component = Item(use_function=lambda player=self.player: Item.cast_heal(player))

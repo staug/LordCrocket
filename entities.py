@@ -348,6 +348,14 @@ class EquipmentHelper(Entity):
     SLOT_RING = "Ring"
     SLOT_NECKLACE = "Necklace"
 
+    BONUS_STR = "Strength"
+    BONUS_DEX = "Dexterity"
+    BONUS_MIND = "Mind"
+    BONUS_CHARISMA = "Charisma"
+    BONUS_VISION = "Vision"
+    BONUS_SPEED = "Speed"
+    BONUS_ARMOR = "Armor"
+
     def __init__(self, game, name, pos, image_ref, slot, modifiers):
         """
         Initialization method
