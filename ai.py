@@ -32,5 +32,3 @@ class AIEntity:
 
         if self.owner.fighter and self.owner.fighter.hit_points > 0:
             self.owner.game.ticker.schedule_turn(self.speed, self)
-
-

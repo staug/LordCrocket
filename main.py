@@ -4,7 +4,7 @@ import sys
 from os import path
 import pygame as pg
 from ktextsurfacewriter import KTextSurfaceWriter
-from entities import MonsterHelper, EquipmentHelper, ItemHelper, DoorHelper
+from entities import MonsterHelper, EquipmentHelper, ItemHelper, DoorHelper, ThrowableHelper
 from player import PlayerHelper
 from settings import *
 from tilemap import Map, Camera, Tile, FieldOfView, Minimap
@@ -33,7 +33,7 @@ class InventoryScreen(Screen):
     def __init__(self, game, default_back_state):
         Screen.__init__(self, game, default_back_state)
         self.original_pos = (32, 32)
-        self.tile_size = 64
+        self.tile_size = 48
         self.objects_per_line = 5
 
     def events(self):
@@ -54,8 +54,6 @@ class InventoryScreen(Screen):
 
                 index_x = int((x - top_x) / tile_size)
                 index_y = int((y - top_y) / tile_size)
-
-                print("1:{} 2:{} 3:{} x={} y={}".format(button1, button2, button3, index_x, index_y))
 
                 has_equipable = len(self.game.player.get_unequipped_objects()) > 0
                 has_usable = len(self.game.player.get_non_equipment_objects()) > 0
@@ -422,18 +420,23 @@ class PlayingScreen(Screen):
                 if event.key == pg.K_m:
                     self.game.minimap_enable = not self.game.minimap_enable
                 if event.key == pg.K_p:
-                    self.game.game_state = Game.GAME_STATE_MINIMAP
+                    self.game.game_state = Game.GAME_STATE_MAP
                 if event.key == pg.K_f:
                     self.game.game_state = Game.GAME_STATE_CHARACTER
+                if event.key == pg.K_i:
+                    self.game.game_state=Game.GAME_STATE_INVENTORY
+                if event.key == pg.K_g:
+                    for object in self.game.objects:
+                        if (object.x, object.y) == (self.game.player.x, self.game.player.y) and object.item:
+                            object.item.pick_up()
 
                 if event.key == pg.K_t: # TEST
                     self.game.textbox.add = "TESTING : EFFECT"
                     SpecialVisualEffect(self, self.game.player.x, self.game.player.y, "SPECIAL_EFFECT", 3)
 
-                if event.key == pg.K_g:
-                    for object in self.game.objects:
-                        if (object.x, object.y) == (self.game.player.x, self.game.player.y) and object.item:
-                            object.item.pick_up()
+                if event.key == pg.K_y:
+                    ThrowableHelper(self.game, self.game.player.pos, "FIREBALL", (1,0), ThrowableHelper.light_damage,
+                                    stopped_by=[Tile.WALL, Tile.VOID])
 
                 if event.key == pg.K_s:
                     print("SAVING and EXIT")
@@ -446,15 +449,6 @@ class PlayingScreen(Screen):
                     with open("savegame", "wb") as f:
                         pick.dump([self.game.objects, self.game.map, self.game.player.name, self.game.all_groups], f)
                     self.game.quit()
-
-                if event.key == pg.K_i:
-                    self.game.game_state=Game.GAME_STATE_INVENTORY
-
-                if event.key == pg.K_u:
-                    # TODO Use to be moved in inventory
-                    self.game.textbox.add = "Using first item of inventory:"
-                    if len(self.game.player.get_non_equipment_objects()) > 0:
-                        self.game.player.get_non_equipment_objects()[0].item.use()
 
                 if event.key in (pg.K_l, pg.K_KP5):
                     self.game.textbox.add = str(self.game.player)
@@ -519,7 +513,7 @@ class Game:
 
     GAME_STATE_PLAYING = 'Playing'
     GAME_STATE_INVENTORY = 'Inventory'
-    GAME_STATE_MINIMAP = 'Minimap'
+    GAME_STATE_MAP = 'Minimap'
     GAME_STATE_CHARACTER = 'Character'
 
     def __init__(self):
@@ -568,13 +562,13 @@ class Game:
             "RING": load_image(IMG_FOLDER, item_image_src, 1, 4),
             "NECKLACE": load_image(IMG_FOLDER, item_image_src, 1, 5),
             #
-            #"WALLS": load_image(IMG_FOLDER, level_image_src, 21, 2),
             "WALLS": load_wall_structure_dawnlike(wall_image_src),
             "FLOOR": [[load_image(IMG_FOLDER, level_image_src, x, y) for x in range(4)] for y in range(15)],
             "FLOOR_EXT": [[load_image(IMG_FOLDER, level_image_src, x, y) for x in range(4, 6)] for y in range(15)],
             "DOOR_V_OPEN": load_image(IMG_FOLDER, level_image_src, 15, 2),
             "DOOR_H_OPEN": load_image(IMG_FOLDER, level_image_src, 16, 2),
             "DOOR_CLOSED": load_image(IMG_FOLDER, level_image_src, 14, 2),
+            "FIREBALL": load_image(IMG_FOLDER, level_image_src, 42, 27),
             "SPECIAL_EFFECT": [load_image(IMG_FOLDER, level_image_src, x, 21) for x in range(4)]
         }
 
@@ -635,7 +629,7 @@ class Game:
                        open_function=DoorHelper.open_door)
 
         # place monsters
-        for i in range(5):
+        for i in range(100):
             pos = self.map.get_random_available_tile(Tile.FLOOR)
             MonsterHelper(self, "Bat"+str(i), pos, 'BAT', 10, (1, 4, 0),
                           [("bite", (1, 2, 0)),("snicker", (1, 4, 0))],
@@ -643,14 +637,17 @@ class Game:
 
         all_pos = self.map.get_all_available_tiles(Tile.FLOOR, without_objects=True)
 
-        for i in range(200):
+        for i in range(100):
             pos = all_pos.pop()
             ItemHelper(self, "Healing Potion"+str(i), pos, "POTION_R",
                        use_function=lambda player=self.player: ItemHelper.cast_heal(player))
-            pos = all_pos.pop()
-            EquipmentHelper(self, "Sword", pos, "SWORD", slot=EquipmentHelper.SLOT_HAND_RIGHT, modifiers=[])
 
-            pass
+            EquipmentHelper(self, "Sword", all_pos.pop(), "SWORD", slot=EquipmentHelper.SLOT_HAND_RIGHT, modifiers=[])
+            EquipmentHelper(self, "Helmet", all_pos.pop(), "HELMET", slot=EquipmentHelper.SLOT_HEAD, modifiers=[])
+            EquipmentHelper(self, "Cape", all_pos.pop(), "CAPE", slot=EquipmentHelper.SLOT_CAPE, modifiers=[])
+            EquipmentHelper(self, "Leg", all_pos.pop(), "LEG", slot=EquipmentHelper.SLOT_LEG, modifiers=[])
+            EquipmentHelper(self, "Armor", all_pos.pop(), "ARMOR", slot=EquipmentHelper.SLOT_TORSO, modifiers=[])
+
             # pos = self.map.get_random_available_tile(Tile.FLOOR)
             # item_component = Item(use_function=lambda player=self.player: Item.cast_heal(player))
             # item = GameObject(self, "HEALING POTION", pos[0], pos[1], self.items_img['Potion_R'], blocks=False,
@@ -752,7 +749,7 @@ class Game:
                 self.inventory_screen.update()
                 self.inventory_screen.draw()
 
-            elif self.game_state == Game.GAME_STATE_MINIMAP:
+            elif self.game_state == Game.GAME_STATE_MAP:
                 self.map_screen.events()
                 self.map_screen.update()
                 self.map_screen.draw()
@@ -770,7 +767,8 @@ class Game:
         if player_action:
             self.visible_player_array = self.fov.get_vision_matrix_for(self.player, flag_explored=True)
             self.minimap.build_background()
-            self.ticker.advance_ticks(self.player.speed)
+            self.ticker.ticks_to_advance += self.player.speed
+            self.ticker.advance_ticks()
 
     def show_start_screen(self):
         pass

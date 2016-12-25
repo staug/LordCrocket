@@ -7,11 +7,12 @@ class Ticker(object):
     def __init__(self):
         self.ticks = 0  # current ticks--sys.maxint is 2147483647
         self.schedule = {}  # this is the dict of things to do {ticks: [obj1, obj2, ...], ticks+1: [...], ...}
+        self.ticks_to_advance = 0
 
     def schedule_turn(self, interval, obj):
         self.schedule.setdefault(self.ticks + interval, []).append(obj)
 
-    def advance_ticks(self, interval):
+    def _advance_ticks(self, interval):
         for i in range(interval):
             # print("Turn {}".format(self.ticks))
             things_to_do = self.schedule.pop(self.ticks, [])
@@ -19,6 +20,11 @@ class Ticker(object):
                 if obj is not None:
                     obj.take_turn()
             self.ticks += 1
+
+    def advance_ticks(self):
+        if self.ticks_to_advance > 0:
+            self._advance_ticks(self.ticks_to_advance)
+            self.ticks_to_advance = 0
 
 
 """

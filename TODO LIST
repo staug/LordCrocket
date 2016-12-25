@@ -3,9 +3,6 @@ DUNGEON
 * Split dungeon in subclasses
 
 PLAYER
-* [Basic done] Implement inventory
-* Inventory screen -> https://en.wikipedia.org/wiki/Role-playing_video_game#/media/File:Scourge_character_information.png
-* Make more characteristics for combat
 * Player in exploration mode (higher vision) and in combat mode (def penalty if not in combat mode?)
 
 NPC
@@ -16,17 +13,20 @@ GENERAL GAME
 * Stairs between maps
 * Character view mode
 
+CHARACTER_SCREEN:
+* Make it beyond the ugly feel that is present
+
 MAP SCREEN
 * Map mode: map is centered
 
 INVENTORY SCREEN
 * Inventory text and display
 * Inventory affecting cahracteristics
-* Inventory also displays usable objects in separate category
-* Use items from inventory
+* Inventory: display x items max, and then move to the next ones...
 
 SPEED SYSTEM
 * different speed for each action
+* Use a ticker property to record last action update.
 
 MOSNTER
 * More characteristics to hero and monster - http://www.roguebasin.com/index.php?title=A_Better_Monster_AI
@@ -37,22 +37,19 @@ ITEM
 * Eahc item has a weight
 * Each item has durability index
 * [DONE] test that equipping items actually helps player stats
+* Possible update from item:
+- Vision
+- Speed
+- Armor
+- Characteristics
 
 Spells and potions
 * Increase and decrease visibility radius
+* fireball
 
 BUGS
 * In save, make sure the floor is always the same...
 * Textbox: if a line is multi line, then the number of messages displayed in the textbox is incorrect
 
 Notes:
-
-
-
-
-OLD:
-
-Gold
-
-
-
+Gold from monster

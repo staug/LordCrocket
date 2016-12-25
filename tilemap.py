@@ -582,18 +582,29 @@ class Map:
                 else:
                     self.tiles[col][row].tile_type = Tile.VOID
 
-    def get_random_available_tile(self, tile_type):
+    def get_random_available_tile(self, tile_type, without_objects=True):
         """
         Return a tile matching the characteristics: given tile type
         Used to get a spawning position...
+        By default, the tile should be without objects and out of any doors position
         :param tile_type: the type of tile that we look for
+        :param without_objects: check if no objects is there, and that it is not a possible door position
         :return: a tile position (tuple)
         """
+        entity_pos_listing = []
+
+        if without_objects:
+            for entity in self.game.objects:
+                entity_pos_listing.append((entity.x, entity.y))
+
         while True:
             x = random.randint(0, self.tilewidth - 1)
             y = random.randint(0, self.tileheight - 1)
             if self.tiles[x][y].tile_type == tile_type:
-                return (x, y)
+                if without_objects and (x, y) not in entity_pos_listing and (x, y) not in self.doors_pos:
+                    return x, y
+                else:
+                    return x, y
 
     @property
     def doors_pos(self):

@@ -266,6 +266,7 @@ class ItemHelper(Entity):
         Sample: use_function=lambda player=self.player: Item.cast_heal(player)
         """
         Entity.__init__(self, game, name, pos, image_ref, blocks=False, item=ItemEntity(use_function=use_function))
+        self.set_in_spritegroup(-1)
 
     @staticmethod
     def cast_heal(entity, heal_amount=3, expression='FIX'):
@@ -360,7 +361,7 @@ class EquipmentHelper(Entity):
         """
         Entity.__init__(self, game, name, pos, image_ref, blocks=False,
                         equipment=EquipmentEntity(slot=slot, modifiers=modifiers))
-
+        self.set_in_spritegroup(-1)
 
 class MonsterHelper(Entity):
     """
@@ -394,3 +395,61 @@ class MonsterHelper(Entity):
                         fighter=MonsterFighter(armor_class=armor, hit_dice=hit_dice, attacks=attacks, morale=morale,
                                                saving_throw=saving_throw, specials=special,
                                                death_function=death_function))
+
+
+class ThrowableHelper(Entity):
+
+    TARGET_NPC = "target_NPC"
+    TARGET_MONSTER = "target_monster"
+    TARGET_FIGHTER = "target_fighter"
+
+    def __init__(self, game, pos, image_ref, direction, function_hit, target_list=[], stopped_by=[]):
+        Entity.__init__(self, game, "", pos, image_ref)
+        self.direction = direction
+        self.function_hit = function_hit
+        self.target_list = target_list
+        self.stopped_by = stopped_by
+
+        Entity.__init__(self, game, "", pos, image_ref)
+        self.set_in_spritegroup(1)
+        self.next_motion = pygame.time.get_ticks() - 1
+
+    def update(self):
+        now = pygame.time.get_ticks()
+        if now > self.next_motion:
+            self.x += self.direction[0]
+            self.y += self.direction[1]
+
+            # Test if next position is valid
+            if not (0 <= self.x < self.game.map.tilewidth) and (0 <= self.y < self.game.map.tileheight):
+                self.remove_object()
+                return
+            if self.game.map.tiles[self.x][self.y].tile_type in self.stopped_by:
+                self.remove_object()
+                return
+
+            # Now testing if in target list!
+            # TODO Proper testing between NPC and monster
+            for entity in self.game.objects:
+                # last check is to avoid "remains" of monster to act like entities...
+                # TODO remove the last check, by transferring entities to new objects instead
+                if entity.pos == self.pos and isinstance(entity, MonsterHelper) and entity.fighter is not None:
+                    self.function_hit(entity)
+                    self.remove_object()
+                    return
+
+            self.next_motion = now + 200
+        else:
+            if self.animated:
+                self.animate()
+            self.rect.x = self.x * TILESIZE_SCREEN
+            self.rect.y = self.y * TILESIZE_SCREEN
+
+    def remove_object(self):
+        self.game.player_plus1_sprite_group.remove(self)
+        self.game.objects.remove(self)
+        self.kill()
+
+    @staticmethod
+    def light_damage(target):
+        target.fighter.take_damage(20)
