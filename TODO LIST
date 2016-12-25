@@ -1,7 +1,4 @@
 DUNGEON
-* [DONE] Improve dungeon generation using maze algo: http://www.brainycode.com/downloads/RandomDungeonGenerator.pdf
-* [DONE] Make a Maze based dungeon
-* [Done] Create cavelike dungeon using cell generation algo
 * Make Dungeon beautiful
 * Split dungeon in subclasses
 
@@ -15,27 +12,18 @@ NPC
 * Add NPC Companions that can be summoned
 
 GENERAL GAME
-* [DONE] Clean up the image loading
-* [DONE] Add the Version Number at the start and in title
 * CLean up UI
-* [DONE] Player movement in all direction
-* [DONE] Better Message Pad: button to go up and down
-* [DONE] Add field of view and fog of war
-* [DONE] Minimap
-* [Done] Prepare a specific object class for random effect style, which disappears after a while - for combat
-* [Done] UI: Drag and Drop the text console? Add a border to the text console?
-* Game States: Game mode, minimap mode, inventory mode, character view mode
+* Stairs between maps
+* Character view mode
+
+MAP SCREEN
+* Map mode: map is centered
+
+INVENTORY SCREEN
 * Inventory text and display
 * Inventory affecting cahracteristics
 * Inventory also displays usable objects in separate category
-* Map mode displays dungeon name
-* Map mode: map is centered
-* Stairs between maps
-* Character view mode
-* [DONE] Save and load
-* Add time system!
-* split the files in sub files
-
+* Use items from inventory
 
 SPEED SYSTEM
 * different speed for each action
@@ -43,7 +31,6 @@ SPEED SYSTEM
 MOSNTER
 * More characteristics to hero and monster - http://www.roguebasin.com/index.php?title=A_Better_Monster_AI
 * Better AI and more personality to monster
-* [DONE] Monster messages in the message pad
 * Monster drops gold and xp!
 
 ITEM
@@ -57,10 +44,6 @@ Spells and potions
 BUGS
 * In save, make sure the floor is always the same...
 * Textbox: if a line is multi line, then the number of messages displayed in the textbox is incorrect
-
-INVENTORY SCREEN:
-* Use items from inventory
-
 
 Notes:
 

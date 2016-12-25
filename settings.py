@@ -1,6 +1,6 @@
 # GAME
 GAME_TITLE = "Lord Crocket"
-GAME_VER = "0.14"
+GAME_VER = "0.15"
 
 # define some colors (R, G, B)
 WHITE = (255, 255, 255)

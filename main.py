@@ -29,7 +29,13 @@ class Screen:
 
 
 class InventoryScreen(Screen):
-    
+
+    def __init__(self, game, default_back_state):
+        Screen.__init__(self, game, default_back_state)
+        self.original_pos = (32, 32)
+        self.tile_size = 64
+        self.objects_per_line = 5
+
     def events(self):
         # catch all events here
         for event in pg.event.get():
@@ -42,44 +48,78 @@ class InventoryScreen(Screen):
                 (button1, button2, button3) = pg.mouse.get_pressed()
                 (x, y) = pg.mouse.get_pos()
                 # Test where the mouse is..
-                tile_size = 64
-                orig_x = 32
-                top_x, top_y = orig_x, 32
+                tile_size = self.tile_size
+                orig_x = self.original_pos[0]
+                top_x, top_y = orig_x, self.original_pos[1]
 
                 index_x = int((x - top_x) / tile_size)
                 index_y = int((y - top_y) / tile_size)
 
-                print("1:{} 2:{} 3:{}".format(button1, button2, button3))
+                print("1:{} 2:{} 3:{} x={} y={}".format(button1, button2, button3, index_x, index_y))
+
+                has_equipable = len(self.game.player.get_unequipped_objects()) > 0
+                has_usable = len(self.game.player.get_non_equipment_objects()) > 0
+
+                start_index_y_equipable = 6
+                end_index_y_equipable = start_index_y_equipable + int(len(self.game.player.get_unequipped_objects()) / self.objects_per_line)
+
+                start_index_y_usable = end_index_y_equipable + 3
+                if not has_equipable:
+                    start_index_y_usable = 6
+                end_index_y_usable = start_index_y_usable + int(len(self.game.player.get_non_equipment_objects()) / self.objects_per_line)
 
                 if 0 <= index_x < 4 and 0 <= index_y < 5:
-                    slots = [EquipmentHelper.SLOT_RING, EquipmentHelper.SLOT_HEAD, EquipmentHelper.SLOT_CAPE, EquipmentHelper.SLOT_NECKLACE,
-                             EquipmentHelper.SLOT_HAND_RIGHT, EquipmentHelper.SLOT_TORSO, EquipmentHelper.SLOT_HAND_LEFT, EquipmentHelper.SLOT_BOW,
-                             EquipmentHelper.SLOT_GLOVE, EquipmentHelper.SLOT_LEG, EquipmentHelper.SLOT_QUIVER, "NOTHING",
-                             "NOTHING", EquipmentHelper.SLOT_FOOT, "NOTHING", "NOTHING"]
-                    game_object = self.game.player.get_equipped_object_at(slots[index_y*4+index_x])
-                    if game_object is not None:
-                        if button1:
-                            print(game_object.name)
-                        else:
-                            game_object.equipment.dequip()
-                elif len(self.game.player.get_unequipped_objects()) > 0 \
-                        and 0 <= index_x < 8 \
-                        and 6 <= index_y < 7 + len(self.game.player.get_unequipped_objects()) % 8:
-                    listing = self.game.player.get_unequipped_objects()
-                    if button1:
-                        print(listing[(index_y-6)*8+index_x].name)
-                    else:
-                        listing[(index_y-6)*8+index_x].equipment.equip()
+                    self.handle_equipped_event((button1, button2, button3), index_x, index_y)
+                elif has_equipable \
+                        and 0 <= index_x < self.objects_per_line \
+                        and start_index_y_equipable <= index_y <= end_index_y_equipable \
+                        and len(self.game.player.get_unequipped_objects()) > (index_y-start_index_y_equipable)*self.objects_per_line+index_x:
+                    self.handle_equipable_event((button1, button2, button3), index_x, index_y - start_index_y_equipable)
+                # Usable, but not equipment
+                elif has_usable \
+                        and 0 <= index_x < self.objects_per_line \
+                        and start_index_y_usable <= index_y <= end_index_y_usable \
+                        and len(self.game.player.get_non_equipment_objects()) > (index_y - start_index_y_usable) * self.objects_per_line + index_x:
+                    self.handle_usable_event((button1, button2, button3), index_x, index_y - start_index_y_usable)
 
-                #TODO: Handle the equipment!
+    def handle_equipable_event(self, buttons, index_x, index_y):
+        listing = self.game.player.get_unequipped_objects()
+        (button1, button2, button3) = buttons
+        if button1:
+            print(listing[index_y * self.objects_per_line + index_x].name)
+        else:
+            listing[index_y * self.objects_per_line + index_x].equipment.equip()
+
+    def handle_usable_event(self, buttons, index_x, index_y):
+        listing = self.game.player.get_non_equipment_objects()
+        (button1, button2, button3) = buttons
+        if button1:
+            print(listing[index_y * self.objects_per_line + index_x].name)
+        else:
+            listing[index_y * self.objects_per_line + index_x].item.use()
+
+    def handle_equipped_event(self, buttons, index_x, index_y):
+        slots = [EquipmentHelper.SLOT_RING, EquipmentHelper.SLOT_HEAD, EquipmentHelper.SLOT_CAPE,
+                 EquipmentHelper.SLOT_NECKLACE,
+                 EquipmentHelper.SLOT_HAND_RIGHT, EquipmentHelper.SLOT_TORSO, EquipmentHelper.SLOT_HAND_LEFT,
+                 EquipmentHelper.SLOT_BOW,
+                 EquipmentHelper.SLOT_GLOVE, EquipmentHelper.SLOT_LEG, EquipmentHelper.SLOT_QUIVER, "NOTHING",
+                 "NOTHING", EquipmentHelper.SLOT_FOOT, "NOTHING", "NOTHING"]
+        game_object = self.game.player.get_equipped_object_at(slots[index_y * 4 + index_x])
+        if game_object is not None:
+            (button1, button2, button3) = buttons
+            if button1:
+                print(game_object.name)
+            else:
+                game_object.equipment.dequip()
 
     def draw(self):
         # Erase All
         self.game.screen.fill(BGCOLOR)
 
-        tile_size = 64
-        orig_x = 32
-        top_x, top_y = orig_x, 32
+        tile_size = self.tile_size
+        orig_x = self.original_pos[0]
+        top_x, top_y = orig_x, self.original_pos[1]
 
         # First part: Ring - Head - Cape - Necklace
         ring = self.game.player.get_equipped_object_at(EquipmentHelper.SLOT_RING)
@@ -152,36 +192,44 @@ class InventoryScreen(Screen):
         pg.draw.rect(self.game.screen, WHITE, pg.Rect((top_x, top_y), (tile_size, tile_size)), 2)
 
         # Now all the equiment that is not equipped
-        top_y += 3*tile_size
-        top_x = orig_x
-        for index, item in enumerate(self.game.player.get_unequipped_objects()):
-            self.game.screen.blit(pg.transform.scale(item.image, (tile_size, tile_size)), (top_x, top_y))
-            pg.draw.rect(self.game.screen, WHITE, pg.Rect((top_x, top_y), (tile_size, tile_size)), 2)
-            if (index + 1) % 8 == 0:
-                top_x = orig_x
-                top_y += tile_size
-            else:
-                top_x += tile_size
+        if len(self.game.player.get_unequipped_objects()) > 0:
+            top_y += 3*tile_size
+            top_x = orig_x
+            for index, item in enumerate(self.game.player.get_unequipped_objects()):
+                self.game.screen.blit(pg.transform.scale(item.image, (tile_size, tile_size)), (top_x, top_y))
+                pg.draw.rect(self.game.screen, WHITE, pg.Rect((top_x, top_y), (tile_size, tile_size)), 2)
+                if (index + 1) % self.objects_per_line == 0:
+                    top_x = orig_x
+                    top_y += tile_size
+                else:
+                    top_x += tile_size
 
-        #TODO: all the unequippable object
         # Now all the objects that are not equipment
-        top_y += 3*tile_size
-        top_x = orig_x
-        for index, item in enumerate(self.game.player.get_non_equipment_objects()):
-            self.game.screen.blit(pg.transform.scale(item.image, (tile_size, tile_size)), (top_x, top_y))
-            pg.draw.rect(self.game.screen, WHITE, pg.Rect((top_x, top_y), (tile_size, tile_size)), 2)
-            if (index + 1) % 8 == 0:
-                top_x = orig_x
-                top_y += tile_size
-            else:
-                top_x += tile_size
+        if len(self.game.player.get_non_equipment_objects()) > 0:
+            top_y += 3*tile_size
+            top_x = orig_x
+            for index, item in enumerate(self.game.player.get_non_equipment_objects()):
+                self.game.screen.blit(pg.transform.scale(item.image, (tile_size, tile_size)), (top_x, top_y))
+                pg.draw.rect(self.game.screen, WHITE, pg.Rect((top_x, top_y), (tile_size, tile_size)), 2)
+                if (index + 1) % self.objects_per_line == 0:
+                    top_x = orig_x
+                    top_y += tile_size
+                else:
+                    top_x += tile_size
 
         pg.display.flip()
 
     def update(self):
         pass
 
+
 class MapScreen(Screen):
+
+    def __init__(self, game, default_back_state):
+        Screen.__init__(self, game, default_back_state)
+        game_folder = path.dirname(__file__)
+        font_folder = path.join(game_folder, FONT_FOLDER)
+        self.font = pg.font.Font(path.join(font_folder, FONT_NAME), 12)
 
     def events(self):
 
@@ -200,6 +248,10 @@ class MapScreen(Screen):
         map_image = self.game.minimap.build_background(zoom_factor=4)
         self.game.screen.blit(map_image, (10, 10))
 
+        text = self.font.render(self.game.map.name, 1, WHITE)
+        pos_x = int((self.game.screen.get_width() - text.get_width()) / 2)
+        self.game.screen.blit(text, (pos_x, self.game.screen.get_height() - 40))
+
         pg.display.flip()
 
     def update(self):
@@ -209,8 +261,7 @@ class MapScreen(Screen):
 class CharacterScreen(Screen):
 
     def __init__(self, game, default_back_state):
-        self.game = game
-        self.default_back_state = default_back_state
+        Screen.__init__(self, game, default_back_state)
         game_folder = path.dirname(__file__)
         font_folder = path.join(game_folder, FONT_FOLDER)
         self.font = pg.font.Font(path.join(font_folder, FONT_NAME), 12)
@@ -223,9 +274,13 @@ class CharacterScreen(Screen):
                                                               self.game.player.y, self.game.player.strength,
                                                               self.game.player.dexterity, self.game.player.mind,
                                                               self.game.player.charisma,
-                                                           self.game.player.fighter.hit_points, self.game.player.base_hit_points, self.game.player.fighter.body_points, self.game.player.base_body_points, self.game.player.fighter.armor_class, self.game.player.vision
-                                                           ))
-
+                                                              self.game.player.fighter.hit_points,
+                                                              self.game.player.base_hit_points,
+                                                              self.game.player.fighter.body_points,
+                                                              self.game.player.base_body_points,
+                                                              self.game.player.fighter.armor_class,
+                                                              self.game.player.vision
+                                                              ))
 
     def events(self):
 
@@ -243,14 +298,18 @@ class CharacterScreen(Screen):
         self.writer_part.text=self.build_player_text()
         self.writer_part.draw(self.game.screen)
 
-
         pg.display.flip()
 
     def update(self):
         pass
 
+
 class PlayingScreen(Screen):
-    
+
+    def __init__(self, game, default_back_state):
+        Screen.__init__(self, game, default_back_state)
+        self.fog_of_war_mask = None
+
     def draw_health_bar(self, surf, x, y):
         BAR_HEIGHT = 20
         fighter = self.game.player.fighter
@@ -281,9 +340,9 @@ class PlayingScreen(Screen):
 
         # Background
         self.game.screen.blit(self.game.map.background,
-                         self.game.camera.apply_rect(pg.Rect(0, 0,
-                                                        self.game.map.background.get_width(),
-                                                        self.game.map.background.get_height())))
+                              self.game.camera.apply_rect(pg.Rect(0, 0,
+                                                                  self.game.map.background.get_width(),
+                                                                  self.game.map.background.get_height())))
         # Sprites
         for group in self.game.all_groups:
             for sprite in group:
@@ -293,7 +352,7 @@ class PlayingScreen(Screen):
         if self.game.player.invalidate_fog_of_war:
 
             self.fog_of_war_mask = pg.Surface((self.game.screen.get_rect().width,
-                                              self.game.screen.get_rect().height), pg.SRCALPHA, 32)
+                                               self.game.screen.get_rect().height), pg.SRCALPHA, 32)
 
             black = pg.Surface((TILESIZE_SCREEN, TILESIZE_SCREEN))
             black.fill(BGCOLOR)
@@ -314,7 +373,7 @@ class PlayingScreen(Screen):
         # --- HUD SECTION ---
         # Player health
         self.draw_health_bar(self.game.screen, 10, 10)
-        # Minimap
+        # Mini map
         if self.game.minimap_enable:
             self.game.screen.blit(self.game.minimap.background,
                                   (self.game.screen.get_width() - self.game.minimap.background.get_width() - 10, 10))
@@ -455,6 +514,7 @@ class PlayingScreen(Screen):
             group.update()
         self.game.camera.update(self.game.player)
 
+
 class Game:
 
     GAME_STATE_PLAYING = 'Playing'
@@ -484,10 +544,10 @@ class Game:
 
         self.all_images = {
             "PLAYER" : {
-            "E": load_image_list(IMG_FOLDER, 'HeroEast.png'),
-            "W": load_image_list(IMG_FOLDER, 'HeroWest.png'),
-            "N": load_image_list(IMG_FOLDER, 'HeroNorth.png'),
-            "S": load_image_list(IMG_FOLDER, 'HeroSouth.png')},
+                "E": load_image_list(IMG_FOLDER, 'HeroEast.png'),
+                "W": load_image_list(IMG_FOLDER, 'HeroWest.png'),
+                "N": load_image_list(IMG_FOLDER, 'HeroNorth.png'),
+                "S": load_image_list(IMG_FOLDER, 'HeroSouth.png')},
             # ENEMIES
             "BAT": load_image_list(IMG_FOLDER, 'BatA.png'),
             "BEARD": load_image_list(IMG_FOLDER, 'BeardA.png'),
@@ -520,10 +580,7 @@ class Game:
 
         # Loading fonts and initialize text system
         self.textbox = TextBox(self)
-        self.textbox.text = "Welcome to the dungeon"
-        # Inventory data
-        self.inventory_textbox = TextBox(self)
-        self.inventory_textbox.text = "Object..."
+        self.textbox.text = "Welcome to the dungeon - {}".format(GAME_VER)
 
     def new(self):
 
@@ -588,7 +645,7 @@ class Game:
 
         for i in range(200):
             pos = all_pos.pop()
-            ItemHelper(self, "Healing Potion", pos, "POTION_R",
+            ItemHelper(self, "Healing Potion"+str(i), pos, "POTION_R",
                        use_function=lambda player=self.player: ItemHelper.cast_heal(player))
             pos = all_pos.pop()
             EquipmentHelper(self, "Sword", pos, "SWORD", slot=EquipmentHelper.SLOT_HAND_RIGHT, modifiers=[])
@@ -662,10 +719,10 @@ class Game:
             # We have 5 sprites groups: two below the player, the player one and two above
             # They are drawn in the order below:
             [self.player_min2_sprite_group,
-                               self.player_min1_sprite_group,
-                               self.player_sprite_group,
-                               self.player_plus1_sprite_group,
-                               self.player_plus2_sprite_group] = self.all_groups
+             self.player_min1_sprite_group,
+             self.player_sprite_group,
+             self.player_plus1_sprite_group,
+             self.player_plus2_sprite_group] = self.all_groups
 
             # Camera
             self.camera = Camera(self.map.width, self.map.height)
