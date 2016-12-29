@@ -7,7 +7,6 @@ from actionable import ActionableEntity
 from fighter import MonsterFighter
 from ai import AIEntity, FollowingAIEntity
 from tilemap import FieldOfView
-import utilities as ut
 import pygame
 from math import sqrt
 

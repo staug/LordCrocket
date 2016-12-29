@@ -1,4 +1,6 @@
 import utilities as ut
+import entities as ent
+
 
 class FighterEntity:
     """
@@ -121,7 +123,7 @@ class PlayerFighter(FighterEntity):
 
     @property
     def armor_class(self):
-        return 10 + self.owner.get_stat_bonus(self.owner.DEX_NAME) + self.owner.get_bonus(EquipmentHelper.BONUS_ARMOR)
+        return 10 + self.owner.get_stat_bonus(self.owner.DEX_NAME) + self.owner.get_bonus(ent.EquipmentHelper.BONUS_ARMOR)
 
     def player_death(self):
         # the game ended!
