@@ -79,30 +79,61 @@ class Room:
         return tiles
 
 
-class Map:
+class MapFactory:
     """
-    The Map, representing a level. Mainly holds a reference to a set of tiles, as well as dimensions.
+    Used to generate one of the predefined map type
     """
-    def __init__(self, game, name, filename=None, dimension=(80, 120),
-                 room_size_range=((8, 10), (12, 17)), max_num_room=50):
+    def __init__(self, name, graphical_resources,
+                 seed=None, filename=None, dimension=(81, 121)):
 
-        self.game = game
-        self.name = name
-        self._background = None
-        self.tilewidth = self.tileheight = 0
-        self.width = self.height = 0
+        random.seed(seed)
 
-        self.rooms = []
-        self._doors_pos = None
+        map_correctly_initialized = False
+        self.map = None
 
-        if filename is not None:
-            self._generate_from_filename(filename)
-        else:
+        while not map_correctly_initialized:
+            print(" *** GENERATING DUNGEON *** ")
+            # self.map = CaveMap(name, graphical_resources, dimension)
+            # self.map = MazeMap(name, graphical_resources, dimension)
+            # self.map = RoomAndMazeMap(name, graphical_resources, dimension)
+            self.map = RoomMap(name, graphical_resources, dimension)
+            print("DUNGEON: Available Tile: {} Limit {}".format(
+                len(self.map.get_all_available_tiles(c.T_FLOOR, [], without_objects=True)),
+                dimension[0] * dimension[1] / 4
+            ))
+            map_correctly_initialized = \
+                len(self.map.get_all_available_tiles(c.T_FLOOR, [],
+                                                     without_objects=True)) > dimension[0] * dimension[1] / 4
+        # Make it a bit more beautiful
+        self.map.remove_extra_walls()
+        # The map is only valid if pos > to...
+
+        #if filename is not None:
+        #    self._generate_from_filename(filename)
+        #else:
             # self._generate_room_type_dungeon(seed=None, dimension=dimension,
             #  room_size_range=room_size_range, max_num_room=max_num_room)
-            # self._generate_pure_maze_dungeon()
+
             # self._generate_cave_type_dungeon()
-            self._generate_maze_type_dungeon()
+            # self._generate_maze_type_dungeon()
+
+class Map:
+    """
+    The Map, representing a level.
+    Mainly holds a reference to a set of tiles, as well as dimensions.
+    """
+    def __init__(self, name, graphical_resources, dimension):
+
+        self.graphical_resources = graphical_resources
+        self.name = name
+        self._background = None
+
+        self.tile_width = dimension[0]  # width of map, expressed in tiles
+        self.tile_height = dimension[1]  # height of map, expressed in tiles
+
+        self.tiles = []
+        self.rooms = []
+        self._doors_pos = None
 
     @property
     def background(self):
@@ -112,7 +143,24 @@ class Map:
 
     def clean_before_save(self):
         self._background = None
-        self.game = None
+        self.graphical_resources = None
+
+    def remove_extra_walls(self):
+        """
+        Generic method used by all to clean up after generation
+        """
+        for x in range(0, self.tile_width):
+            for y in range(0, self.tile_height):
+                if self.tiles[x][y].tile_type == c.T_WALL:
+                    delta = [(0, -1), (0, 1), (1, 0), (-1, 0), (1, 1), (-1, -1), (1, -1), (-1, 1)]
+                    count = 0
+                    for (dx, dy) in delta:
+                        if x + dx < 0 or x + dx >= self.tile_width or y + dy < 0 or y + dy >= self.tile_height:
+                            count += 1
+                        elif self.tiles[x + dx][y + dy].tile_type in (c.T_WALL, c.T_VOID):
+                            count += 1
+                    if count == 8:
+                        self.tiles[x][y].tile_type = c.T_VOID
 
     def wall_weight(self, x, y, door_list):
         """
@@ -126,43 +174,325 @@ class Map:
             weight += 1
         if x - 1 > 0 and (self.tiles[x-1][y].tile_type == c.T_WALL or (x - 1, y) in door_list):
             weight += 8
-        if y+1 < self.tileheight and (self.tiles[x][y+1].tile_type == c.T_WALL or (x, y+1) in door_list):
+        if y+1 < self.tile_height and (self.tiles[x][y+1].tile_type == c.T_WALL or (x, y+1) in door_list):
             weight += 4
-        if x+1 < self.tilewidth and (self.tiles[x+1][y].tile_type == c.T_WALL or (x + 1, y) in door_list):
+        if x+1 < self.tile_width and (self.tiles[x+1][y].tile_type == c.T_WALL or (x + 1, y) in door_list):
             weight += 2
         return weight
 
-    def _generate_room_type_dungeon(self, seed=None, dimension=(80, 120), room_size_range=((6, 6), (9, 9)),
-                                    max_num_room=60, tunnel=False):
+    def get_random_available_tile(self, tile_type, game_objects, without_objects=True):
         """
-        Run the dungeon generation program.
-        :param seed: the seed to initialize the dungeon
-        :param dimension:
-        :param room_size_range:
-        :param max_num_room:
-        :param tunnel: if True, we may connect rooms via tunnels
+        Return a tile matching the characteristics: given tile type
+        Used to get a spawning position...
+        By default, the tile should be without objects and out of any doors position
+        :param tile_type: the type of tile that we look for
+        :param without_objects: check if no objects is there, and that it is not a possible door position
+        :return: a tile position (tuple)
+        """
+        entity_pos_listing = []
+
+        if without_objects:
+            for entity in game_objects:
+                entity_pos_listing.append((entity.x, entity.y))
+
+        while True:
+            x = random.randint(0, self.tile_width - 1)
+            y = random.randint(0, self.tile_height - 1)
+            if self.tiles[x][y].tile_type == tile_type:
+                if without_objects and ((x, y) not in entity_pos_listing and (x, y) not in self.doors_pos):
+                    return x, y
+                elif (x, y) not in self.doors_pos:
+                    return x,y
+
+    @property
+    def doors_pos(self):
+        if self._doors_pos is None:
+            self._doors_pos = []
+            for room in self.rooms:
+                for door in room.doors:
+                    if door not in self._doors_pos:
+                        self._doors_pos.append(door)
+        return self._doors_pos
+
+    def get_all_available_tiles(self, tile_type, game_objects, without_objects=False):
+        """
+        Return all tile matching the characteristics: given tile type
+        Used to get a spawning position...
+        :param tile_type: the type of tile that we look for
+        :param without_objects: set to True to remove objects overlap
+        :return: a list of tile positions (tuple)
+        """
+        listing = []
+        entity_pos_listing = []
+
+        if without_objects:
+            for entity in game_objects:
+                entity_pos_listing.append((entity.x, entity.y))
+
+        for x in range(self.tile_width):
+            for y in range(self.tile_height):
+                if self.tiles[x][y].tile_type == tile_type:
+                    if without_objects and (x, y) not in entity_pos_listing and (x, y) not in self.doors_pos:
+                        listing.append((x, y))
+        random.shuffle(listing)
+        return listing
+
+    def get_room_at(self, x, y):
+        if hasattr(self, "rooms"):
+            for room in self.rooms:
+                if (x, y) in room.get_tile_list():
+                    return room
+        return None
+
+    def _build_background(self, name=None):
+        """
+        Build the image from the map.
+        :param name: Optional filename to store the resulting file
+        :return: Nothing
+        """
+        if self._background is None:
+            self._background = pg.Surface((self.tile_width * TILESIZE_SCREEN,
+                                           self.tile_height * TILESIZE_SCREEN))
+            self._background.fill(BGCOLOR)
+
+            complex_walls = type(self.graphical_resources['WALLS']) is list
+
+            floor_serie = random.randint(0, len(self.graphical_resources['FLOOR']) - 1)
+            if complex_walls:
+                wall_series = random.randint(0, len(self.graphical_resources['WALLS']) - 1)
+            for y in range(self.tile_height):
+                for x in range(self.tile_width):
+                    if self.tiles[x][y].tile_type == c.T_FLOOR:
+                        if random.randint(0, 100) >= 85:
+                            floor_image = random.randint(0, len(self.graphical_resources['FLOOR_EXT'][floor_serie]) - 1)
+                        else:
+                            floor_image = random.randint(0, len(self.graphical_resources['FLOOR'][floor_serie]) - 1)
+                        self._background.blit(self.graphical_resources['FLOOR'][floor_serie][floor_image],
+                                              (x * TILESIZE_SCREEN, y * TILESIZE_SCREEN))
+
+                    elif self.tiles[x][y].tile_type == c.T_WALL:
+                        if not complex_walls:
+                            self._background.blit(self.graphical_resources['WALLS'],
+                                                  (x * TILESIZE_SCREEN, y * TILESIZE_SCREEN))
+                        else:
+                            # First, we copy an image of the floor to make it look better
+                            floor_image = random.randint(0, len(self.graphical_resources['FLOOR'][floor_serie]) - 1)
+                            self._background.blit(self.graphical_resources['FLOOR'][floor_serie][floor_image],
+                                                  (x * TILESIZE_SCREEN, y * TILESIZE_SCREEN))
+                            # Then the wall
+                            door_list = []
+                            # build door list - except if we are in a pure maze
+                            if hasattr(self, "rooms") and self.rooms is not None:
+                                 for room in self.rooms:
+                                     for door_pos in room.doors:
+                                         door_list.append(door_pos)
+                            weight = self.wall_weight(x, y, door_list)
+                            self._background.blit(self.graphical_resources['WALLS'][wall_series][weight],
+                                                  (x * TILESIZE_SCREEN, y * TILESIZE_SCREEN))
+
+        if name is not None:
+            pg.image.save(self._background, path.dirname(__file__) + '/' + name)
+
+
+class MazeMap(Map):
+    """
+    This represents a pure maze.
+    Such a dungeon doesn't contain doors or rooms.
+    """
+
+    def __init__(self, name, graphical_resource, dimension, spareness=3):
+
+        assert dimension[0] % 2 == 1 and dimension[1] % 2 == 1, "Maze dimensions must be odd"
+
+        Map.__init__(self, name, graphical_resource, dimension)
+        print(" MAZE: Initialization")
+
+
+        # We use algorithm at http://www.brainycode.com/downloads/RandomDungeonGenerator.pdf
+        # Starting with walls everywhere, and all not explored
+        self.tiles = [[Tile(c.T_WALL)
+                       for y in range(self.tile_height)]
+                      for x in range(self.tile_width)]
+
+        print(" MAZE: FLOOD")
+        self._flood_maze(to_explore=(self.tile_width - 1) * (self.tile_height - 1) / 4)
+
+        print(" MAZE: Remove dead End")
+        # Now, we want to remove some dead end
+        for i in range(spareness):
+            for x in range(1, self.tile_width - 1):
+                for y in range(1, self.tile_height - 1):
+                    if self.tiles[x][y].tile_type == c.T_FLOOR:
+                        delta = [(0, -1), (0, 1), (1, 0), (-1, 0)]
+                        count = 0
+                        for (dx, dy) in delta:
+                            if self.tiles[x + dx][y + dy].tile_type == c.T_FLOOR:
+                                count += 1
+                        if count <= 1:
+                            self.tiles[x][y].tile_type = c.T_WALL
+
+    def _flood_maze(self, to_explore=0):
+        # 2. We pick a random cell, and flag it explored. Demarrage sur un impair!
+        found = False
+        current_x = current_y = 0
+        forbidden_tiles = []
+        if hasattr(self, "rooms"):
+            for room in self.rooms:
+                forbidden_tiles = forbidden_tiles + room.get_tile_list()
+        while not found:
+            current_x = int(random.randint(0, self.tile_width) / 2)
+            if current_x % 2 == 0:
+                current_x += 1
+            current_y = int(random.randint(0, self.tile_width) / 2)
+            if current_y % 2 == 0:
+                current_y += 1
+            if not self.tiles[current_x][current_y].explored and not (current_x, current_y) in forbidden_tiles:
+                self.tiles[current_x][current_y].explored = True
+                found = True
+
+        self.tiles[current_x][current_y].tile_type = c.T_FLOOR
+        explored = [(current_x, current_y)]
+
+        trials = 0
+        while len(explored) < to_explore and trials < (self.tile_width * self.tile_height)/4:
+            current_cell = self.tiles[current_x][current_y]
+            directions = [(2, 0), (-2, 0), (0, 2), (0, -2)]
+            # 3. We pick a random direction
+            random.shuffle(directions)
+            found = False
+            (dir_x, dir_y) = (0, 0)
+
+            while not found and len(directions) > 0:
+                (dir_x, dir_y) = directions.pop()
+                # 3A: we test if this new cell is valid and not explored
+                if 0 < current_x + dir_x < self.tile_width and 0 < current_y + dir_y < self.tile_height:
+                    if not self.tiles[current_x + dir_x][current_y + dir_y].explored:
+                        if not (current_x + dir_x, current_y + dir_y) in forbidden_tiles:
+                            found = True
+
+            if found:
+                # 4. we create a corridor
+                self.tiles[current_x + int(dir_x / 2)][current_y + int(dir_y / 2)].tile_type = c.T_FLOOR
+                current_x += dir_x
+                current_y += dir_y
+                self.tiles[current_x][current_y].tile_type = c.T_FLOOR
+                self.tiles[current_x][current_y].explored = True
+                explored.append((current_x, current_y))
+            else:
+                (current_x, current_y) = random.choice(explored)
+            trials += 1
+
+        for x in range(self.tile_width):
+            for y in range(self.tile_height):
+                self.tiles[x][y].explored = False
+
+
+class _RoomExtension():
+
+    def _add_connected_room(self, room, list_connected, to_visit, already_visited):
+        already_visited.append(room)
+
+        for connection in room.connecting_room:
+            if connection not in to_visit and connection not in already_visited:
+                to_visit.append(connection)
+
+        for room_to_visit in to_visit:
+            if room_to_visit not in already_visited:
+                self._add_connected_room(room_to_visit, list_connected, to_visit, already_visited)
+
+        if room in to_visit:
+            to_visit.remove(room)
+
+    def _get_branching_position_direction(self, branching_room, except_dir=None):
+        while True:
+            # we consider pos = 0,0
+            walls = {'N': [(x, 0) for x in range(1, branching_room.size[0] - 1)],
+                     'S': [(x, branching_room.size[1] - 1) for x in range(1, branching_room.size[0] - 1)],
+                     'W': [(0, y) for y in range(1, branching_room.size[1] - 1)],
+                     'E': [(branching_room.size[0] - 1, y) for y in range(1, branching_room.size[1] - 1)]}
+            valid_list = ['N', 'S', 'E', 'W']
+            if except_dir is not None:
+                for dir in except_dir:
+                    if dir is not None:
+                        valid_list.remove(dir)
+            dir = random.choice(valid_list)
+            target = random.choice(walls[dir])
+            # We don't want doors next to doors...
+            x = target[0] + branching_room.position[0]
+            y = target[1] + branching_room.position[1]
+            if dir in ('N', 'S'):
+                if not (self.tiles[x - 1][y].tile_type == c.T_FLOOR or self.tiles[x + 1][y].tile_type == c.T_FLOOR):
+                    return (x, y, dir)
+            if dir in ('E', 'W'):
+                if not (self.tiles[x][y-1].tile_type == c.T_FLOOR or self.tiles[x][y+1].tile_type == c.T_FLOOR):
+                    return (x, y, dir)
+
+    def _generate_room(self, min_size, max_size, modulo_rest=2):
+        """
+        Generate a room according to the criteria
+        :param min_size: tuple with the minimum dimension
+        :param max_size: tuple with the max dimension
+        :param modulo_rest: put to 0 for even dimensions, 1 for odd
         :return:
         """
-        if seed is not None:
-            random.seed(a=seed)
+        size_x = random.randint(min_size[0], max_size[0])
+        size_y = random.randint(min_size[1], max_size[1])
+        if modulo_rest < 2:
+            while size_x % 2 != modulo_rest:
+                size_x = random.randint(min_size[0], max_size[0])
+            while size_y % 2 != modulo_rest:
+                size_y = random.randint(min_size[1], max_size[1])
+        return Room((size_x, size_y))
 
-        self.tilewidth = dimension[0]  # width of map, expressed in tiles
-        self.tileheight = dimension[1] # height of map, expressed in tiles
-        self.width = self.tilewidth * TILESIZE_SCREEN  # width in pixel
-        self.height = self.tileheight * TILESIZE_SCREEN  # height in pixel
+    def _space_for_new_room(self, new_room_size, new_room_position, tiles_blocking=c.T_FLOOR):
+        for y in range(new_room_position[1],
+                       new_room_position[1] + new_room_size[1]):
+            for x in range(new_room_position[0],
+                           new_room_position[0] + new_room_size[0]):
+                if x < 0 or x > self.tile_width - 1:
+                    return False
+                if y < 0 or y > self.tile_height - 1:
+                    return False
+                if self.tiles[x][y].tile_type in tiles_blocking:
+                    return False
+        return True
+
+    def _place_room(self, room, grid_position):
+        room.position = grid_position
+        for y in range(grid_position[1], grid_position[1] + room.size[1]):
+            for x in range(grid_position[0], grid_position[0] + room.size[0]):
+                self.tiles[x][y].room = room
+                if y in (grid_position[1], grid_position[1] + room.size[1] -1) or \
+                                x in (grid_position[0], grid_position[0] + room.size[0] - 1):
+                    self.tiles[x][y].tile_type = c.T_WALL
+                else:
+                    self.tiles[x][y].tile_type = c.T_FLOOR
+
+class RoomMap(Map, _RoomExtension):
+    """
+    A dungeon made of rooms, which are linked via straight corridors (or just rooms, depending on criteria)
+    """
+    def __init__(self, name, graphical_resource, dimension):
+
+        assert dimension[0] % 2 == 1 and dimension[1] % 2 == 1, "Maze dimensions must be odd"
+
+        Map.__init__(self, name, graphical_resource, dimension)
+        print(" ROOM MAP: Initialization")
+        room_size_range = ((6, 6), (9, 9))
+        max_num_room = int(dimension[0]*dimension[1] / 81 * .9)
+        tunnel = False
 
         self.tiles = [[Tile(c.T_VOID)
-                       for y in range(self.tileheight)]
-                      for x in range(self.tilewidth)]
+                       for y in range(self.tile_height)]
+                      for x in range(self.tile_width)]
 
-        self.rooms = []
         # generate the dungeon
         self.rooms.append(self._generate_room(room_size_range[0], room_size_range[1]))
         self._place_room(self.rooms[-1],
-                        (int(self.tilewidth / 2 - (self.rooms[-1].size[0] / 2)),
-                         int(self.tileheight / 2 - (self.rooms[-1].size[1] / 2))))
+                         (int(self.tile_width / 2 - (self.rooms[-1].size[0] / 2)),
+                         int(self.tile_height / 2 - (self.rooms[-1].size[1] / 2))))
 
-        for i in range (self.tilewidth * self.tileheight * 2):
+        for i in range (self.tile_width * self.tile_height * 2):
             if len(self.rooms) == max_num_room:
                 break
             branching_room = random.choice(self.rooms)
@@ -170,19 +500,19 @@ class Map:
             branching_pos = (choice_wall[0], choice_wall[1])
             branching_dir = choice_wall[2]
             new_room = self._generate_room(room_size_range[0], room_size_range[1])
-            tunnel_length = random.randint(1, 4)
-            #TODO: add tunnel length below
+            tunnel_length = random.choice((0, 2, 3, 5))
+
             if branching_dir == 'N':
                 new_room_pos = (int(branching_pos[0] - (new_room.size[0] / 2)),
-                                int(branching_pos[1] - new_room.size[1] + 1))
+                                int(branching_pos[1] - new_room.size[1] + 1 - tunnel_length))
             elif branching_dir == 'E':
-                new_room_pos = (int(branching_pos[0]),
+                new_room_pos = (int(branching_pos[0] + tunnel_length),
                                 int(branching_pos[1] - (new_room.size[1] / 2)))
             elif branching_dir == 'S':
                 new_room_pos = (int(branching_pos[0] - (new_room.size[0] / 2)),
-                                int(branching_pos[1]))
+                                int(branching_pos[1] + tunnel_length))
             elif branching_dir == 'W':
-                new_room_pos = (int(branching_pos[0] - (new_room.size[0]) + 1),
+                new_room_pos = (int(branching_pos[0] - (new_room.size[0]) + 1 - tunnel_length),
                                 int(branching_pos[1] - (new_room.size[1] / 2)))
 
             if self._space_for_new_room(new_room.size, new_room_pos):
@@ -194,79 +524,61 @@ class Map:
                 self.tiles[branching_pos[0]][branching_pos[1]].tile_type = c.T_FLOOR
                 new_room.connecting_room.append(branching_room)
                 branching_room.connecting_room.append(new_room)
+                # We now place the tunnel
+                if branching_dir == 'N':
+                    for i in range(1, tunnel_length + 1):
+                        self.tiles[branching_pos[0]][branching_pos[1] - i].tile_type = c.T_FLOOR
+                        self.tiles[branching_pos[0] - 1][branching_pos[1] - i].tile_type = c.T_WALL
+                        self.tiles[branching_pos[0] + 1][branching_pos[1] - i].tile_type = c.T_WALL
+                    if tunnel_length >= 3:
+                        branching_room.doors.append((branching_pos[0], branching_pos[1] - tunnel_length))
+                elif branching_dir == 'E':
+                    for i in range(1, tunnel_length + 1):
+                        self.tiles[branching_pos[0] + i][branching_pos[1]].tile_type = c.T_FLOOR
+                        self.tiles[branching_pos[0] + i][branching_pos[1] - 1].tile_type = c.T_WALL
+                        self.tiles[branching_pos[0] + i][branching_pos[1] + 1].tile_type = c.T_WALL
+                    if tunnel_length >= 3:
+                        branching_room.doors.append((branching_pos[0] + tunnel_length, branching_pos[1]))
+                elif branching_dir == 'S':
+                    for i in range(1, tunnel_length + 1):
+                        self.tiles[branching_pos[0]][branching_pos[1] + i].tile_type = c.T_FLOOR
+                        self.tiles[branching_pos[0] - 1][branching_pos[1] + i].tile_type = c.T_WALL
+                        self.tiles[branching_pos[0] + 1][branching_pos[1] + i].tile_type = c.T_WALL
+                        if tunnel_length >= 3:
+                            branching_room.doors.append((branching_pos[0], branching_pos[1] + tunnel_length))
+                elif branching_dir == 'W':
+                    for i in range(1, tunnel_length + 1):
+                        self.tiles[branching_pos[0] - i][branching_pos[1]].tile_type = c.T_FLOOR
+                        self.tiles[branching_pos[0] - i][branching_pos[1] - 1].tile_type = c.T_WALL
+                        self.tiles[branching_pos[0] - i][branching_pos[1] + 1].tile_type = c.T_WALL
+                    if tunnel_length >= 3:
+                        branching_room.doors.append((branching_pos[0] - tunnel_length, branching_pos[1]))
 
-    def _generate_cave_type_dungeon(self, seed=None, dimension=(125, 81)):
-        # dimensions doivent être impair!
+
+class RoomAndMazeMap(Map, _RoomExtension):
+
+    def __init__(self, name, graphical_resource, dimension):
+
         assert dimension[0] % 2 == 1 and dimension[1] % 2 == 1, "Maze dimensions must be odd"
 
-        self.tilewidth = dimension[0]  # width of map, expressed in tiles
-        self.tileheight = dimension[1]  # height of map, expressed in tiles
-        self.width = self.tilewidth * TILESIZE_SCREEN  # width in pixel
-        self.height = self.tileheight * TILESIZE_SCREEN  # height in pixel
-
-        self.tiles = [[Tile(c.T_FLOOR)
-                       for y in range(self.tileheight)]
-                      for x in range(self.tilewidth)]
-
-        # Initial Random Noise
-        for y in range(self.tileheight):
-            for x in range(self.tilewidth):
-                if x in [0, self.tilewidth-1] or y in [0, self.tileheight-1] or random.randint(0, 100) <= 30:
-                    self.tiles[x][y].tile_type = c.T_WALL
-
-        for repeat in range(5):
-            for y in range(1, self.tileheight - 1):
-                for x in range(1, self.tilewidth - 1):
-                    count = self._count_wall_tile(x, y)
-                    if count >= 5 or count <= 1:
-                        self.tiles[x][y].tile_type = c.T_WALL
-                    else:
-                        self.tiles[x][y].tile_type = c.T_FLOOR
-
-        for repeat in range(3):
-            for y in range(1, self.tileheight - 1):
-                for x in range(1, self.tilewidth - 1):
-                    count = self._count_wall_tile(x, y)
-                    if count >= 5:
-                        self.tiles[x][y].tile_type = c.T_WALL
-                    else:
-                        self.tiles[x][y].tile_type = c.T_FLOOR
-
-    def _count_wall_tile(self, posx, posy):
-        count = 0
-
-        for x in [posx-1, posx, posx+1]:
-            for y in [posy-1, posy, posy+1]:
-                if self.tiles[x][y].tile_type == c.T_WALL:
-                    count+=1
-
-        return count
-
-    def _generate_maze_type_dungeon(self, seed=None, dimension=(101, 87)):
-        # dimensions doivent être impair!
-        assert dimension[0] % 2 == 1 and dimension[1] % 2 == 1, "Maze dimensions must be odd"
+        Map.__init__(self, name, graphical_resource, dimension)
         dungeon_ok = False
 
         while not dungeon_ok:
             print("DUNGEON MAZE: Initialization")
             dungeon_ok = True
 
-            self.tilewidth = dimension[0]  # width of map, expressed in tiles
-            self.tileheight = dimension[1]  # height of map, expressed in tiles
-            self.width = self.tilewidth * TILESIZE_SCREEN  # width in pixel
-            self.height = self.tileheight * TILESIZE_SCREEN  # height in pixel
-            self.rooms = []
             # We use algorithm at http://journal.stuffwithstuff.com/2014/12/21/rooms-and-mazes/
             self.tiles = [[Tile(c.T_WALL)
-                           for y in range(self.tileheight)]
-                          for x in range(self.tilewidth)]
+                           for y in range(self.tile_height)]
+                          for x in range(self.tile_width)]
 
             # We place a bunch of room
             count_explored = 0
-            for i in range(int(self.tilewidth * self.tileheight / 2)):
+            for i in range(int(self.tile_width * self.tile_height / 2)):
                 # We generate a room
                 new_room = self._generate_room((5, 5), (17, 17), modulo_rest=1)
-                pos = [random.randint(0, self.tilewidth), random.randint(0, self.tileheight)]
+                pos = [random.randint(0, self.tile_width), random.randint(0, self.tile_height)]
                 if pos[0] % 2 == 1: pos[0] += 1
                 if pos[1] % 2 == 1: pos[1] += 1
 
@@ -280,7 +592,7 @@ class Map:
             print("DUNGEON MAZE: Rooms placed")
 
             # Now we fill almost everything else with maze
-            self._flood_maze(to_explore=(self.tilewidth * self.tileheight - count_explored) / 4)
+            self._flood_maze(to_explore=(self.tile_width * self.tile_height - count_explored) / 4)
             print("DUNGEON MAZE: Maze in position")
 
             # We place at least one door per room
@@ -302,13 +614,13 @@ class Map:
                     # which tile is external
                     delta = [(0, -1), (0, 1), (1, 0), (-1, 0)]
                     for (dx, dy) in delta:
-                        if self.tiles[x+dx][y+dy].tile_type == c.T_FLOOR:
-                            if self.tiles[x+dx][y+dy] not in room_tile_list:
-                                if self.tiles[x+dx][y+dy].room is None:
+                        if self.tiles[x + dx][y + dy].tile_type == c.T_FLOOR:
+                            if self.tiles[x + dx][y + dy] not in room_tile_list:
+                                if self.tiles[x + dx][y + dy].room is None:
                                     if room not in connected_external_list:
                                         connected_external_list.append(room)
                                 else:
-                                    other_room = self.tiles[x+dx][y+dy].room
+                                    other_room = self.tiles[x + dx][y + dy].room
                                     room.connecting_room.append(other_room)
                                     other_room.connecting_room.append(room)
 
@@ -337,8 +649,8 @@ class Map:
             # Now, we want to remove some dead end
             spareness = random.randint(1, 5)
             for i in range(spareness):
-                for x in range(1, self.tilewidth - 1):
-                    for y in range(1, self.tileheight - 1):
+                for x in range(1, self.tile_width - 1):
+                    for y in range(1, self.tile_height - 1):
                         if self.tiles[x][y].tile_type == c.T_FLOOR:
                             delta = [(0, -1), (0, 1), (1, 0), (-1, 0)]
                             count = 0
@@ -350,36 +662,60 @@ class Map:
 
             print("DUNGEON MAZE: Dead ends removed")
 
-            # And we replace the big walls blocks by Void..
-            self._remove_extra_walls()
+    def _flood_maze(self, to_explore=0):
+        # 2. We pick a random cell, and flag it explored. Demarrage sur un impair!
+        found = False
+        current_x = current_y = 0
+        forbidden_tiles = []
+        if hasattr(self, "rooms"):
+            for room in self.rooms:
+                forbidden_tiles = forbidden_tiles + room.get_tile_list()
+        while not found:
+            current_x = int(random.randint(0, self.tile_width) / 2)
+            if current_x % 2 == 0:
+                current_x += 1
+            current_y = int(random.randint(0, self.tile_width) / 2)
+            if current_y % 2 == 0:
+                current_y += 1
+            if not self.tiles[current_x][current_y].explored and not (current_x, current_y) in forbidden_tiles:
+                self.tiles[current_x][current_y].explored = True
+                found = True
 
-    def _add_connected_room(self, room, list_connected, to_visit, already_visited):
-        already_visited.append(room)
+        self.tiles[current_x][current_y].tile_type = c.T_FLOOR
+        explored = [(current_x, current_y)]
 
-        for connection in room.connecting_room:
-            if connection not in to_visit and connection not in already_visited:
-                to_visit.append(connection)
+        trials = 0
+        while len(explored) < to_explore and trials < (self.tile_width * self.tile_height)/4:
+            current_cell = self.tiles[current_x][current_y]
+            directions = [(2, 0), (-2, 0), (0, 2), (0, -2)]
+            # 3. We pick a random direction
+            random.shuffle(directions)
+            found = False
+            (dir_x, dir_y) = (0, 0)
 
-        for room_to_visit in to_visit:
-            if room_to_visit not in already_visited:
-                self._add_connected_room(room_to_visit, list_connected, to_visit, already_visited)
+            while not found and len(directions) > 0:
+                (dir_x, dir_y) = directions.pop()
+                # 3A: we test if this new cell is valid and not explored
+                if 0 < current_x + dir_x < self.tile_width and 0 < current_y + dir_y < self.tile_height:
+                    if not self.tiles[current_x + dir_x][current_y + dir_y].explored:
+                        if not (current_x + dir_x, current_y + dir_y) in forbidden_tiles:
+                            found = True
 
-        if room in to_visit:
-            to_visit.remove(room)
+            if found:
+                # 4. we create a corridor
+                self.tiles[current_x + int(dir_x / 2)][current_y + int(dir_y / 2)].tile_type = c.T_FLOOR
+                current_x += dir_x
+                current_y += dir_y
+                self.tiles[current_x][current_y].tile_type = c.T_FLOOR
+                self.tiles[current_x][current_y].explored = True
+                explored.append((current_x, current_y))
+            else:
+                (current_x, current_y) = random.choice(explored)
+            trials += 1
 
-    def _remove_extra_walls(self):
-        for x in range(0, self.tilewidth):
-            for y in range(0, self.tileheight):
-                if self.tiles[x][y].tile_type == c.T_WALL:
-                    delta = [(0, -1), (0, 1), (1, 0), (-1, 0), (1, 1), (-1, -1), (1, -1), (-1, 1)]
-                    count = 0
-                    for (dx, dy) in delta:
-                        if x + dx < 0 or x + dx >= self.tilewidth or y + dy < 0 or y + dy >= self.tileheight:
-                            count += 1
-                        elif self.tiles[x + dx][y + dy].tile_type in (c.T_WALL, c.T_VOID):
-                            count += 1
-                    if count == 8:
-                        self.tiles[x][y].tile_type = c.T_VOID
+        for x in range(self.tile_width):
+            for y in range(self.tile_height):
+                self.tiles[x][y].explored = False
 
     def _place_door_in_dungeon_maze(self, room, except_dir=None):
         trials = 400
@@ -391,7 +727,7 @@ class Map:
             delta = {'N': (0, -1), 'S': (0, 1), 'E': (1, 0), 'W': (-1, 0)}
             after_door_pos_x = choice_wall[0] + delta[branching_dir][0]
             after_door_pos_y = choice_wall[1] + delta[branching_dir][1]
-            if 0 <= after_door_pos_x < self.tilewidth and 0 <= after_door_pos_y < self.tileheight:
+            if 0 <= after_door_pos_x < self.tile_width and 0 <= after_door_pos_y < self.tile_height:
                 if self.tiles[after_door_pos_x][after_door_pos_y].tile_type == c.T_FLOOR:
                     room.doors.append(branching_pos)
                     self.tiles[branching_pos[0]][branching_pos[1]].tile_type = c.T_FLOOR
@@ -399,174 +735,80 @@ class Map:
             trials -= 1
         return None
 
-    def _generate_pure_maze_dungeon(self, seed=None, dimension=(47, 51), spareness=3, remove_extra_walls=True):
-        # dimensions doivent être impair!
+
+class CaveMap(Map):
+    """
+    A cavelike dungeon
+    """
+
+    def __init__(self, name, graphical_resource, dimension):
+
         assert dimension[0] % 2 == 1 and dimension[1] % 2 == 1, "Maze dimensions must be odd"
 
-        print(" MAZE: Initialization")
+        Map.__init__(self, name, graphical_resource)    # dimensions doivent être impair!
 
-        self.tilewidth = dimension[0]  # width of map, expressed in tiles
-        self.tileheight = dimension[1]  # height of map, expressed in tiles
-        self.width = self.tilewidth * TILESIZE_SCREEN  # width in pixel
-        self.height = self.tileheight * TILESIZE_SCREEN  # height in pixel
+        self.tile_width = dimension[0]  # width of map, expressed in tiles
+        self.tile_height = dimension[1]  # height of map, expressed in tiles
 
-        # We use algorithm at http://www.brainycode.com/downloads/RandomDungeonGenerator.pdf
-        # Starting with walls everywhere, and all not explored
-        self.tiles = [[Tile(c.T_WALL)
-                       for y in range(self.tileheight)]
-                      for x in range(self.tilewidth)]
-        self._flood_maze(to_explore=(self.tilewidth - 1) * (self.tileheight - 1) / 4)
+        self.tiles = [[Tile(c.T_FLOOR)
+                       for y in range(self.tile_height)]
+                      for x in range(self.tile_width)]
 
-        # Now, we want to remove some dead end
-        for i in range(spareness):
-            for x in range(1, self.tilewidth - 1):
-                for y in range(1, self.tileheight - 1):
-                    if self.tiles[x][y].tile_type == c.T_FLOOR:
-                        delta = [(0, -1), (0, 1), (1, 0), (-1, 0)]
-                        count = 0
-                        for (dx, dy) in delta:
-                            if self.tiles[x + dx][y + dy].tile_type == c.T_FLOOR:
-                                count += 1
-                        if count <= 1:
-                            self.tiles[x][y].tile_type = c.T_WALL
-
-        if remove_extra_walls:
-            self._remove_extra_walls()
-
-    def _flood_maze(self, to_explore=0):
-        # 2. We pick a random cell, and flag it explored. Demarrage sur un impair!
-        found = False
-        current_x = current_y = 0
-        forbidden_tiles = []
-        if hasattr(self, "rooms"):
-            for room in self.rooms:
-                forbidden_tiles = forbidden_tiles + room.get_tile_list()
-        while not found:
-            current_x = int(random.randint(0, self.tilewidth) / 2)
-            if current_x % 2 == 0:
-                current_x += 1
-            current_y = int(random.randint(0, self.tilewidth) / 2)
-            if current_y % 2 == 0:
-                current_y += 1
-            if not self.tiles[current_x][current_y].explored and not (current_x, current_y) in forbidden_tiles:
-                self.tiles[current_x][current_y].explored = True
-                found = True
-
-        self.tiles[current_x][current_y].tile_type = c.T_FLOOR
-        explored = [(current_x, current_y)]
-
-        trials = 0
-        while len(explored) < to_explore and trials < (self.tilewidth * self.tileheight)/4:
-            current_cell = self.tiles[current_x][current_y]
-            directions = [(2, 0), (-2, 0), (0, 2), (0, -2)]
-            # 3. We pick a random direction
-            random.shuffle(directions)
-            found = False
-            (dir_x, dir_y) = (0, 0)
-
-            while not found and len(directions) > 0:
-                (dir_x, dir_y) = directions.pop()
-                # 3A: we test if this new cell is valid and not explored
-                if 0 < current_x + dir_x < self.tilewidth and 0 < current_y + dir_y < self.tileheight:
-                    if not self.tiles[current_x + dir_x][current_y + dir_y].explored:
-                        if not (current_x + dir_x, current_y + dir_y) in forbidden_tiles:
-                            found = True
-
-            if found:
-                # 4. we create a corridor
-                self.tiles[current_x + int(dir_x / 2)][current_y + int(dir_y / 2)].tile_type = c.T_FLOOR
-                current_x = current_x + dir_x
-                current_y = current_y + dir_y
-                self.tiles[current_x][current_y].tile_type = c.T_FLOOR
-                self.tiles[current_x][current_y].explored = True
-                explored.append((current_x, current_y))
-            else:
-                (current_x, current_y) = random.choice(explored)
-            trials += 1
-
-        for x in range(self.tilewidth):
-            for y in range(self.tileheight):
-                self.tiles[x][y].explored = False
-
-    def _space_for_new_room(self, new_room_size, new_room_position, tiles_blocking=c.T_FLOOR):
-        for y in range(new_room_position[1],
-                       new_room_position[1] + new_room_size[1]):
-            for x in range(new_room_position[0],
-                           new_room_position[0] + new_room_size[0]):
-                if x < 0 or x > self.tilewidth - 1:
-                    return False
-                if y < 0 or y > self.tileheight - 1:
-                    return False
-                if self.tiles[x][y].tile_type in tiles_blocking:
-                    return False
-        return True
-
-    def _generate_room(self, min_size, max_size, modulo_rest=2):
-        """
-        Generate a room according to the criteria
-        :param min_size: tuple with the minimum dimension
-        :param max_size: tuple with the max dimension
-        :param modulo_rest: put to 0 for even dimensions, 1 for odd
-        :return:
-        """
-        size_x = random.randint(min_size[0], max_size[0])
-        size_y = random.randint(min_size[1], max_size[1])
-        if modulo_rest < 2:
-            while size_x % 2 != modulo_rest:
-                size_x = random.randint(min_size[0], max_size[0])
-            while size_y % 2 != modulo_rest:
-                size_y = random.randint(min_size[1], max_size[1])
-        return Room((size_x, size_y))
-
-    def _place_room(self, room, grid_position):
-        room.position = grid_position
-        for y in range(grid_position[1], grid_position[1] + room.size[1]):
-            for x in range(grid_position[0], grid_position[0] + room.size[0]):
-                self.tiles[x][y].room = room
-                if y in (grid_position[1], grid_position[1] + room.size[1] -1) or \
-                                x in (grid_position[0], grid_position[0] + room.size[0] - 1):
+        # Initial Random Noise
+        for y in range(self.tile_height):
+            for x in range(self.tile_width):
+                if x in [0, self.tile_width-1] or y in [0, self.tile_height-1] or random.randint(0, 100) <= 30:
                     self.tiles[x][y].tile_type = c.T_WALL
-                else:
-                    self.tiles[x][y].tile_type = c.T_FLOOR
 
-    def _get_branching_position_direction(self, branching_room, except_dir=None):
-        while True:
-            # we consider pos = 0,0
-            walls = {'N': [(x, 0) for x in range(1, branching_room.size[0] - 1)],
-                     'S': [(x, branching_room.size[1] - 1) for x in range(1, branching_room.size[0] - 1)],
-                     'W': [(0, y) for y in range(1, branching_room.size[1] - 1)],
-                     'E': [(branching_room.size[0] - 1, y) for y in range(1, branching_room.size[1] - 1)]}
-            valid_list = ['N', 'S', 'E', 'W']
-            if except_dir is not None:
-                for dir in except_dir:
-                    if dir is not None:
-                        valid_list.remove(dir)
-            dir = random.choice(valid_list)
-            target = random.choice(walls[dir])
-            # We don't want doors next to doors...
-            x = target[0] + branching_room.position[0]
-            y = target[1] + branching_room.position[1]
-            if dir in ('N', 'S'):
-                if not (self.tiles[x - 1][y].tile_type == c.T_FLOOR or self.tiles[x + 1][y].tile_type == c.T_FLOOR):
-                    return (x, y, dir)
-            if dir in ('E', 'W'):
-                if not (self.tiles[x][y-1].tile_type == c.T_FLOOR or self.tiles[x][y+1].tile_type == c.T_FLOOR):
-                    return (x, y, dir)
+        for repeat in range(5):
+            for y in range(1, self.tile_height - 1):
+                for x in range(1, self.tile_width - 1):
+                    count = self._count_wall_tile(x, y)
+                    if count >= 5 or count <= 1:
+                        self.tiles[x][y].tile_type = c.T_WALL
+                    else:
+                        self.tiles[x][y].tile_type = c.T_FLOOR
 
-    def _generate_from_filename(self, filename):
+        for repeat in range(3):
+            for y in range(1, self.tile_height - 1):
+                for x in range(1, self.tile_width - 1):
+                    count = self._count_wall_tile(x, y)
+                    if count >= 5:
+                        self.tiles[x][y].tile_type = c.T_WALL
+                    else:
+                        self.tiles[x][y].tile_type = c.T_FLOOR
+
+    def _count_wall_tile(self, posx, posy):
+        count = 0
+
+        for x in [posx-1, posx, posx+1]:
+            for y in [posy-1, posy, posy+1]:
+                if self.tiles[x][y].tile_type == c.T_WALL:
+                    count+=1
+
+        return count
+
+
+class FileMap(Map):
+    """
+    This is a hardoced dungeon, taken from a file definition.
+    It should contain specific locations for NPC or monsters
+    """
+
+    def __init__(self, name, graphical_resource, filename):
+        Map.__init__(self, name, graphical_resource)  # dimensions doivent être impair!
+
         file_data = []
         with open(filename, 'rt') as f:
             for line in f:
                 file_data.append(line.strip())
 
-        self.tilewidth = len(file_data[0]) # width of map, expressed in tiles
-        self.tileheight = len(file_data) # height of map, expressed in tiles
-        self.width = self.tilewidth * TILESIZE_SCREEN # width in pixel
-        self.height = self.tileheight * TILESIZE_SCREEN # height in pixel
+        self.tile_width = len(file_data[0])  # width of map, expressed in tiles
+        self.tile_height = len(file_data)  # height of map, expressed in tiles
 
         self.tiles = [[Tile(c.T_FLOOR)
-                      for y in range(self.tileheight)]
-                     for x in range(self.tilewidth)]
+                       for y in range(self.tile_height)]
+                      for x in range(self.tile_width)]
 
         # Parse the file
         for row, tiles in enumerate(file_data):
@@ -577,118 +819,6 @@ class Map:
                     self.tiles[col][row].tile_type = c.T_FLOOR
                 else:
                     self.tiles[col][row].tile_type = c.T_VOID
-
-    def get_random_available_tile(self, tile_type, without_objects=True):
-        """
-        Return a tile matching the characteristics: given tile type
-        Used to get a spawning position...
-        By default, the tile should be without objects and out of any doors position
-        :param tile_type: the type of tile that we look for
-        :param without_objects: check if no objects is there, and that it is not a possible door position
-        :return: a tile position (tuple)
-        """
-        entity_pos_listing = []
-
-        if without_objects:
-            for entity in self.game.objects:
-                entity_pos_listing.append((entity.x, entity.y))
-
-        while True:
-            x = random.randint(0, self.tilewidth - 1)
-            y = random.randint(0, self.tileheight - 1)
-            if self.tiles[x][y].tile_type == tile_type:
-                if without_objects and ((x, y) not in entity_pos_listing and (x, y) not in self.doors_pos):
-                    return x, y
-                elif (x, y) not in self.doors_pos:
-                    return x,y
-
-    @property
-    def doors_pos(self):
-        if self._doors_pos is None:
-            self._doors_pos = []
-            for room in self.rooms:
-                for door in room.doors:
-                    if door not in self._doors_pos:
-                        self._doors_pos.append(door)
-        return self._doors_pos
-
-    def get_all_available_tiles(self, tile_type, without_objects=False):
-        """
-        Return all tile matching the characteristics: given tile type
-        Used to get a spawning position...
-        :param tile_type: the type of tile that we look for
-        :param without_objects: set to True to remove objects overlap
-        :return: a list of tile positions (tuple)
-        """
-        listing = []
-        entity_pos_listing = []
-
-        if without_objects:
-            for entity in self.game.objects:
-                entity_pos_listing.append((entity.x, entity.y))
-
-        for x in range(self.tilewidth):
-            for y in range(self.tileheight):
-                if self.tiles[x][y].tile_type == tile_type:
-                    if without_objects and (x, y) not in entity_pos_listing and (x, y) not in self.doors_pos:
-                        listing.append((x, y))
-        random.shuffle(listing)
-        return listing
-
-    def get_room_at(self, x, y):
-        if hasattr(self, "rooms"):
-            for room in self.rooms:
-                if (x, y) in room.get_tile_list():
-                    return room
-        return None
-
-    def _build_background(self, name=None):
-        """
-        Build the image from the map.
-        :param name: Optional filename to store the resulting file
-        :return: Nothing
-        """
-        if self._background is None:
-            self._background = pg.Surface((self.width, self.height))
-            self._background.fill(BGCOLOR)
-
-            complex_walls = type(self.game.all_images['WALLS']) is list
-
-            floor_serie = random.randint(0, len(self.game.all_images['FLOOR']) - 1)
-            if complex_walls:
-                wall_series = random.randint(0, len(self.game.all_images['WALLS']) - 1)
-            for y in range(self.tileheight):
-                for x in range(self.tilewidth):
-                    if self.tiles[x][y].tile_type == c.T_FLOOR:
-                        if random.randint(0, 100) >= 85:
-                            floor_image = random.randint(0, len(self.game.all_images['FLOOR_EXT'][floor_serie]) - 1)
-                        else:
-                            floor_image = random.randint(0, len(self.game.all_images['FLOOR'][floor_serie]) - 1)
-                        self._background.blit(self.game.all_images['FLOOR'][floor_serie][floor_image],
-                                              (x * TILESIZE_SCREEN, y * TILESIZE_SCREEN))
-
-                    elif self.tiles[x][y].tile_type == c.T_WALL:
-                        if not complex_walls:
-                            self._background.blit(self.game.all_images['WALLS'],
-                                                  (x * TILESIZE_SCREEN, y * TILESIZE_SCREEN))
-                        else:
-                            # First, we copy an image of teh floor to make it look better
-                            floor_image = random.randint(0, len(self.game.all_images['FLOOR'][floor_serie]) - 1)
-                            self._background.blit(self.game.all_images['FLOOR'][floor_serie][floor_image],
-                                                  (x * TILESIZE_SCREEN, y * TILESIZE_SCREEN))
-                            # Then the wall
-                            door_list = []
-                            # build door list - except if we are in a pure maze
-                            if hasattr(self, "rooms") and self.rooms is not None:
-                                 for room in self.rooms:
-                                     for door_pos in room.doors:
-                                         door_list.append(door_pos)
-                            weight = self.wall_weight(x, y, door_list)
-                            self._background.blit(self.game.all_images['WALLS'][wall_series][weight],
-                                                  (x * TILESIZE_SCREEN, y * TILESIZE_SCREEN))
-
-        if name is not None:
-            pg.image.save(self._background, path.dirname(__file__) + '/' + name)
 
 
 class Camera:
@@ -731,10 +861,10 @@ class Minimap:
         self._background = None
 
     def build_background(self, zoom_factor=2):
-        self._background = pg.Surface((self.game.map.tilewidth * zoom_factor, self.game.map.tileheight * zoom_factor))
+        self._background = pg.Surface((self.game.map.tile_width * zoom_factor, self.game.map.tile_height * zoom_factor))
         backpixels = pg.PixelArray(self._background)
-        for x in range(self.game.map.tilewidth):
-            for y in range(self.game.map.tileheight):
+        for x in range(self.game.map.tile_width):
+            for y in range(self.game.map.tile_height):
                 if (self.game.map.tiles[x][y].explored):
                     tile_type = self.game.map.tiles[x][y].tile_type
                     if tile_type == c.T_WALL:
@@ -881,7 +1011,7 @@ class FieldOfView:
         self.fov = []
 
     def reset(self):
-        self.fov = [[False for y in range(self.game.map.tileheight)] for x in range(self.game.map.tilewidth)]
+        self.fov = [[False for y in range(self.game.map.tile_height)] for x in range(self.game.map.tile_width)]
         self._ready = True
 
     def get_vision_matrix_for(self, entity, radius=None, flag_explored=False, ignore_entity_at=None):
@@ -927,8 +1057,8 @@ class FieldOfView:
 
                 round_x = int(round(x))
                 round_y = int(round(y))
-                if round_x < 0 or round_y < 0 or round_x > self.game.map.tilewidth or\
-                                round_y > self.game.map.tileheight:  # Ray is out of range
+                if round_x < 0 or round_y < 0 or round_x > self.game.map.tile_width or\
+                                round_y > self.game.map.tile_height:  # Ray is out of range
                     break
 
                 self.fov[round_x][round_y] = True  # Make tile visible

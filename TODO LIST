@@ -1,6 +1,6 @@
 DUNGEON
 * Make Dungeon beautiful
-* Split dungeon in subclasses
+* [DONE] Split dungeon in subclasses
 
 PLAYER
 * Player in exploration mode (higher vision) and in combat mode (def penalty if not in combat mode?)
@@ -37,7 +37,7 @@ MOSNTER
 * More characteristics to hero and monster - http://www.roguebasin.com/index.php?title=A_Better_Monster_AI
 * Better AI and more personality to monster
 * Monster drops gold and xp!
-* Remains of monster should be a new class...
+* Remains of monster should be a new class... and create a method to change appearance of entity
 
 ITEM
 * Eahc item has a weight

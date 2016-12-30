@@ -9,7 +9,7 @@ import constants as c
 from entities import MonsterHelper, EquipmentHelper, ItemHelper, DoorHelper, ThrowableHelper, NPCHelper
 from player import PlayerHelper
 from settings import *
-from tilemap import Map, Camera, Tile, FieldOfView, Minimap
+from tilemap import MapFactory, Camera, Tile, FieldOfView, Minimap
 from utilities import Ticker, Publisher
 from utilities_ui import TextBox, load_image, load_image_list, load_wall_structure_dawnlike
 
@@ -45,7 +45,7 @@ class InventoryScreen(Screen):
                 self.game.quit()
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_ESCAPE:
-                    self.c.GAME_state = self.default_back_state
+                    self.game.GAME_state = self.default_back_state
             if event.type == pg.MOUSEBUTTONDOWN:
                 (button1, button2, button3) = pg.mouse.get_pressed()
                 (x, y) = pg.mouse.get_pos()
@@ -239,7 +239,7 @@ class MapScreen(Screen):
                 self.game.quit()
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_ESCAPE:
-                    self.c.GAME_state = self.default_back_state
+                    self.game.GAME_state = self.default_back_state
 
     def draw(self):
         # Erase All
@@ -289,7 +289,7 @@ class CharacterScreen(Screen):
                 self.game.quit()
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_ESCAPE:
-                    self.c.GAME_state = self.default_back_state
+                    self.game.GAME_state = self.default_back_state
 
     def draw(self):
         # Erase All
@@ -357,8 +357,8 @@ class PlayingScreen(Screen):
             black.fill(BGCOLOR)
             gray = pg.Surface((TILESIZE_SCREEN, TILESIZE_SCREEN), pg.SRCALPHA, 32)
             gray.fill((0,0,0,120))
-            for x in range(self.game.map.tilewidth):
-                for y in range(self.game.map.tileheight):
+            for x in range(self.game.map.tile_width):
+                for y in range(self.game.map.tile_height):
                     if not self.game.visible_player_array[x][y]:
                         if self.game.map.tiles[x][y].explored:
                             self.fog_of_war_mask.blit(gray, self.game.camera.apply_rect(
@@ -424,11 +424,11 @@ class PlayingScreen(Screen):
                 if event.key == pg.K_m:
                     self.game.minimap_enable = not self.game.minimap_enable
                 if event.key == pg.K_p:
-                    self.c.GAME_state = c.GAME_STATE_MAP
+                    self.game.game_state = c.GAME_STATE_MAP
                 if event.key == pg.K_f:
-                    self.c.GAME_state = c.GAME_STATE_CHARACTER
+                    self.game.game_state = c.GAME_STATE_CHARACTER
                 if event.key == pg.K_i:
-                    self.c.GAME_state=c.GAME_STATE_INVENTORY
+                    self.game.game_state = c.GAME_STATE_INVENTORY
                 if event.key == pg.K_g:
                     for object in self.game.objects:
                         if (object.x, object.y) == (self.game.player.x, self.game.player.y) and object.item:
@@ -440,7 +440,7 @@ class PlayingScreen(Screen):
 
                 if event.key == pg.K_y:
                     ThrowableHelper(self.game, self.game.player.pos, "FIREBALL", (1,0), ThrowableHelper.light_damage,
-                                    stopped_by=[Tile.WALL, Tile.VOID])
+                                    stopped_by=[c.T_WALL, c.T_VOID])
                 if event.key == pg.K_h:
                     (x, y) = self.game.player.pos
                     x += 1
@@ -482,7 +482,7 @@ class PlayingScreen(Screen):
                     if button1:
                         (rev_x, rev_y) = self.game.camera.reverse((x, y))
                         (x, y) = (int(rev_x / TILESIZE_SCREEN), int(rev_y / TILESIZE_SCREEN))
-                        if self.game.map.tiles[x][y].explored and self.game.map.tiles[x][y].tile_type != Tile.VOID:
+                        if self.game.map.tiles[x][y].explored and self.game.map.tiles[x][y].tile_type != c.T_VOID:
                             self.game.textbox.add = "Position {} {}".format(x, y)
                             room = self.game.map.get_room_at(x, y)
                             if room is not None:
@@ -599,7 +599,7 @@ class Game:
         }
 
         # initializing map structure
-        self.map = Map(self, "Dyn_level1")
+        self.map = MapFactory("Map of the dead", self.all_images).map
         self.minimap = Minimap(self)
 
         # Field of view
@@ -622,10 +622,11 @@ class Game:
                            self.player_plus2_sprite_group)
 
         # Camera
-        self.camera = Camera(self.map.width, self.map.height)
+        self.camera = Camera(self.map.tile_width * TILESIZE_SCREEN,
+                             self.map.tile_height * TILESIZE_SCREEN)
 
         # Place player
-        pos = self.map.get_random_available_tile(c.T_FLOOR)
+        pos = self.map.get_random_available_tile(c.T_FLOOR, self.objects)
         self.player = PlayerHelper(self, pos)
         self.visible_player_array = self.fov.get_vision_matrix_for(self.player, flag_explored=True)
 
@@ -639,12 +640,12 @@ class Game:
 
         # place monsters
         for i in range(60):
-            pos = self.map.get_random_available_tile(c.T_FLOOR)
+            pos = self.map.get_random_available_tile(c.T_FLOOR, self.objects)
             MonsterHelper(self, "Bat"+str(i), pos, 'BAT', 10, (1, 4, 0),
                           [("bite", (1, 2, 0)),("snicker", (1, 4, 0))],
                           6, 0, vision=2, speed=10)
 
-        all_pos = self.map.get_all_available_tiles(c.T_FLOOR, without_objects=True)
+        all_pos = self.map.get_all_available_tiles(c.T_FLOOR, self.objects, without_objects=True)
 
         for i in range(200):
             pos = all_pos.pop()
