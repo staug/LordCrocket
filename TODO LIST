@@ -12,6 +12,12 @@ GENERAL GAME
 * CLean up UI
 * Stairs between maps
 * Character view mode
+* Move all constants (tile tyep, equipment...) to constant file, and simplify all imports
+
+MESSAGING BETWEEN ALL
+* [DONE] Implement a subscribe pattern
+* The logger should be used to display terminal events
+* This will be used in quests
 
 CHARACTER_SCREEN:
 * Make it beyond the ugly feel that is present

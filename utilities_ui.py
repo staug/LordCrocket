@@ -2,6 +2,7 @@ import pygame as pg
 import settings as st
 from os import path
 from ktextsurfacewriter import KTextSurfaceWriter
+import constants as c
 
 """
 Sub utilities routines.
@@ -25,6 +26,8 @@ class TextBox:
         font = pg.font.Font(path.join(font_folder, font_name), font_size)
 
         self.game = game
+        self.game.bus.register(self)
+        self.game.bus.register(self, main_category=c.PUBLISHER_CAT_LOG, function_to_call=self.notify2)
         self._ktext = KTextSurfaceWriter(rect, font=font, color=st.WHITE)
         self._text = ""
         self.message = []
@@ -62,6 +65,12 @@ class TextBox:
 
     def draw(self, surface):
         self._ktext.draw(surface)
+
+    def notify(self, message):
+        print(message)
+
+    def notify2(self, message):
+        print("{} in notify2".format(message))
 
     def resize(self, old_screen_width, old_screen_height, new_screen_width, new_screen_height):
         new_rect_width = int(self._ktext.rect.width * new_screen_width / old_screen_width)

@@ -7,8 +7,9 @@ from ktextsurfacewriter import KTextSurfaceWriter
 from entities import MonsterHelper, EquipmentHelper, ItemHelper, DoorHelper, ThrowableHelper, NPCHelper
 from player import PlayerHelper
 from settings import *
+import constants as c
 from tilemap import Map, Camera, Tile, FieldOfView, Minimap
-from utilities import Ticker
+from utilities import Ticker, Publisher
 from utilities_ui import TextBox, load_image, load_image_list, load_wall_structure_dawnlike
 
 
@@ -520,7 +521,6 @@ class Game:
     GAME_STATE_CHARACTER = 'Character'
 
     def __init__(self):
-        #pg.init()
         pg.display.init()
         pg.font.init()
 
@@ -577,17 +577,20 @@ class Game:
             "SPECIAL_EFFECT": [load_image(IMG_FOLDER, level_image_src, x, 21) for x in range(4)]
         }
 
-        # Loading fonts and initialize text system
-        self.textbox = TextBox(self)
-        self.textbox.text = "Welcome to the dungeon - {}".format(GAME_VER)
+
 
     def new(self):
 
         # Generic Game variables
         self.ticker = Ticker()
+        self.bus = Publisher()
         self.game_state = Game.GAME_STATE_PLAYING
         self.player_took_action = False
         self.minimap_enable = False
+
+        # Loading fonts and initialize text system
+        self.textbox = TextBox(self)
+        self.textbox.text = "Welcome to the dungeon - {}".format(GAME_VER)
 
         self.inventory_screen = InventoryScreen(self, Game.GAME_STATE_PLAYING)
         self.map_screen = MapScreen(self, Game.GAME_STATE_PLAYING)
@@ -770,6 +773,8 @@ class Game:
 
     def update_action_in_game_state_playing(self, player_action):
         if player_action:
+            self.bus.publish(self, {"test":"test1"})
+            self.bus.publish(self, {"test": "test"}, main_category=c.PUBLISHER_CAT_LOG)
             self.visible_player_array = self.fov.get_vision_matrix_for(self.player, flag_explored=True)
             self.minimap.build_background()
             self.ticker.ticks_to_advance += self.player.speed
