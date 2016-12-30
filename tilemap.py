@@ -72,7 +72,6 @@ class Room:
                                     random.choice(room_name_part2),
                                     random.choice(room_name_part3))
 
-
     def get_tile_list(self):
         tiles = []
         (pos_x, pos_y) = self.position
@@ -88,7 +87,7 @@ class Map:
     The Map, representing a level. Mainly holds a reference to a set of tiles, as well as dimensions.
     """
     def __init__(self, game, name, filename=None, dimension=(80, 120),
-                 room_size_range=((8,10), (12,17)), max_num_room=50):
+                 room_size_range=((8, 10), (12, 17)), max_num_room=50):
 
         self.game = game
         self.name = name
@@ -215,17 +214,17 @@ class Map:
         # Initial Random Noise
         for y in range(self.tileheight):
             for x in range(self.tilewidth):
-                if x in [0, self.tilewidth-1] or y in [0, self.tileheight-1] or random.randint(0,100) <= 30:
+                if x in [0, self.tilewidth-1] or y in [0, self.tileheight-1] or random.randint(0, 100) <= 30:
                     self.tiles[x][y].tile_type = Tile.WALL
 
         for repeat in range(5):
-             for y in range(1 , self.tileheight - 1):
-                 for x in range(1, self.tilewidth -1):
-                     count = self._count_wall_tile(x, y)
-                     if count >= 5 or count <= 1:
-                         self.tiles[x][y].tile_type = Tile.WALL
-                     else:
-                         self.tiles[x][y].tile_type = Tile.FLOOR
+            for y in range(1, self.tileheight - 1):
+                for x in range(1, self.tilewidth - 1):
+                    count = self._count_wall_tile(x, y)
+                    if count >= 5 or count <= 1:
+                        self.tiles[x][y].tile_type = Tile.WALL
+                    else:
+                        self.tiles[x][y].tile_type = Tile.FLOOR
 
         for repeat in range(3):
             for y in range(1, self.tileheight - 1):
@@ -269,7 +268,7 @@ class Map:
             count_explored = 0
             for i in range(int(self.tilewidth * self.tileheight / 2)):
                 # We generate a room
-                new_room = self._generate_room((5,5), (17,17), modulo_rest=1)
+                new_room = self._generate_room((5, 5), (17, 17), modulo_rest=1)
                 pos = [random.randint(0, self.tilewidth), random.randint(0, self.tileheight)]
                 if pos[0] % 2 == 1: pos[0] += 1
                 if pos[1] % 2 == 1: pos[1] += 1
@@ -528,7 +527,7 @@ class Map:
             for x in range(grid_position[0], grid_position[0] + room.size[0]):
                 self.tiles[x][y].room = room
                 if y in (grid_position[1], grid_position[1] + room.size[1] -1) or \
-                                x in (grid_position[0], grid_position[0] + room.size[0] -1):
+                                x in (grid_position[0], grid_position[0] + room.size[0] - 1):
                     self.tiles[x][y].tile_type = Tile.WALL
                 else:
                     self.tiles[x][y].tile_type = Tile.FLOOR
