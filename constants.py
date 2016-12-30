@@ -6,6 +6,12 @@ P_ALL = "ALL"
 P_CAT_LOG = "LOG"
 P_CAT_FIGHT = "FIGHT"
 
+# Game - Game States
+GAME_STATE_PLAYING = 'Playing'
+GAME_STATE_INVENTORY = 'Inventory'
+GAME_STATE_MAP = 'Minimap'
+GAME_STATE_CHARACTER = 'Character'
+
 # Tilemap - Tiles
 # Type of Tiles
 T_VOID = '0'
@@ -35,7 +41,13 @@ BONUS_SPEED = "Speed"
 BONUS_ARMOR = "Armor"
 
 # Player
+
 STR_NAME = "strength"
 DEX_NAME = "dexterity"
 MIND_NAME = "mind"
 CHAR_NAME = "charisma"
+
+# Action type
+AC_MOVE = "move"
+AC_FIGHT = "fight"
+AC_SPELL = "cast"

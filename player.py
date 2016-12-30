@@ -98,6 +98,17 @@ class PlayerHelper(Entity):
                                                            self.fighter.armor_class, self.vision
                                                            ))
 
+    def speed_cost_for(self, action):
+        # Assume base 1 = move
+        if action == c.AC_MOVE:
+            return self.speed
+        elif action == c.AC_FIGHT:
+            return int(self.speed * 0.8)
+        elif action == c.AC_SPELL:
+            return int(self.speed * 2)
+        else:
+            assert 0, "Action speed not recognized - action type {}".format(action)
+
     def move(self, dx=0, dy=0):
         """Try to move the player. Return True if an action was done (either move or attack)"""
         # Action test
@@ -113,6 +124,7 @@ class PlayerHelper(Entity):
         for entity in self.game.objects:
             if entity != self and entity.fighter and entity.x == self.x + dx and entity.y == self.y + dy:
                 self.fighter.attack(entity.fighter)
+                self.game.ticker.ticks_to_advance += self.speed_cost_for(c.AC_FIGHT)
                 return True
 
         # collision test: map data (floor, water, lava...)
@@ -129,6 +141,7 @@ class PlayerHelper(Entity):
 
             self.invalidate_fog_of_war = True
 
+            self.game.ticker.ticks_to_advance += self.speed_cost_for(c.AC_MOVE)
             return True
 
         return False

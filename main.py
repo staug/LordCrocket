@@ -45,7 +45,7 @@ class InventoryScreen(Screen):
                 self.game.quit()
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_ESCAPE:
-                    self.game.game_state = self.default_back_state
+                    self.c.GAME_state = self.default_back_state
             if event.type == pg.MOUSEBUTTONDOWN:
                 (button1, button2, button3) = pg.mouse.get_pressed()
                 (x, y) = pg.mouse.get_pos()
@@ -239,7 +239,7 @@ class MapScreen(Screen):
                 self.game.quit()
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_ESCAPE:
-                    self.game.game_state = self.default_back_state
+                    self.c.GAME_state = self.default_back_state
 
     def draw(self):
         # Erase All
@@ -289,7 +289,7 @@ class CharacterScreen(Screen):
                 self.game.quit()
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_ESCAPE:
-                    self.game.game_state = self.default_back_state
+                    self.c.GAME_state = self.default_back_state
 
     def draw(self):
         # Erase All
@@ -368,6 +368,9 @@ class PlayingScreen(Screen):
                                 pg.Rect(x * TILESIZE_SCREEN, y * TILESIZE_SCREEN, TILESIZE_SCREEN, TILESIZE_SCREEN)))
             self.game.player.invalidate_fog_of_war = False
 
+            self.game.visible_player_array = self.game.fov.get_vision_matrix_for(self.game.player, flag_explored=True)
+            self.game.minimap.build_background()
+
         self.game.screen.blit(self.fog_of_war_mask, (0, 0))
         # --- HUD SECTION ---
         # Player health
@@ -403,29 +406,29 @@ class PlayingScreen(Screen):
                 if event.key == pg.K_ESCAPE:
                     self.game.quit()
                 if event.key in (pg.K_LEFT, pg.K_q, pg.K_KP4):
-                    return self.game.player.move(dx=-1)
+                    self.game.player.move(dx=-1)
                 if event.key in (pg.K_RIGHT, pg.K_d, pg.K_KP6):
-                    return self.game.player.move(dx=1)
+                    self.game.player.move(dx=1)
                 if event.key in (pg.K_UP, pg.K_z, pg.K_KP8):
-                    return self.game.player.move(dy=-1)
+                    self.game.player.move(dy=-1)
                 if event.key in (pg.K_DOWN, pg.K_x, pg.K_KP2):
-                    return self.game.player.move(dy=1)
+                    self.game.player.move(dy=1)
                 if event.key in (pg.K_KP7, pg.K_a):
-                    return self.game.player.move(dx=-1, dy=-1)
+                    self.game.player.move(dx=-1, dy=-1)
                 if event.key in (pg.K_KP9, pg.K_e):
-                    return self.game.player.move(dx=1, dy=-1)
+                    self.game.player.move(dx=1, dy=-1)
                 if event.key in (pg.K_KP1, pg.K_w):
-                    return self.game.player.move(dx=-1, dy=1)
+                    self.game.player.move(dx=-1, dy=1)
                 if event.key in (pg.K_KP3, pg.K_c):
-                    return self.game.player.move(dx=1, dy=1)
+                    self.game.player.move(dx=1, dy=1)
                 if event.key == pg.K_m:
                     self.game.minimap_enable = not self.game.minimap_enable
                 if event.key == pg.K_p:
-                    self.game.game_state = Game.GAME_STATE_MAP
+                    self.c.GAME_state = c.GAME_STATE_MAP
                 if event.key == pg.K_f:
-                    self.game.game_state = Game.GAME_STATE_CHARACTER
+                    self.c.GAME_state = c.GAME_STATE_CHARACTER
                 if event.key == pg.K_i:
-                    self.game.game_state=Game.GAME_STATE_INVENTORY
+                    self.c.GAME_state=c.GAME_STATE_INVENTORY
                 if event.key == pg.K_g:
                     for object in self.game.objects:
                         if (object.x, object.y) == (self.game.player.x, self.game.player.y) and object.item:
@@ -505,9 +508,9 @@ class PlayingScreen(Screen):
                     else:
                         self.game.textbox.scroll(-1)
 
-        return False
-
     def update(self):
+        # Update actions
+        self.game.ticker.advance_ticks()
         # update visual portion of the game loop
         for group in self.game.all_groups:
             group.update()
@@ -515,11 +518,6 @@ class PlayingScreen(Screen):
 
 
 class Game:
-
-    GAME_STATE_PLAYING = 'Playing'
-    GAME_STATE_INVENTORY = 'Inventory'
-    GAME_STATE_MAP = 'Minimap'
-    GAME_STATE_CHARACTER = 'Character'
 
     def __init__(self):
         pg.display.init()
@@ -585,7 +583,7 @@ class Game:
         # Generic Game variables
         self.ticker = Ticker()
         self.bus = Publisher()
-        self.game_state = Game.GAME_STATE_PLAYING
+        self.game_state = c.GAME_STATE_PLAYING
         self.player_took_action = False
         self.minimap_enable = False
 
@@ -593,10 +591,12 @@ class Game:
         self.textbox = TextBox(self)
         self.textbox.text = "Welcome to the dungeon - {}".format(GAME_VER)
 
-        self.inventory_screen = InventoryScreen(self, Game.GAME_STATE_PLAYING)
-        self.map_screen = MapScreen(self, Game.GAME_STATE_PLAYING)
-        self.playing_screen = PlayingScreen(self, None)
-        self.character_screen = CharacterScreen(self, Game.GAME_STATE_PLAYING)
+        self.screens = {
+            c.GAME_STATE_INVENTORY: InventoryScreen(self, c.GAME_STATE_PLAYING),
+            c.GAME_STATE_MAP: MapScreen(self, c.GAME_STATE_PLAYING),
+            c.GAME_STATE_CHARACTER: CharacterScreen(self, c.GAME_STATE_PLAYING),
+            c.GAME_STATE_PLAYING: PlayingScreen(self, None)
+        }
 
         # initializing map structure
         self.map = Map(self, "Dyn_level1")
@@ -638,7 +638,7 @@ class Game:
                        open_function=DoorHelper.open_door)
 
         # place monsters
-        for i in range(20):
+        for i in range(60):
             pos = self.map.get_random_available_tile(c.T_FLOOR)
             MonsterHelper(self, "Bat"+str(i), pos, 'BAT', 10, (1, 4, 0),
                           [("bite", (1, 2, 0)),("snicker", (1, 4, 0))],
@@ -706,14 +706,14 @@ class Game:
 
             # Generic Game variables
             self.ticker = Ticker()
-            self.game_state = Game.GAME_STATE_PLAYING
+            self.game_state = c.GAME_STATE_PLAYING
             self.player_took_action = False
             self.minimap_enable = False
 
-            self.inventory_screen = InventoryScreen(self, Game.GAME_STATE_PLAYING)
-            self.map_screen = MapScreen(self, Game.GAME_STATE_PLAYING)
+            self.inventory_screen = InventoryScreen(self, c.GAME_STATE_PLAYING)
+            self.map_screen = MapScreen(self, c.GAME_STATE_PLAYING)
             self.playing_screen = PlayingScreen(self, None)
-            self.character_screen = CharacterScreen(self, Game.GAME_STATE_PLAYING)
+            self.character_screen = CharacterScreen(self, c.GAME_STATE_PLAYING)
 
             # initializing map structure
             #self.map = Map(self, "Dyn_level1")
@@ -747,39 +747,15 @@ class Game:
         # game loop - set self.playing = False to end the game
         self.playing = True
         while self.playing:
-            if self.game_state == Game.GAME_STATE_PLAYING:
-                action = self.playing_screen.events()
-                self.update_action_in_game_state_playing(action)
-                self.playing_screen.update()
-                self.playing_screen.draw()
-
-            elif self.game_state == Game.GAME_STATE_INVENTORY:
-                self.inventory_screen.events()
-                self.inventory_screen.update()
-                self.inventory_screen.draw()
-
-            elif self.game_state == Game.GAME_STATE_MAP:
-                self.map_screen.events()
-                self.map_screen.update()
-                self.map_screen.draw()
-            elif self.game_state == Game.GAME_STATE_CHARACTER:
-                self.character_screen.events()
-                self.character_screen.update()
-                self.character_screen.draw()
+            self.screens[self.game_state].events()
+            self.screens[self.game_state].update()
+            self.screens[self.game_state].draw()
 
     def quit(self):
         pg.quit()
         sys.exit()
 
 
-    def update_action_in_game_state_playing(self, player_action):
-        if player_action:
-            self.bus.publish(self, {"test":"test1"})
-            self.bus.publish(self, {"test": "test"}, main_category=c.P_CAT_LOG)
-            self.visible_player_array = self.fov.get_vision_matrix_for(self.player, flag_explored=True)
-            self.minimap.build_background()
-            self.ticker.ticks_to_advance += self.player.speed
-            self.ticker.advance_ticks()
 
     def show_start_screen(self):
         pass

@@ -12,7 +12,7 @@ GENERAL GAME
 * CLean up UI
 * Stairs between maps
 * Character view mode
-* Move all constants (tile tyep, equipment...) to constant file, and simplify all imports
+* [DONE] Move all constants (tile tyep, equipment...) to constant file, and simplify all imports
 
 MESSAGING BETWEEN ALL
 * [DONE] Implement a subscribe pattern
@@ -30,8 +30,8 @@ INVENTORY SCREEN
 * Inventory: display x items max, and then move to the next ones...
 
 SPEED SYSTEM
-* different speed for each action
-* Use a ticker property to record last action update.
+* [DONE] Different speed for each action
+* [DONE] Use a ticker property to record last action update.
 
 MOSNTER
 * More characteristics to hero and monster - http://www.roguebasin.com/index.php?title=A_Better_Monster_AI
@@ -42,6 +42,7 @@ MOSNTER
 ITEM
 * Eahc item has a weight
 * Each item has durability index
+* Each item, monster... has a long description
 
 Spells and potions
 * Increase and decrease visibility radius

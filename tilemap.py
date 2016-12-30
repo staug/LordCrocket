@@ -599,7 +599,7 @@ class Map:
             if self.tiles[x][y].tile_type == tile_type:
                 if without_objects and ((x, y) not in entity_pos_listing and (x, y) not in self.doors_pos):
                     return x, y
-                elif (x, y) not in self.door_pos:
+                elif (x, y) not in self.doors_pos:
                     return x,y
 
     @property
