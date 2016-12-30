@@ -9,7 +9,7 @@ from ai import AIEntity, FollowingAIEntity
 from tilemap import FieldOfView
 import pygame
 from math import sqrt
-
+import constants as c
 
 class Entity(Sprite):
     """
@@ -302,7 +302,7 @@ class DoorHelper(Entity):
         self.image_refs = image_refs
 
         horizontal = True
-        if game.map.tiles[pos[0]][pos[1]+1].tile_type == Tile.WALL:
+        if game.map.tiles[pos[0]][pos[1]+1].tile_type == c.T_WALL:
             horizontal = False
             self.index += 2
         if not closed:
@@ -333,27 +333,6 @@ class EquipmentHelper(Entity):
     """
     Class used to create an Equipment
     """
-
-    SLOT_HEAD = "Head"
-    SLOT_CAPE = "Cape"
-    SLOT_TORSO = "Torso"
-    SLOT_LEG = "Leg"
-    SLOT_FOOT = "Foot"
-    SLOT_HAND_LEFT = "Left Hand"
-    SLOT_HAND_RIGHT = "Right Hand"
-    SLOT_BOW = "Bow"
-    SLOT_GLOVE = "Glove"
-    SLOT_QUIVER = "Quiver"
-    SLOT_RING = "Ring"
-    SLOT_NECKLACE = "Necklace"
-
-    BONUS_STR = "Strength"
-    BONUS_DEX = "Dexterity"
-    BONUS_MIND = "Mind"
-    BONUS_CHARISMA = "Charisma"
-    BONUS_VISION = "Vision"
-    BONUS_SPEED = "Speed"
-    BONUS_ARMOR = "Armor"
 
     def __init__(self, game, name, pos, image_ref, slot, modifiers):
         """

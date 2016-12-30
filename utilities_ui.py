@@ -27,7 +27,7 @@ class TextBox:
 
         self.game = game
         self.game.bus.register(self)
-        self.game.bus.register(self, main_category=c.PUBLISHER_CAT_LOG, function_to_call=self.notify2)
+        self.game.bus.register(self, main_category=c.P_CAT_LOG, function_to_call=self.notify2)
         self._ktext = KTextSurfaceWriter(rect, font=font, color=st.WHITE)
         self._text = ""
         self.message = []
@@ -237,6 +237,7 @@ class Input:
                     elif event.key == pg.K_SLASH and '?' in self.restricted: self.value += '?'
 
             if len(self.value) > self.maxlength >= 0: self.value = self.value[:-1]
+
 
 def load_image_list(img_folder_name, filename, width=st.TILESIZE_FILE, height=st.TILESIZE_FILE):
     """

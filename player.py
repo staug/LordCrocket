@@ -1,17 +1,14 @@
-from entities import Entity, EquipmentHelper
+from entities import Entity
 from fighter import PlayerFighter
 import utilities as ut
 import random as rd
+import constants as c
+
 
 class PlayerHelper(Entity):
     """
     Microlite Swords and Sorcery Rules
     """
-
-    STR_NAME = "strength"
-    DEX_NAME = "dexterity"
-    MIND_NAME = "mind"
-    CHAR_NAME = "charisma"
 
     def __init__(self, game, pos):
 
@@ -23,7 +20,7 @@ class PlayerHelper(Entity):
         self.base_mind = ut.roll(6, 3)
         self.base_charisma = ut.roll(6, 3)
         # As a human, adding +1 to 2 random Characteristics
-        characteristics = [PlayerHelper.CHAR_NAME, PlayerHelper.STR_NAME, PlayerHelper.DEX_NAME, PlayerHelper.MIND_NAME]
+        characteristics = [c.CHAR_NAME, c.STR_NAME, c.DEX_NAME, c.MIND_NAME]
         rd.shuffle(characteristics)
         setattr(self, 'base_' + characteristics[0], getattr(self, characteristics[0]) + 1)
         setattr(self, 'base_' + characteristics[1], getattr(self, characteristics[1]) + 1)
@@ -49,31 +46,31 @@ class PlayerHelper(Entity):
 
     @property
     def strength(self):
-        return self.base_strength + self.get_bonus(EquipmentHelper.BONUS_STR)
+        return self.base_strength + self.get_bonus(c.BONUS_STR)
 
     @property
     def dexterity(self):
-        return self.base_dexterity + self.get_bonus(EquipmentHelper.BONUS_DEX)
+        return self.base_dexterity + self.get_bonus(c.BONUS_DEX)
 
     @property
     def mind(self):
-        return self.base_mind + self.get_bonus(EquipmentHelper.BONUS_MIND)
+        return self.base_mind + self.get_bonus(c.BONUS_MIND)
 
     @property
     def charisma(self):
-        return self.base_charisma + self.get_bonus(EquipmentHelper.BONUS_CHARISMA)
+        return self.base_charisma + self.get_bonus(c.BONUS_CHARISMA)
 
     @property
     def speed(self):
-        return self.base_speed + self.get_bonus(EquipmentHelper.BONUS_SPEED)
+        return self.base_speed + self.get_bonus(c.BONUS_SPEED)
 
     @property
     def vision(self):
-        return self.base_vision + self.get_bonus(EquipmentHelper.BONUS_VISION)
+        return self.base_vision + self.get_bonus(c.BONUS_VISION)
 
     # BONUS: Stat bonus = (STAT-10)/3, round toward zero.
     def get_stat_bonus(self, stat):
-        assert stat in (PlayerHelper.CHAR_NAME, PlayerHelper.STR_NAME, PlayerHelper.DEX_NAME, PlayerHelper.MIND_NAME)
+        assert stat in (c.CHAR_NAME, c.STR_NAME, c.DEX_NAME, c.MIND_NAME)
         if stat == PlayerHelper.strength:
             return int((self.strength - 10) / 3)
         elif stat == PlayerHelper.dexterity:
@@ -94,8 +91,11 @@ class PlayerHelper(Entity):
     def __str__(self):
         return ("{}, Position [{},{}], "
                 "STR={} DEX={} MIND={} CHA={}, "
-                "HP={}/{} BP={}/{} AC={} vision={}".format(self.name, self.x, self.y, self.strength, self.dexterity, self.mind, self.charisma,
-                                                           self.fighter.hit_points, self.base_hit_points, self.fighter.body_points, self.base_body_points, self.fighter.armor_class, self.vision
+                "HP={}/{} BP={}/{} AC={} vision={}".format(self.name, self.x, self.y, self.strength,
+                                                           self.dexterity, self.mind, self.charisma,
+                                                           self.fighter.hit_points, self.base_hit_points,
+                                                           self.fighter.body_points, self.base_body_points,
+                                                           self.fighter.armor_class, self.vision
                                                            ))
 
     def move(self, dx=0, dy=0):
@@ -180,6 +180,6 @@ class PlayerHelper(Entity):
         """
         non_equipment = []
         for item in self.inventory:
-            if not item.equipment or item.equipment == None:
+            if not item.equipment or item.equipment is None:
                 non_equipment.append(item)
         return non_equipment

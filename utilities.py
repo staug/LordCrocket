@@ -42,8 +42,8 @@ class Publisher(object):
 
     def register(self,
                  object_to_register,
-                 main_category=c.PUBLISHER_ALL,
-                 sub_category=c.PUBLISHER_ALL,
+                 main_category=c.P_ALL,
+                 sub_category=c.P_ALL,
                  function_to_call=None):
         """
         Register an object so that we
@@ -84,7 +84,7 @@ class Publisher(object):
             for function in list_to_remove:
                 self._specialized_list[key].remove(function)
 
-    def publish(self, source, message, main_category=[c.PUBLISHER_ALL], sub_category=[c.PUBLISHER_ALL]):
+    def publish(self, source, message, main_category=c.P_ALL, sub_category=c.P_ALL):
         assert type(message) is dict, "Message {} is not a dict".format(message)
         message["SOURCE"] = source
         broadcasted_list = []
@@ -94,10 +94,10 @@ class Publisher(object):
             main_category = [main_category]
 
         # By default, we always broadcast to "ALL"
-        if c.PUBLISHER_ALL not in main_category:
-            main_category.append(c.PUBLISHER_ALL)
-        if c.PUBLISHER_ALL not in sub_category:
-            sub_category.append(c.PUBLISHER_ALL)
+        if c.P_ALL not in main_category:
+            main_category.append(c.P_ALL)
+        if c.P_ALL not in sub_category:
+            sub_category.append(c.P_ALL)
 
         for category in main_category:
             for sub in sub_category:

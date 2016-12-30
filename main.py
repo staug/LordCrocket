@@ -1,13 +1,14 @@
-import dill as pick
 import sys
-
 from os import path
+
+import dill as pick
 import pygame as pg
 from ktextsurfacewriter import KTextSurfaceWriter
+
+import constants as c
 from entities import MonsterHelper, EquipmentHelper, ItemHelper, DoorHelper, ThrowableHelper, NPCHelper
 from player import PlayerHelper
 from settings import *
-import constants as c
 from tilemap import Map, Camera, Tile, FieldOfView, Minimap
 from utilities import Ticker, Publisher
 from utilities_ui import TextBox, load_image, load_image_list, load_wall_structure_dawnlike
@@ -98,12 +99,12 @@ class InventoryScreen(Screen):
             listing[index_y * self.objects_per_line + index_x].item.use()
 
     def handle_equipped_event(self, buttons, index_x, index_y):
-        slots = [EquipmentHelper.SLOT_RING, EquipmentHelper.SLOT_HEAD, EquipmentHelper.SLOT_CAPE,
-                 EquipmentHelper.SLOT_NECKLACE,
-                 EquipmentHelper.SLOT_HAND_RIGHT, EquipmentHelper.SLOT_TORSO, EquipmentHelper.SLOT_HAND_LEFT,
-                 EquipmentHelper.SLOT_BOW,
-                 EquipmentHelper.SLOT_GLOVE, EquipmentHelper.SLOT_LEG, EquipmentHelper.SLOT_QUIVER, "NOTHING",
-                 "NOTHING", EquipmentHelper.SLOT_FOOT, "NOTHING", "NOTHING"]
+        slots = [c.SLOT_RING, c.SLOT_HEAD, c.SLOT_CAPE,
+                 c.SLOT_NECKLACE,
+                 c.SLOT_HAND_RIGHT, c.SLOT_TORSO, c.SLOT_HAND_LEFT,
+                 c.SLOT_BOW,
+                 c.SLOT_GLOVE, c.SLOT_LEG, c.SLOT_QUIVER, "NOTHING",
+                 "NOTHING", c.SLOT_FOOT, "NOTHING", "NOTHING"]
         game_object = self.game.player.get_equipped_object_at(slots[index_y * 4 + index_x])
         if game_object is not None:
             (button1, button2, button3) = buttons
@@ -121,22 +122,22 @@ class InventoryScreen(Screen):
         top_x, top_y = orig_x, self.original_pos[1]
 
         # First part: Ring - Head - Cape - Necklace
-        ring = self.game.player.get_equipped_object_at(EquipmentHelper.SLOT_RING)
+        ring = self.game.player.get_equipped_object_at(c.SLOT_RING)
         if ring:
             self.game.screen.blit(pg.transform.scale(ring.image, (tile_size, tile_size)), (top_x, top_y))
         pg.draw.rect(self.game.screen, WHITE, pg.Rect((top_x, top_y), (tile_size, tile_size)), 2)
         top_x += tile_size
-        head = self.game.player.get_equipped_object_at(EquipmentHelper.SLOT_HEAD)
+        head = self.game.player.get_equipped_object_at(c.SLOT_HEAD)
         if head:
             self.game.screen.blit(pg.transform.scale(head.image, (tile_size, tile_size)), (top_x, top_y))
         pg.draw.rect(self.game.screen, WHITE, pg.Rect((top_x, top_y), (tile_size, tile_size)), 2)
         top_x += tile_size
-        cape = self.game.player.get_equipped_object_at(EquipmentHelper.SLOT_CAPE)
+        cape = self.game.player.get_equipped_object_at(c.SLOT_CAPE)
         if cape:
             self.game.screen.blit(pg.transform.scale(cape.image, (tile_size, tile_size)), (top_x, top_y))
         pg.draw.rect(self.game.screen, WHITE, pg.Rect((top_x, top_y), (tile_size, tile_size)), 2)
         top_x += tile_size
-        necklace = self.game.player.get_equipped_object_at(EquipmentHelper.SLOT_NECKLACE)
+        necklace = self.game.player.get_equipped_object_at(c.SLOT_NECKLACE)
         if necklace:
             self.game.screen.blit(pg.transform.scale(necklace.image, (tile_size, tile_size)), (top_x, top_y))
         pg.draw.rect(self.game.screen, WHITE, pg.Rect((top_x, top_y), (tile_size, tile_size)), 2)
@@ -144,22 +145,22 @@ class InventoryScreen(Screen):
         # Second part: right_hand - Torso - left_hand - Bow
         top_y += tile_size
         top_x = orig_x
-        right_hand = self.game.player.get_equipped_object_at(EquipmentHelper.SLOT_HAND_RIGHT)
+        right_hand = self.game.player.get_equipped_object_at(c.SLOT_HAND_RIGHT)
         if right_hand:
             self.game.screen.blit(pg.transform.scale(right_hand.image, (tile_size, tile_size)), (top_x, top_y))
         pg.draw.rect(self.game.screen, WHITE, pg.Rect((top_x, top_y), (tile_size, tile_size)), 2)
         top_x += tile_size
-        torso = self.game.player.get_equipped_object_at(EquipmentHelper.SLOT_TORSO)
+        torso = self.game.player.get_equipped_object_at(c.SLOT_TORSO)
         if torso:
             self.game.screen.blit(pg.transform.scale(torso.image, (tile_size, tile_size)), (top_x, top_y))
         pg.draw.rect(self.game.screen, WHITE, pg.Rect((top_x, top_y), (tile_size, tile_size)), 2)
         top_x += tile_size
-        left_hand = self.game.player.get_equipped_object_at(EquipmentHelper.SLOT_HAND_LEFT)
+        left_hand = self.game.player.get_equipped_object_at(c.SLOT_HAND_LEFT)
         if left_hand:
             self.game.screen.blit(pg.transform.scale(left_hand.image, (tile_size, tile_size)), (top_x, top_y))
         pg.draw.rect(self.game.screen, WHITE, pg.Rect((top_x, top_y), (tile_size, tile_size)), 2)
         top_x += tile_size
-        bow = self.game.player.get_equipped_object_at(EquipmentHelper.SLOT_BOW)
+        bow = self.game.player.get_equipped_object_at(c.SLOT_BOW)
         if bow:
             self.game.screen.blit(pg.transform.scale(bow.image, (tile_size, tile_size)), (top_x, top_y))
         pg.draw.rect(self.game.screen, WHITE, pg.Rect((top_x, top_y), (tile_size, tile_size)), 2)
@@ -167,17 +168,17 @@ class InventoryScreen(Screen):
         # Third part: Glove - Leg - Quiver - NOTHING
         top_y += tile_size
         top_x = orig_x
-        glove = self.game.player.get_equipped_object_at(EquipmentHelper.SLOT_GLOVE)
+        glove = self.game.player.get_equipped_object_at(c.SLOT_GLOVE)
         if glove:
             self.game.screen.blit(pg.transform.scale(glove.image, (tile_size, tile_size)), (top_x, top_y))
         pg.draw.rect(self.game.screen, WHITE, pg.Rect((top_x, top_y), (tile_size, tile_size)), 2)
         top_x += tile_size
-        leg = self.game.player.get_equipped_object_at(EquipmentHelper.SLOT_LEG)
+        leg = self.game.player.get_equipped_object_at(c.SLOT_LEG)
         if leg:
             self.game.screen.blit(pg.transform.scale(leg.image, (tile_size, tile_size)), (top_x, top_y))
         pg.draw.rect(self.game.screen, WHITE, pg.Rect((top_x, top_y), (tile_size, tile_size)), 2)
         top_x += tile_size
-        quiver = self.game.player.get_equipped_object_at(EquipmentHelper.SLOT_QUIVER)
+        quiver = self.game.player.get_equipped_object_at(c.SLOT_QUIVER)
         if quiver:
             self.game.screen.blit(pg.transform.scale(quiver.image, (tile_size, tile_size)), (top_x, top_y))
         pg.draw.rect(self.game.screen, WHITE, pg.Rect((top_x, top_y), (tile_size, tile_size)), 2)
@@ -185,7 +186,7 @@ class InventoryScreen(Screen):
         # Fourth part: NOTHING - Shoes - NOTHING - NOTHING
         top_y += tile_size
         top_x = orig_x + tile_size
-        shoes = self.game.player.get_equipped_object_at(EquipmentHelper.SLOT_FOOT)
+        shoes = self.game.player.get_equipped_object_at(c.SLOT_FOOT)
         if shoes:
             self.game.screen.blit(pg.transform.scale(shoes.image, (tile_size, tile_size)), (top_x, top_y))
         pg.draw.rect(self.game.screen, WHITE, pg.Rect((top_x, top_y), (tile_size, tile_size)), 2)
@@ -624,7 +625,7 @@ class Game:
         self.camera = Camera(self.map.width, self.map.height)
 
         # Place player
-        pos = self.map.get_random_available_tile(Tile.FLOOR)
+        pos = self.map.get_random_available_tile(c.T_FLOOR)
         self.player = PlayerHelper(self, pos)
         self.visible_player_array = self.fov.get_vision_matrix_for(self.player, flag_explored=True)
 
@@ -638,25 +639,25 @@ class Game:
 
         # place monsters
         for i in range(20):
-            pos = self.map.get_random_available_tile(Tile.FLOOR)
+            pos = self.map.get_random_available_tile(c.T_FLOOR)
             MonsterHelper(self, "Bat"+str(i), pos, 'BAT', 10, (1, 4, 0),
                           [("bite", (1, 2, 0)),("snicker", (1, 4, 0))],
                           6, 0, vision=2, speed=10)
 
-        all_pos = self.map.get_all_available_tiles(Tile.FLOOR, without_objects=True)
+        all_pos = self.map.get_all_available_tiles(c.T_FLOOR, without_objects=True)
 
         for i in range(200):
             pos = all_pos.pop()
             ItemHelper(self, "Healing Potion"+str(i), pos, "POTION_R",
                        use_function=lambda player=self.player: ItemHelper.cast_heal(player))
 
-            EquipmentHelper(self, "Sword", all_pos.pop(), "SWORD", slot=EquipmentHelper.SLOT_HAND_RIGHT, modifiers={EquipmentHelper.BONUS_STR: 2})
-            EquipmentHelper(self, "Helmet", all_pos.pop(), "HELMET", slot=EquipmentHelper.SLOT_HEAD, modifiers={EquipmentHelper.BONUS_STR: -1})
-            #EquipmentHelper(self, "Cape", all_pos.pop(), "CAPE", slot=EquipmentHelper.SLOT_CAPE, modifiers={})
-            #EquipmentHelper(self, "Leg", all_pos.pop(), "LEG", slot=EquipmentHelper.SLOT_LEG, modifiers={})
-            #EquipmentHelper(self, "Armor", all_pos.pop(), "ARMOR", slot=EquipmentHelper.SLOT_TORSO, modifiers={})
+            EquipmentHelper(self, "Sword", all_pos.pop(), "SWORD", slot=c.SLOT_HAND_RIGHT, modifiers={c.BONUS_STR: 2})
+            EquipmentHelper(self, "Helmet", all_pos.pop(), "HELMET", slot=c.SLOT_HEAD, modifiers={c.BONUS_STR: -1})
+            #EquipmentHelper(self, "Cape", all_pos.pop(), "CAPE", slot=c.SLOT_CAPE, modifiers={})
+            #EquipmentHelper(self, "Leg", all_pos.pop(), "LEG", slot=c.SLOT_LEG, modifiers={})
+            #EquipmentHelper(self, "Armor", all_pos.pop(), "ARMOR", slot=c.SLOT_TORSO, modifiers={})
 
-            # pos = self.map.get_random_available_tile(Tile.FLOOR)
+            # pos = self.map.get_random_available_tile(c.T_FLOOR)
             # item_component = Item(use_function=lambda player=self.player: Item.cast_heal(player))
             # item = GameObject(self, "HEALING POTION", pos[0], pos[1], self.items_img['Potion_R'], blocks=False,
             #                       item=item_component)
@@ -774,7 +775,7 @@ class Game:
     def update_action_in_game_state_playing(self, player_action):
         if player_action:
             self.bus.publish(self, {"test":"test1"})
-            self.bus.publish(self, {"test": "test"}, main_category=c.PUBLISHER_CAT_LOG)
+            self.bus.publish(self, {"test": "test"}, main_category=c.P_CAT_LOG)
             self.visible_player_array = self.fov.get_vision_matrix_for(self.player, flag_explored=True)
             self.minimap.build_background()
             self.ticker.ticks_to_advance += self.player.speed
