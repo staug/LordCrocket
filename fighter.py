@@ -89,8 +89,6 @@ class MonsterFighter(FighterEntity):
                 self.owner.game.textbox.add = "{} attacks {} with {} but it was blocked!".format(
                     self.owner.name.capitalize(), other_fighter.owner.name.capitalize(), attack[0])
 
-
-
     def monster_death(self):
         print("GENERIC DEATH FUNCTION")
         # Attribute the xp
@@ -98,6 +96,8 @@ class MonsterFighter(FighterEntity):
         # transform it into a nasty corpse! it doesn't block, can't be
         # attacked and doesn't move
         self.owner.game.textbox.add = self.owner.name.capitalize() + ' is dead!'
+        self.owner.game.ticker.unregister(self.owner.ai)  # First we remove it from the future action...
+        # TODO: change this in a method to do it in block
         self.owner.blocks = False
         self.owner.fighter = None
         self.owner.ai = None
@@ -106,6 +106,7 @@ class MonsterFighter(FighterEntity):
         self.owner.image_ref = 'REMAINS'
         self.owner.set_in_spritegroup(-1)
         self.owner.name = 'remains of ' + self.owner.name
+
 
 
 class PlayerFighter(FighterEntity):

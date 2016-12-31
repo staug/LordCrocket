@@ -2,7 +2,6 @@ from settings import *
 from pygame.sprite import Sprite
 from pygame.surface import Surface
 from item import ItemEntity, EquipmentEntity
-from tilemap import Tile
 from actionable import ActionableEntity
 from fighter import MonsterFighter
 from ai import AIEntity, FollowingAIEntity
@@ -10,6 +9,7 @@ from tilemap import FieldOfView
 import pygame
 from math import sqrt
 import constants as c
+
 
 class Entity(Sprite):
     """
@@ -71,7 +71,7 @@ class Entity(Sprite):
             self.game.ticker.schedule_turn(self.ai.speed, self.ai)
 
         self.item = item
-        if self.item:  #let the Item component know who owns it
+        if self.item:  # let the Item component know who owns it
             self.item.owner = self
 
         self.equipment = equipment
@@ -101,7 +101,9 @@ class Entity(Sprite):
         """
         # Action test
         for entity in self.game.objects:
-            if entity != self and entity.actionable is not None and (self.x + dx, self.y + dy) in entity.actionable.action_field:
+            if entity != self and \
+                            entity.actionable is not None and \
+                            (self.x + dx, self.y + dy) in entity.actionable.action_field:
                 self.x += dx
                 self.y += dy
                 entity.actionable.action(self)
@@ -113,15 +115,15 @@ class Entity(Sprite):
             # now test the list of objects
             for entity in self.game.objects:
                 if entity != self and entity.blocks and entity.x == self.x + dx and entity.y == self.y + dy:
-                    return False # cannot move
+                    return False  # cannot move
             # success
             self.x += dx
             self.y += dy
             if self.animated and (dx != 0 or dy != 0):
                 self.last_direction = (dx, dy)
 
-            return True # move
-        return False # cannot move
+            return True  # move
+        return False  # cannot move
 
     @property
     def vision(self):
@@ -232,8 +234,8 @@ class Entity(Sprite):
 
 
 class SpecialVisualEffect(Entity):
-    def __init__(self, game, x, y, image, seconds):
-        Entity.__init__(self, game, "Effect", x, y, image, groups=game.player_plus1_sprite_group)
+    def __init__(self, game, pos, image, seconds):
+        Entity.__init__(self, game, "Effect", pos, image, groups=game.player_plus1_sprite_group)
         now = pygame.time.get_ticks()
         self.end = now + 1000 * seconds
 
@@ -301,15 +303,13 @@ class DoorHelper(Entity):
         self.index = 0
         self.image_refs = image_refs
 
-        horizontal = True
         if game.map.tiles[pos[0]][pos[1]+1].tile_type == c.T_WALL:
-            horizontal = False
             self.index += 2
         if not closed:
             self.index += 1
 
         if name is None:
-            name="Door"
+            name = "Door"
 
         Entity.__init__(self, game, name, pos, image_refs[self.index], blocks=closed,
                         actionable=ActionableEntity(function=open_function))
@@ -324,9 +324,8 @@ class DoorHelper(Entity):
         door.image = door.game.all_images[door.image_ref]
         door.set_in_spritegroup(-1)
 
-
     def __str__(self):
-        return "Door {} opened:{}".format(self.name, not(self.blocks))
+        return "Door {} opened:{}".format(self.name, not self.blocks)
 
 
 class EquipmentHelper(Entity):
@@ -348,6 +347,7 @@ class EquipmentHelper(Entity):
         Entity.__init__(self, game, name, pos, image_ref, blocks=False,
                         equipment=EquipmentEntity(slot=slot, modifiers=modifiers))
         self.set_in_spritegroup(-1)
+
 
 class MonsterHelper(Entity):
     """
@@ -377,7 +377,7 @@ class MonsterHelper(Entity):
         ai = AIEntity(speed=speed)
         Entity.__init__(self, game, name, pos, image_ref, vision=vision, blocks=True,
                         blocking_tile_list=blocking_tile_list, blocking_view_list=blocking_view_list,
-                        ai = ai,
+                        ai=ai,
                         fighter=MonsterFighter(armor_class=armor, hit_dice=hit_dice, attacks=attacks, morale=morale,
                                                saving_throw=saving_throw, specials=special,
                                                death_function=death_function))
@@ -396,7 +396,12 @@ class ThrowableHelper(Entity):
     TARGET_MONSTER = "target_monster"
     TARGET_FIGHTER = "target_fighter"
 
-    def __init__(self, game, pos, image_ref, direction, function_hit, target_list=[], stopped_by=[]):
+    def __init__(self, game, pos, image_ref, direction, function_hit, target_list=None, stopped_by=None):
+        if target_list is None:
+            target_list = []
+        if stopped_by is None:
+            stopped_by = []
+
         Entity.__init__(self, game, "", pos, image_ref)
         self.direction = direction
         self.function_hit = function_hit
@@ -414,7 +419,7 @@ class ThrowableHelper(Entity):
             self.y += self.direction[1]
 
             # Test if next position is valid
-            if not (0 <= self.x < self.game.map.tilewidth) and (0 <= self.y < self.game.map.tileheight):
+            if not (0 <= self.x < self.game.map.tile_width) and (0 <= self.y < self.game.map.tile_height):
                 self.remove_object()
                 return
             if self.game.map.tiles[self.x][self.y].tile_type in self.stopped_by:

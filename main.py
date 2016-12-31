@@ -9,7 +9,7 @@ import constants as c
 from entities import MonsterHelper, EquipmentHelper, ItemHelper, DoorHelper, ThrowableHelper, NPCHelper
 from player import PlayerHelper
 from settings import *
-from tilemap import MapFactory, Camera, Tile, FieldOfView, Minimap
+from tilemap import MapFactory, Camera, FieldOfView, Minimap
 from utilities import Ticker, Publisher
 from utilities_ui import TextBox, load_image, load_image_list, load_wall_structure_dawnlike
 
@@ -265,7 +265,7 @@ class CharacterScreen(Screen):
         game_folder = path.dirname(__file__)
         font_folder = path.join(game_folder, FONT_FOLDER)
         self.font = pg.font.Font(path.join(font_folder, FONT_NAME), 12)
-        self.writer_part = KTextSurfaceWriter(self.game.screen.get_rect(), font = self.font)
+        self.writer_part = KTextSurfaceWriter(self.game.screen.get_rect(), font=self.font)
 
     def build_player_text(self):
         return ("{}\n\n"
@@ -294,7 +294,7 @@ class CharacterScreen(Screen):
     def draw(self):
         # Erase All
         self.game.screen.fill(BGCOLOR)
-        self.writer_part.text=self.build_player_text()
+        self.writer_part.text = self.build_player_text()
         self.writer_part.draw(self.game.screen)
 
         pg.display.flip()
@@ -321,8 +321,10 @@ class PlayingScreen(Screen):
             outline_rect_hp = pg.Rect(x + BAR_WIDTH_BP, y, BAR_WIDTH_HP, BAR_HEIGHT)
             fill_rect_hp = pg.Rect(x + BAR_WIDTH_BP, y, pct_hp * BAR_WIDTH_HP, BAR_HEIGHT)
             col = GREEN
-            if 0.3 <= pct_hp < 0.6: col = YELLOW
-            if 0 <= pct_hp < 0.3: col = RED
+            if 0.3 <= pct_hp < 0.6:
+                col = YELLOW
+            if 0 <= pct_hp < 0.3:
+                col = RED
 
             pg.draw.rect(surf, col, fill_rect_hp)
             pg.draw.rect(surf, WHITE, outline_rect_hp, 2)
@@ -356,7 +358,7 @@ class PlayingScreen(Screen):
             black = pg.Surface((TILESIZE_SCREEN, TILESIZE_SCREEN))
             black.fill(BGCOLOR)
             gray = pg.Surface((TILESIZE_SCREEN, TILESIZE_SCREEN), pg.SRCALPHA, 32)
-            gray.fill((0,0,0,120))
+            gray.fill((0, 0, 0, 120))
             for x in range(self.game.map.tile_width):
                 for y in range(self.game.map.tile_height):
                     if not self.game.visible_player_array[x][y]:
@@ -434,10 +436,6 @@ class PlayingScreen(Screen):
                         if (object.x, object.y) == (self.game.player.x, self.game.player.y) and object.item:
                             object.item.pick_up()
 
-                if event.key == pg.K_t: # TEST
-                    self.game.textbox.add = "TESTING : EFFECT"
-                    SpecialVisualEffect(self, self.game.player.x, self.game.player.y, "SPECIAL_EFFECT", 3)
-
                 if event.key == pg.K_y:
                     ThrowableHelper(self.game, self.game.player.pos, "FIREBALL", (1,0), ThrowableHelper.light_damage,
                                     stopped_by=[c.T_WALL, c.T_VOID])
@@ -496,7 +494,8 @@ class PlayingScreen(Screen):
                 (x, y) = pg.mouse.get_pos()
                 self.game.textbox.drag_drop_text_box = False
                 if abs(x - self.game.textbox.old_x) > 30 or abs(y - self.game.textbox.old_y) > 30:
-                    self.game.textbox._ktext.rect = self.game.textbox._ktext.rect.move(x- self.game.textbox.old_x, y - self.game.textbox.old_y)
+                    self.game.textbox._ktext.rect = \
+                        self.game.textbox._ktext.rect.move(x - self.game.textbox.old_x, y - self.game.textbox.old_y)
                     self.game.textbox._ktext.rect.x = max(0, self.game.textbox._ktext.rect.x)
                     self.game.textbox._ktext.rect.y = max(0, self.game.textbox._ktext.rect.y)
                     self.game.textbox._ktext.rect.right = min(self.game.textbox._ktext.rect.right, GAME_WIDTH)
@@ -527,6 +526,7 @@ class Game:
         pg.display.set_caption(GAME_TITLE + "-" + GAME_VER)
         self.clock = pg.time.Clock()
         pg.key.set_repeat(500, 100)
+        self.playing = True
 
         self.load_data()
 
@@ -539,7 +539,7 @@ class Game:
         wall_image_src = pg.image.load(path.join(image_folder, 'Wall.png')).convert_alpha()
 
         self.all_images = {
-            "PLAYER" : {
+            "PLAYER": {
                 "E": load_image_list(IMG_FOLDER, 'HeroEast.png'),
                 "W": load_image_list(IMG_FOLDER, 'HeroWest.png'),
                 "N": load_image_list(IMG_FOLDER, 'HeroNorth.png'),
@@ -576,8 +576,6 @@ class Game:
             "SPECIAL_EFFECT": [load_image(IMG_FOLDER, level_image_src, x, 21) for x in range(4)]
         }
 
-
-
     def new(self):
 
         # Generic Game variables
@@ -612,7 +610,7 @@ class Game:
         # They are drawn in the order below:
         self.player_min2_sprite_group = pg.sprite.Group()
         self.player_min1_sprite_group = pg.sprite.Group()
-        self.player_sprite_group = pg.sprite.Group() # the default group, also called level 0
+        self.player_sprite_group = pg.sprite.Group()  # the default group, also called level 0
         self.player_plus1_sprite_group = pg.sprite.Group()
         self.player_plus2_sprite_group = pg.sprite.Group()
         self.all_groups = (self.player_min2_sprite_group,
@@ -642,7 +640,7 @@ class Game:
         for i in range(60):
             pos = self.map.get_random_available_tile(c.T_FLOOR, self.objects)
             MonsterHelper(self, "Bat"+str(i), pos, 'BAT', 10, (1, 4, 0),
-                          [("bite", (1, 2, 0)),("snicker", (1, 4, 0))],
+                          [("bite", (1, 2, 0)), ("snicker", (1, 4, 0))],
                           6, 0, vision=2, speed=10)
 
         all_pos = self.map.get_all_available_tiles(c.T_FLOOR, self.objects, without_objects=True)
@@ -654,9 +652,9 @@ class Game:
 
             EquipmentHelper(self, "Sword", all_pos.pop(), "SWORD", slot=c.SLOT_HAND_RIGHT, modifiers={c.BONUS_STR: 2})
             EquipmentHelper(self, "Helmet", all_pos.pop(), "HELMET", slot=c.SLOT_HEAD, modifiers={c.BONUS_STR: -1})
-            #EquipmentHelper(self, "Cape", all_pos.pop(), "CAPE", slot=c.SLOT_CAPE, modifiers={})
-            #EquipmentHelper(self, "Leg", all_pos.pop(), "LEG", slot=c.SLOT_LEG, modifiers={})
-            #EquipmentHelper(self, "Armor", all_pos.pop(), "ARMOR", slot=c.SLOT_TORSO, modifiers={})
+            # EquipmentHelper(self, "Cape", all_pos.pop(), "CAPE", slot=c.SLOT_CAPE, modifiers={})
+            # EquipmentHelper(self, "Leg", all_pos.pop(), "LEG", slot=c.SLOT_LEG, modifiers={})
+            # EquipmentHelper(self, "Armor", all_pos.pop(), "ARMOR", slot=c.SLOT_TORSO, modifiers={})
 
             # pos = self.map.get_random_available_tile(c.T_FLOOR)
             # item_component = Item(use_function=lambda player=self.player: Item.cast_heal(player))
@@ -717,7 +715,6 @@ class Game:
             self.character_screen = CharacterScreen(self, c.GAME_STATE_PLAYING)
 
             # initializing map structure
-            #self.map = Map(self, "Dyn_level1")
             self.minimap = Minimap(self)
 
             # Field of view
@@ -746,7 +743,6 @@ class Game:
 
     def run(self):
         # game loop - set self.playing = False to end the game
-        self.playing = True
         while self.playing:
             self.screens[self.game_state].events()
             self.screens[self.game_state].update()
@@ -755,8 +751,6 @@ class Game:
     def quit(self):
         pg.quit()
         sys.exit()
-
-
 
     def show_start_screen(self):
         pass
@@ -768,8 +762,8 @@ if __name__ == '__main__':
     # create the game object
     g = Game()
     g.show_start_screen()
-    while True:
+    while g.playing:
         g.new()
-        #g.load()
+        # g.load()
         g.run()
     g.show_go_screen()

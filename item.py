@@ -5,13 +5,13 @@ class ItemEntity:
 
     FUNCTION_CANCELLED = 'cancelled'
 
-    #an item that can be picked up and used.
+    # an item that can be picked up and used.
     def __init__(self, use_function=None):
         self.use_function = use_function
         self.owner = None
 
     def pick_up(self):
-        #add to the player's inventory and remove from the map
+        # add to the player's inventory and remove from the map
         if len(self.owner.game.player.inventory) >= 60:
             self.owner.game.textbox.add = 'Your inventory is full, cannot pick up {}.'.format(self.owner.name)
         else:
@@ -49,8 +49,7 @@ class ItemEntity:
             self.owner.game.textbox.add = "The {} cannot be used.".format(self.owner.name)
         else:
             if self.use_function() != ItemEntity.FUNCTION_CANCELLED:
-                self.owner.game.player.inventory.remove(self.owner) # destroy after use, unless it was cancelled
-
+                self.owner.game.player.inventory.remove(self.owner)  # destroy after use, unless it was cancelled
 
 
 class EquipmentEntity:
@@ -82,7 +81,8 @@ class EquipmentEntity:
 
     def dequip(self):
         # dequip object and show a message about it
-        if not self.is_equipped: return
+        if not self.is_equipped:
+            return
         self.is_equipped = False
         self.owner.game.textbox.add = 'Dequipped ' + self.owner.name + ' from ' + self.slot + '.'
 

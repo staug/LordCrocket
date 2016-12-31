@@ -57,7 +57,8 @@ class Room:
                            'Lonely', 'Lost', 'Malevolent', 'Misplaced', 'Nameless', 'Ophidian', 'Scarlet', 'Secret',
                            'Shrouded', 'Squamous', 'Strange', 'Tenebrous', 'Uncanny', 'Unspeakable', 'Unvanquishable',
                            'Unwholesome', 'Vanishing', 'Weird')
-        room_name_part2 = ('room', 'hall', 'place', 'pit', 'shamble', 'crossing', 'location', 'center', 'cavity','cell',
+        room_name_part2 = ('room', 'hall', 'place', 'pit', 'shamble',
+                           'crossing', 'location', 'center', 'cavity', 'cell',
                            'hollow', 'alcove', 'antechamber', 'wherabouts')
         room_name_part3 = ('the Axolotl', 'Blood', 'Bones', 'Chaos', 'Curses', 'the Dead', 'Death', 'Demons', 'Despair',
                            'Deviltry', 'Doom', 'Evil', 'Fire', 'Frost', 'the 8 Geases', 'Gloom', 'Hells', 'Horrors',
@@ -91,31 +92,26 @@ class MapFactory:
         map_correctly_initialized = False
         self.map = None
 
-        while not map_correctly_initialized:
-            print(" *** GENERATING DUNGEON *** ")
-            # self.map = CaveMap(name, graphical_resources, dimension)
-            # self.map = MazeMap(name, graphical_resources, dimension)
-            # self.map = RoomAndMazeMap(name, graphical_resources, dimension)
-            self.map = RoomMap(name, graphical_resources, dimension)
-            print("DUNGEON: Available Tile: {} Limit {}".format(
-                len(self.map.get_all_available_tiles(c.T_FLOOR, [], without_objects=True)),
-                dimension[0] * dimension[1] / 4
-            ))
-            map_correctly_initialized = \
-                len(self.map.get_all_available_tiles(c.T_FLOOR, [],
-                                                     without_objects=True)) > dimension[0] * dimension[1] / 4
+        if filename is not None:
+            self.map = FileMap(name, graphical_resources, filename)
+        else:
+            while not map_correctly_initialized:
+                print(" *** GENERATING DUNGEON *** ")
+                # self.map = CaveMap(name, graphical_resources, dimension)
+                # self.map = MazeMap(name, graphical_resources, dimension)
+                # self.map = RoomAndMazeMap(name, graphical_resources, dimension)
+                self.map = RoomMap(name, graphical_resources, dimension)
+                all_size = int(dimension[0] * dimension[1])
+                print("DUNGEON: Available Tile: {} Limit {}".format(
+                    len(self.map.get_all_available_tiles(c.T_FLOOR, [], without_objects=True)),
+                    all_size / 4
+                ))
+                map_correctly_initialized = \
+                    len(self.map.get_all_available_tiles(c.T_FLOOR, [],
+                                                         without_objects=True)) > all_size / 4
         # Make it a bit more beautiful
         self.map.remove_extra_walls()
-        # The map is only valid if pos > to...
 
-        #if filename is not None:
-        #    self._generate_from_filename(filename)
-        #else:
-            # self._generate_room_type_dungeon(seed=None, dimension=dimension,
-            #  room_size_range=room_size_range, max_num_room=max_num_room)
-
-            # self._generate_cave_type_dungeon()
-            # self._generate_maze_type_dungeon()
 
 class Map:
     """
@@ -167,6 +163,7 @@ class Map:
         Taken from http://www.angryfishstudios.com/2011/04/adventures-in-bitmasking/
         :param x:
         :param y:
+        :param door_list: current list of doors
         :return:
         """
         weight = 0
@@ -187,6 +184,7 @@ class Map:
         By default, the tile should be without objects and out of any doors position
         :param tile_type: the type of tile that we look for
         :param without_objects: check if no objects is there, and that it is not a possible door position
+        :param game_objects: the list of current objects in the game
         :return: a tile position (tuple)
         """
         entity_pos_listing = []
@@ -202,7 +200,7 @@ class Map:
                 if without_objects and ((x, y) not in entity_pos_listing and (x, y) not in self.doors_pos):
                     return x, y
                 elif (x, y) not in self.doors_pos:
-                    return x,y
+                    return x, y
 
     @property
     def doors_pos(self):
@@ -220,6 +218,7 @@ class Map:
         Used to get a spawning position...
         :param tile_type: the type of tile that we look for
         :param without_objects: set to True to remove objects overlap
+        :param game_objects: the list of current game objects
         :return: a list of tile positions (tuple)
         """
         listing = []
@@ -258,8 +257,11 @@ class Map:
             complex_walls = type(self.graphical_resources['WALLS']) is list
 
             floor_serie = random.randint(0, len(self.graphical_resources['FLOOR']) - 1)
+
+            wall_series = 0
             if complex_walls:
                 wall_series = random.randint(0, len(self.graphical_resources['WALLS']) - 1)
+
             for y in range(self.tile_height):
                 for x in range(self.tile_width):
                     if self.tiles[x][y].tile_type == c.T_FLOOR:
@@ -283,9 +285,9 @@ class Map:
                             door_list = []
                             # build door list - except if we are in a pure maze
                             if hasattr(self, "rooms") and self.rooms is not None:
-                                 for room in self.rooms:
-                                     for door_pos in room.doors:
-                                         door_list.append(door_pos)
+                                for room in self.rooms:
+                                    for door_pos in room.doors:
+                                        door_list.append(door_pos)
                             weight = self.wall_weight(x, y, door_list)
                             self._background.blit(self.graphical_resources['WALLS'][wall_series][weight],
                                                   (x * TILESIZE_SCREEN, y * TILESIZE_SCREEN))
@@ -306,7 +308,6 @@ class MazeMap(Map):
 
         Map.__init__(self, name, graphical_resource, dimension)
         print(" MAZE: Initialization")
-
 
         # We use algorithm at http://www.brainycode.com/downloads/RandomDungeonGenerator.pdf
         # Starting with walls everywhere, and all not explored
@@ -387,7 +388,12 @@ class MazeMap(Map):
                 self.tiles[x][y].explored = False
 
 
-class _RoomExtension():
+class _RoomExtension:
+
+    def __init__(self):
+        self.tiles = []
+        self.tile_height = self.tile_width = 0
+        assert 0, "Constructor should not be called"
 
     def _add_connected_room(self, room, list_connected, to_visit, already_visited):
         already_visited.append(room)
@@ -422,10 +428,10 @@ class _RoomExtension():
             y = target[1] + branching_room.position[1]
             if dir in ('N', 'S'):
                 if not (self.tiles[x - 1][y].tile_type == c.T_FLOOR or self.tiles[x + 1][y].tile_type == c.T_FLOOR):
-                    return (x, y, dir)
+                    return x, y, dir
             if dir in ('E', 'W'):
                 if not (self.tiles[x][y-1].tile_type == c.T_FLOOR or self.tiles[x][y+1].tile_type == c.T_FLOOR):
-                    return (x, y, dir)
+                    return x, y, dir
 
     def _generate_room(self, min_size, max_size, modulo_rest=2):
         """
@@ -462,11 +468,12 @@ class _RoomExtension():
         for y in range(grid_position[1], grid_position[1] + room.size[1]):
             for x in range(grid_position[0], grid_position[0] + room.size[0]):
                 self.tiles[x][y].room = room
-                if y in (grid_position[1], grid_position[1] + room.size[1] -1) or \
+                if y in (grid_position[1], grid_position[1] + room.size[1] - 1) or \
                                 x in (grid_position[0], grid_position[0] + room.size[0] - 1):
                     self.tiles[x][y].tile_type = c.T_WALL
                 else:
                     self.tiles[x][y].tile_type = c.T_FLOOR
+
 
 class RoomMap(Map, _RoomExtension):
     """
@@ -480,7 +487,6 @@ class RoomMap(Map, _RoomExtension):
         print(" ROOM MAP: Initialization")
         room_size_range = ((6, 6), (9, 9))
         max_num_room = int(dimension[0]*dimension[1] / 81 * .9)
-        tunnel = False
 
         self.tiles = [[Tile(c.T_VOID)
                        for y in range(self.tile_height)]
@@ -492,7 +498,7 @@ class RoomMap(Map, _RoomExtension):
                          (int(self.tile_width / 2 - (self.rooms[-1].size[0] / 2)),
                          int(self.tile_height / 2 - (self.rooms[-1].size[1] / 2))))
 
-        for i in range (self.tile_width * self.tile_height * 2):
+        for _ in range(self.tile_width * self.tile_height * 2):
             if len(self.rooms) == max_num_room:
                 break
             branching_room = random.choice(self.rooms)
@@ -579,8 +585,10 @@ class RoomAndMazeMap(Map, _RoomExtension):
                 # We generate a room
                 new_room = self._generate_room((5, 5), (17, 17), modulo_rest=1)
                 pos = [random.randint(0, self.tile_width), random.randint(0, self.tile_height)]
-                if pos[0] % 2 == 1: pos[0] += 1
-                if pos[1] % 2 == 1: pos[1] += 1
+                if pos[0] % 2 == 1:
+                    pos[0] += 1
+                if pos[1] % 2 == 1:
+                    pos[1] += 1
 
                 if self._space_for_new_room(new_room.size, pos):
                     self._place_room(new_room, pos)
@@ -686,7 +694,7 @@ class RoomAndMazeMap(Map, _RoomExtension):
 
         trials = 0
         while len(explored) < to_explore and trials < (self.tile_width * self.tile_height)/4:
-            current_cell = self.tiles[current_x][current_y]
+
             directions = [(2, 0), (-2, 0), (0, 2), (0, -2)]
             # 3. We pick a random direction
             random.shuffle(directions)
@@ -745,10 +753,7 @@ class CaveMap(Map):
 
         assert dimension[0] % 2 == 1 and dimension[1] % 2 == 1, "Maze dimensions must be odd"
 
-        Map.__init__(self, name, graphical_resource)    # dimensions doivent être impair!
-
-        self.tile_width = dimension[0]  # width of map, expressed in tiles
-        self.tile_height = dimension[1]  # height of map, expressed in tiles
+        Map.__init__(self, name, graphical_resource, dimension)    # dimensions doivent être impair!
 
         self.tiles = [[Tile(c.T_FLOOR)
                        for y in range(self.tile_height)]
@@ -784,7 +789,7 @@ class CaveMap(Map):
         for x in [posx-1, posx, posx+1]:
             for y in [posy-1, posy, posy+1]:
                 if self.tiles[x][y].tile_type == c.T_WALL:
-                    count+=1
+                    count += 1
 
         return count
 
@@ -796,7 +801,7 @@ class FileMap(Map):
     """
 
     def __init__(self, name, graphical_resource, filename):
-        Map.__init__(self, name, graphical_resource)  # dimensions doivent être impair!
+        Map.__init__(self, name, graphical_resource, (1, 1))  # dimensions will be set after
 
         file_data = []
         with open(filename, 'rt') as f:
@@ -834,11 +839,11 @@ class Camera:
         return rect.move(self.camera.topleft)
 
     def update(self, target):
-        x =-target.rect.x + int(PLAYABLE_WIDTH / 2)
-        y =-target.rect.y + int(PLAYABLE_HEIGHT / 2)
+        x = -target.rect.x + int(PLAYABLE_WIDTH / 2)
+        y = -target.rect.y + int(PLAYABLE_HEIGHT / 2)
         # limit scrolling to map size
-        x = min(0, x) # left
-        y = min(0, y) # up
+        x = min(0, x)  # left
+        y = min(0, y)  # up
         x = max(-(self.width - PLAYABLE_WIDTH), x)
         y = max(-(self.height - PLAYABLE_HEIGHT), y)
         # and apply it to the camera rect
@@ -865,7 +870,7 @@ class Minimap:
         backpixels = pg.PixelArray(self._background)
         for x in range(self.game.map.tile_width):
             for y in range(self.game.map.tile_height):
-                if (self.game.map.tiles[x][y].explored):
+                if self.game.map.tiles[x][y].explored:
                     tile_type = self.game.map.tiles[x][y].tile_type
                     if tile_type == c.T_WALL:
                         backpixels[x*zoom_factor:x*zoom_factor+1, y*zoom_factor:y*zoom_factor+1] = RED
@@ -878,7 +883,7 @@ class Minimap:
             backpixels[(pos_x - 1) * zoom_factor:(pos_x + 1) * zoom_factor + 1,
             pos_y * zoom_factor:pos_y * zoom_factor + 1] = GREEN
             backpixels[pos_x * zoom_factor:pos_x * zoom_factor + 1,
-            (pos_y - 1) * zoom_factor:(pos_y + 1 )* zoom_factor + 1] = GREEN
+            (pos_y - 1) * zoom_factor:(pos_y + 1) * zoom_factor + 1] = GREEN
 
         self._background = backpixels.make_surface()
         return self._background

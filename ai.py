@@ -26,7 +26,7 @@ class AIEntity(AI):
     # AI for an entity.
     def __init__(self, speed=1):
         AI.__init__(self)
-        self.speed = speed # the speed represents
+        self.speed = speed  # the speed represents
 
     def take_turn(self):
         # print( "The {} take turn".format(self.owner.name))
@@ -47,7 +47,7 @@ class FollowingAIEntity(AI):
     # AI for an entity.
     def __init__(self, speed=1):
         AI.__init__(self)
-        self.speed = speed # the speed represents
+        self.speed = speed  # the speed represents
 
     def take_turn(self):
         if self.owner.distance_to(self.owner.game.player) > 2:

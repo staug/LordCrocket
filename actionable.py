@@ -1,13 +1,10 @@
-from math import sqrt
-
-
 class ActionableEntity:
     """
     An actionable entity is an object which is triggered when something (player, monster...) is around (or directly in).
     This is typically a door, a trap...
     """
     def __init__(self, radius=0, actionable_by_player_only=True, function=None):
-        self.radius = radius # the speed represents
+        self.radius = radius  # the speed represents
         self.owner = None
         self.actionable_by_player_only = actionable_by_player_only
         self._action_field = None
