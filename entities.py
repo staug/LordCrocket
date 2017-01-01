@@ -127,6 +127,7 @@ class Entity(Sprite):
 
     @property
     def vision(self):
+        # This is the default. Is improved for the player with attributes...
         return self.base_vision
 
     def view(self, other_entity):
@@ -178,7 +179,7 @@ class Entity(Sprite):
         self.rect.x = self.x * TILESIZE_SCREEN  # initial position for the camera
         self.rect.y = self.y * TILESIZE_SCREEN
 
-    def clean_before_save(self):
+    def clean_before_save(self, image_only=False):
         """
         Clean all graphical objects, remove from sprite dictionary and remove the game reference
         :return:
@@ -188,12 +189,13 @@ class Entity(Sprite):
         else:
             self.remove(self.game.player_sprite_group)
         self.image = None
+        self.animated = False
         if hasattr(self, "dict_image"):
             self.dict_image = None
         if hasattr(self, "list_image"):
             self.list_image = None
-
-        self.game = None
+        if not image_only:
+            self.game = None
 
     def animate(self):
         now = pygame.time.get_ticks()
@@ -231,6 +233,51 @@ class Entity(Sprite):
             self.animate()
         self.rect.x = self.x * TILESIZE_SCREEN
         self.rect.y = self.y * TILESIZE_SCREEN
+
+    def change(self, **kwargs):
+        """
+        This method updates the entity with as many parameters as required.
+        :param kwargs: a dictionnary of attributes. All entity attributes are valid, except pos and game.
+        :return: None
+        """
+
+        self.name = kwargs.pop("name", self.name)
+        self.blocks = kwargs.pop("blocks", self.blocks)
+        self.groups = kwargs.pop("groups", self.groups)
+        self.blocking_view_list = kwargs.pop("blocking_view_list", self.blocking_view_list)
+        self.blocking_tile_list = kwargs.pop("blocking_tile_list", self.blocking_tile_list)
+        self.base_vision = kwargs.pop("vision", self.base_vision)
+
+        # Now all components. We need to remove them from scheduler if any
+        if "ai" in kwargs and self.ai is not None:
+            # First, we remove any previous ai from the scheduler
+            self.game.ticker.unregister(self.ai)
+        self.ai = kwargs.pop("ai", self.ai)
+
+        if "actionable" in kwargs and self.actionable is not None:
+            self.game.ticker.unregister(self.actionable)
+        self.actionable = kwargs.pop("actionable", self.actionable)
+
+        if "equipment" in kwargs and self.equipment is not None:
+            self.equipment.dequip()
+            self.game.ticker.unregister(self.equipment)
+        self.equipment = kwargs.pop("equipment", self.equipment)
+
+        if "item" in kwargs and self.item is not None:
+            self.game.ticker.unregister(self.item)
+        self.item = kwargs.pop("item", self.item)
+
+        if "fighter" in kwargs and self.fighter is not None:
+            self.game.ticker.unregister(self.fighter)
+        self.fighter = kwargs.pop("fighter", self.fighter)
+
+        # Now handling the image ref
+        if "image_ref" in kwargs and kwargs["image_ref"] != self.image_ref:
+            self.clean_before_save(image_only=True)
+            self.image_ref = kwargs.pop("image_ref")
+            self.init_graphics()
+
+        assert len(kwargs) == 0, "Attributes not changed: {}".format(kwargs)
 
 
 class SpecialVisualEffect(Entity):
