@@ -45,7 +45,7 @@ class InventoryScreen(Screen):
                 self.game.quit()
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_ESCAPE:
-                    self.game.GAME_state = self.default_back_state
+                    self.game.game_state = self.default_back_state
             if event.type == pg.MOUSEBUTTONDOWN:
                 (button1, button2, button3) = pg.mouse.get_pressed()
                 (x, y) = pg.mouse.get_pos()
@@ -239,7 +239,7 @@ class MapScreen(Screen):
                 self.game.quit()
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_ESCAPE:
-                    self.game.GAME_state = self.default_back_state
+                    self.game.game_state = self.default_back_state
 
     def draw(self):
         # Erase All
@@ -289,7 +289,7 @@ class CharacterScreen(Screen):
                 self.game.quit()
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_ESCAPE:
-                    self.game.GAME_state = self.default_back_state
+                    self.game.game_state = self.default_back_state
 
     def draw(self):
         # Erase All
@@ -437,8 +437,13 @@ class PlayingScreen(Screen):
                             object.item.pick_up()
 
                 if event.key == pg.K_y:
-                    ThrowableHelper(self.game, self.game.player.pos, "FIREBALL", (1,0), ThrowableHelper.light_damage,
+                    ThrowableHelper(self.game, self.game.player.pos, "FIREBALL", (1, 0), ThrowableHelper.light_damage,
                                     stopped_by=[c.T_WALL, c.T_VOID])
+
+                if event.key == pg.K_n:
+                    self.game.go_next_level()
+                    return
+
                 if event.key == pg.K_h:
                     (x, y) = self.game.player.pos
                     x += 1
@@ -584,6 +589,7 @@ class Game:
         self.game_state = c.GAME_STATE_PLAYING
         self.player_took_action = False
         self.minimap_enable = False
+        self.objects = []
 
         # Loading fonts and initialize text system
         self.textbox = TextBox(self)
@@ -603,9 +609,6 @@ class Game:
         # Field of view
         self.fov = FieldOfView(self)
 
-        # initialize all variables and do all the setup for a new game
-        self.objects = []
-
         # We have 5 sprites groups: two below the player, the player one and two above
         # They are drawn in the order below:
         self.player_min2_sprite_group = pg.sprite.Group()
@@ -613,20 +616,16 @@ class Game:
         self.player_sprite_group = pg.sprite.Group()  # the default group, also called level 0
         self.player_plus1_sprite_group = pg.sprite.Group()
         self.player_plus2_sprite_group = pg.sprite.Group()
-        self.all_groups = (self.player_min2_sprite_group,
+        self.all_groups = [self.player_min2_sprite_group,
                            self.player_min1_sprite_group,
                            self.player_sprite_group,
                            self.player_plus1_sprite_group,
-                           self.player_plus2_sprite_group)
+                           self.player_plus2_sprite_group]
 
         # Camera
         self.camera = Camera(self.map.tile_width * TILESIZE_SCREEN,
                              self.map.tile_height * TILESIZE_SCREEN)
 
-        # Place player
-        pos = self.map.get_random_available_tile(c.T_FLOOR, self.objects)
-        self.player = PlayerHelper(self, pos)
-        self.visible_player_array = self.fov.get_vision_matrix_for(self.player, flag_explored=True)
 
         # place doors - except if we are in a pure maze
         # The line below can be replaced with teh property door_pos which is part of tilemap.
@@ -636,18 +635,20 @@ class Game:
                        name="Door {}".format(pos),
                        open_function=DoorHelper.open_door)
 
+        # Place player
+        all_pos = self.map.get_all_available_tiles(c.T_FLOOR, self.objects, without_objects=True)
+        self.player = PlayerHelper(self, all_pos.pop())
+        self.visible_player_array = self.fov.get_vision_matrix_for(self.player, flag_explored=True)
+
+
         # place monsters
-        for i in range(60):
-            pos = self.map.get_random_available_tile(c.T_FLOOR, self.objects)
-            MonsterHelper(self, "Bat"+str(i), pos, 'BAT', 10, (1, 4, 0),
+        for i in range(20):
+            MonsterHelper(self, "Bat"+str(i), all_pos.pop(), 'BAT', 10, (1, 4, 0),
                           [("bite", (1, 2, 0)), ("snicker", (1, 4, 0))],
                           6, 0, vision=2, speed=10)
 
-        all_pos = self.map.get_all_available_tiles(c.T_FLOOR, self.objects, without_objects=True)
-
         for i in range(200):
-            pos = all_pos.pop()
-            ItemHelper(self, "Healing Potion"+str(i), pos, "POTION_R",
+            ItemHelper(self, "Healing Potion"+str(i), all_pos.pop(), "POTION_R",
                        use_function=lambda player=self.player: ItemHelper.cast_heal(player))
 
             EquipmentHelper(self, "Sword", all_pos.pop(), "SWORD", slot=c.SLOT_HAND_RIGHT, modifiers={c.BONUS_STR: 2})
@@ -697,6 +698,53 @@ class Game:
             # (x, y) = all_pos.pop()
             # Entity(self, "Necklace", x, y, 'NECKLACE', blocks=False,
             #        equipment=EquipmentEntity(slot=EquipmentEntity.SLOT_NECKLACE, vision_bonus=2))
+
+    def go_next_level(self):
+
+        # First: cleanup!
+        # Warning: we must act on a copy of the list!!!!!
+        for entity in self.objects[:]:
+            if entity != self.player:
+                # TODO: fix the method below to remove fromspritegroup...
+                entity.remove_completely_object()
+        print("Ticker now empty: {}".format(self.ticker.schedule))
+
+        # initializing map structure
+        self.map = MapFactory("Map of the dead2", self.all_images).map
+        self.minimap = Minimap(self)
+
+        # Field of view
+        self.fov = FieldOfView(self)
+
+        # place doors - except if we are in a pure maze
+        # The line below can be replaced with teh property door_pos which is part of tilemap.
+        pos_list = self.map.doors_pos[:]
+        for pos in pos_list:
+            DoorHelper(self, pos, ("DOOR_CLOSED", "DOOR_H_OPEN", "DOOR_CLOSED", "DOOR_V_OPEN"),
+                       name="Door {}".format(pos),
+                       open_function=DoorHelper.open_door)
+
+        # Place player
+        all_pos = self.map.get_all_available_tiles(c.T_FLOOR, self.objects, without_objects=True)
+        new_player_pos = all_pos.pop()
+        self.player.x = new_player_pos[0]
+        self.player.y = new_player_pos[1]
+        self.visible_player_array = self.fov.get_vision_matrix_for(self.player, flag_explored=True)
+        self.player.invalidate_fog_of_war = True
+        self.player_sprite_group.add(self.player)
+
+        # Camera
+        self.camera = Camera(self.map.tile_width * TILESIZE_SCREEN,
+                             self.map.tile_height * TILESIZE_SCREEN)
+        # place monsters
+        for i in range(60):
+            MonsterHelper(self, "Beard"+str(i), all_pos.pop(), 'BEARD', 10, (1, 4, 0),
+                          [("bite", (1, 2, 0)), ("snicker", (1, 4, 0))],
+                          6, 0, vision=2, speed=10)
+
+        for i in range(200):
+            EquipmentHelper(self, "Cape", all_pos.pop(), "CAPE", slot=c.SLOT_CAPE, modifiers={c.BONUS_STR: 2})
+            EquipmentHelper(self, "Ring", all_pos.pop(), "RING", slot=c.SLOT_RING, modifiers={c.BONUS_STR: -1})
 
     def load(self, filename="savegame"):
         with open(filename, "rb") as f:

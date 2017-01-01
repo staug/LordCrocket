@@ -279,6 +279,32 @@ class Entity(Sprite):
 
         assert len(kwargs) == 0, "Attributes not changed: {}".format(kwargs)
 
+    def remove_completely_object(self):
+        """
+        Properly remove the object: deregister the ai, remove from the sprite groups, remove from the game group,
+        kill image
+        :return:
+        """
+        # Deregister_ai
+        self.game.ticker.unregister(self.equipment)
+        self.game.ticker.unregister(self.ai)
+        self.game.ticker.unregister(self.item)
+        self.game.ticker.unregister(self.fighter)
+        self.game.ticker.unregister(self.actionable)
+
+        # Deregister components
+        self.ai = self.equipment = self.item = self.fighter = self.actionable = None
+
+        # Remove from spritegroup
+        if self.groups is not None:
+            self.remove(self.groups)
+        else:
+            self.remove(self.game.player_sprite_group)
+
+        # Remove from all objects
+        self.game.objects.remove(self)
+
+        self.kill()
 
 class SpecialVisualEffect(Entity):
     def __init__(self, game, pos, image, seconds):

@@ -28,9 +28,13 @@ class Ticker(object):
             self.ticks_to_advance = 0
 
     def unregister(self, obj):
-        for key in self.schedule.keys():
-            if obj in self.schedule[key]:
-                self.schedule[key].remove(obj)
+        if obj is not None:
+            for key in self.schedule.keys():
+                while obj in self.schedule[key]:
+                    # copy = self.schedule[key][:]
+                    # copy.remove(obj)
+                    # self.schedule[key] = copy[:]
+                    self.schedule[key].remove(obj)
 
 
 class Publisher(object):
