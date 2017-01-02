@@ -123,9 +123,16 @@ class PlayerFighter(FighterEntity):
 
     def heal(self, amount):
         # heal by the given amount, without going over the maximum
-        self.hit_points += amount
-        if self.hit_points > self.owner.base_hit_points:
-            self.hit_points = self.owner.base_hit_points
+        delta_body = self.owner.base_body_points - self.body_points
+        if delta_body > amount:
+            self.body_points += amount
+        else:
+            # first, we sign body
+            self.body_points = self.owner.base_body_points
+            # and teh rest go to heal the hit points
+            self.hit_points += amount - delta_body
+            if self.hit_points > self.owner.base_hit_points:
+                self.hit_points = self.owner.base_hit_points
 
     @property
     def armor_class(self):
