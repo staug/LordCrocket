@@ -49,5 +49,11 @@ CHAR_NAME = "charisma"
 
 # Action type
 AC_MOVE = "move"
-AC_FIGHT = "fight"
+AC_FIGHT = "fight"  # A fight message will always have the name of the attacked ("attacker_name"),
+# defender ("defender_name"), position ("pos"), room ("room")
+# -> Sub:
+ACS_KILL = "kill"  # In that case, register xp gained ("xp") and gold ("gold")
+ACS_HIT = "hit"  # In that case, register attack type ("attack_type"), amount of damage ("damage"), result ("result")
+ACS_VARIOUS = "various"  # Misc actions, like flee the combat or other
+
 AC_SPELL = "cast"

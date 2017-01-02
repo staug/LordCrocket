@@ -82,12 +82,24 @@ class MonsterFighter(FighterEntity):
             if attack_roll > other_fighter.armor_class:
                 # Hit
                 damage = ut.roll(attack[1][1], repeat=attack[1][0]) + attack[1][2]
+                self.owner.game.bus.publish(self.owner, {"attacker_name":self.owner.name,
+                                                         "defender_name":other_fighter.owner.name,
+                                                         "pos":self.owner.pos,
+                                                         "result": "success",
+                                                         "attack_type": attack[0], "damage": damage},
+                                            main_category=c.AC_FIGHT, sub_category=c.ACS_HIT)
                 self.owner.game.textbox.add = "{} attacks {} with {}, for {} damages".format(
                     self.owner.name.capitalize(), other_fighter.owner.name.capitalize(), attack[0], damage)
                 other_fighter.take_damage(damage)
             else:
                 self.owner.game.textbox.add = "{} attacks {} with {} but it was blocked!".format(
                     self.owner.name.capitalize(), other_fighter.owner.name.capitalize(), attack[0])
+                self.owner.game.bus.publish(self.owner, {"attacker_name":self.owner.name,
+                                                         "defender_name":other_fighter.owner.name,
+                                                         "pos":self.owner.pos,
+                                                         "result": "failer",
+                                                         "attack_type": attack[0]},
+                                            main_category=c.AC_FIGHT, sub_category=c.ACS_HIT)
 
     def monster_death(self):
         print("GENERIC DEATH FUNCTION")

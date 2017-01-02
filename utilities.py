@@ -97,6 +97,8 @@ class Publisher(object):
         assert type(message) is dict, "Message {} is not a dict".format(message)
         message["SOURCE"] = source
         broadcasted_list = []
+        message["MAIN_CATEGORY"] = main_category
+        message["SUB_CATEGORY"] = sub_category
         if type(sub_category) is not (list or tuple):
             sub_category = [sub_category]
         if type(main_category) is not (list or tuple):
@@ -110,13 +112,14 @@ class Publisher(object):
 
         for category in main_category:
             for sub in sub_category:
-                message["MAIN_CATEGORY"] = category
-                message["SUB_CATEGORY"] = sub
+                message["BROADCAST_MAIN_CATEGORY"] = category
+                message["BROADCAST_SUB_CATEGORY"] = category
                 key = "{}#{}".format(category, sub)
-                for function in self._specialized_list[key]:
-                    if function not in broadcasted_list:  # Need to be sure not to send two times the message
-                        function(message)
-                        broadcasted_list.append(function)
+                if key in self._specialized_list:
+                    for function in self._specialized_list[key]:
+                        if function not in broadcasted_list:  # Need to be sure not to send two times the message
+                            function(message)
+                            broadcasted_list.append(function)
 
 """
 Utilities Functions.

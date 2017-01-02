@@ -3,6 +3,7 @@ import settings as st
 from os import path
 from ktextsurfacewriter import KTextSurfaceWriter
 import constants as c
+import random as rd
 
 """
 Sub utilities routines.
@@ -27,7 +28,6 @@ class TextBox:
 
         self.game = game
         self.game.bus.register(self)
-        self.game.bus.register(self, main_category=c.P_CAT_LOG, function_to_call=self.notify2)
         self._ktext = KTextSurfaceWriter(rect, font=font, color=st.WHITE)
         self._text = ""
         self.message = []
@@ -67,10 +67,29 @@ class TextBox:
         self._ktext.draw(surface)
 
     def notify(self, message):
-        print(message)
-
-    def notify2(self, message):
-        print("{} in notify2".format(message))
+        print("Textbox receives that: {}".format(message))
+        # Now interpret the text
+        if message["MAIN_CATEGORY"] == c.AC_FIGHT:
+            if message["SUB_CATEGORY"] == c.ACS_HIT:
+                if message["result"] == "success":
+                    self.add = "{} hit {} with {}, dealing {} damages...".format(message["attacker_name"],
+                                                                               message["defender_name"],
+                                                                               message["attack_type"],
+                                                                               message["damage"])
+                else:
+                    self.add = "{} tried hitting {} with {} but {}".format(message["attacker_name"],
+                                                                               message["defender_name"],
+                                                                               message["attack_type"],
+                                                                         rd.choice(("failed miserably",
+                                                                                   "it was blocked",
+                                                                                   "this was a pitiful attempt")))
+            elif message["SUB_CATEGORY"] == c.ACS_KILL:
+                self.add = "After a short fight, {} killed {} in {} " \
+                           "- LordCrocket awards {} experience point and {} gold.".format(message["attacker_name"],
+                                                                                        message["defender_name"],
+                                                                                        message["room"],
+                                                                                        message["xp"],
+                                                                                        message["gold"])
 
     def resize(self, old_screen_width, old_screen_height, new_screen_width, new_screen_height):
         new_rect_width = int(self._ktext.rect.width * new_screen_width / old_screen_width)
