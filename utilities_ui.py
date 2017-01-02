@@ -382,6 +382,41 @@ def load_image(img_folder_name, image, tile_x, tile_y, width=st.TILESIZE_FILE, h
                                       (st.TILESIZE_SCREEN, st.TILESIZE_SCREEN))
 
 
+def load_image_list_dawnlike(img_folder_name, image1, image2, tile_x, tile_y,
+                             width=st.TILESIZE_FILE, height=st.TILESIZE_FILE):
+    """
+    Load an image list from two different files following dawnlike approach
+    :param img_folder_name: the folder where images are located
+    :param image1: the first image file name
+    :param image2: the second image file name
+    :param tile_x: th etile position - note that
+    :param tile_y:
+    :param width:
+    :param height:
+    :return: a list of two images
+    """
+    image_src1 = image1
+    if not (type(image1) is pg.Surface):
+        game_folder = path.dirname(__file__)
+        image_folder = path.join(game_folder, img_folder_name)
+        image_src1 = pg.image.load(path.join(image_folder, image1)).convert_alpha()
+
+    image_src2 = image2
+    if not (type(image2) is pg.Surface):
+        game_folder = path.dirname(__file__)
+        image_folder = path.join(game_folder, img_folder_name)
+        image_src2 = pg.image.load(path.join(image_folder, image2)).convert_alpha()
+
+    if width == height == st.TILESIZE_SCREEN:
+        return [image_src1.subsurface(pg.Rect(width * tile_x, height * tile_y, width, height)),
+                image_src2.subsurface(pg.Rect(width * tile_x, height * tile_y, width, height))]
+    else:
+        return [pg.transform.scale(image_src1.subsurface(pg.Rect(width * tile_x, height * tile_y, width, height)),
+                                   (st.TILESIZE_SCREEN, st.TILESIZE_SCREEN)),
+                pg.transform.scale(image_src2.subsurface(pg.Rect(width * tile_x, height * tile_y, width, height)),
+                                   (st.TILESIZE_SCREEN, st.TILESIZE_SCREEN))]
+
+
 def load_wall_structure_dawnlike(image_src):
     """
     Load the set of walls from dawnlike file

@@ -6,12 +6,13 @@ import pygame as pg
 from ktextsurfacewriter import KTextSurfaceWriter
 
 import constants as c
+import random as rd
 from entities import MonsterHelper, EquipmentHelper, ItemHelper, DoorHelper, ThrowableHelper, NPCHelper
 from player import PlayerHelper
 from settings import *
 from tilemap import MapFactory, Camera, FieldOfView, Minimap
 from utilities import Ticker, Publisher
-from utilities_ui import TextBox, load_image, load_image_list, load_wall_structure_dawnlike
+from utilities_ui import TextBox, load_image, load_image_list, load_wall_structure_dawnlike, load_image_list_dawnlike
 
 
 class Screen:
@@ -552,6 +553,7 @@ class Game:
             # ENEMIES
             "BAT": load_image_list(IMG_FOLDER, 'BatA.png'),
             "BEARD": load_image_list(IMG_FOLDER, 'BeardA.png'),
+            "MONKEY": load_image_list_dawnlike(IMG_FOLDER, "Misc0.png", "Misc1.png", 2, 3),
             # NPC
             "DOG": load_image_list(IMG_FOLDER, 'DogA.png'),
             # ITEMS
@@ -646,6 +648,9 @@ class Game:
             MonsterHelper(self, "Bat"+str(i), all_pos.pop(), 'BAT', 10, (1, 4, 0),
                           [("bite", (1, 2, 0)), ("snicker", (1, 4, 0))],
                           6, 0, vision=2, speed=10)
+            MonsterHelper(self, "Baboon"+str(i), all_pos.pop(), 'MONKEY', 12, (1, 8, 0),
+                          [("bite", (1, 4, 1))],
+                          6, 18, vision=3, speed=10)
 
         for i in range(200):
             ItemHelper(self, "Healing Potion"+str(i), all_pos.pop(), "POTION_R",
@@ -698,6 +703,22 @@ class Game:
             # (x, y) = all_pos.pop()
             # Entity(self, "Necklace", x, y, 'NECKLACE', blocks=False,
             #        equipment=EquipmentEntity(slot=EquipmentEntity.SLOT_NECKLACE, vision_bonus=2))
+
+    def place_object(self, level):
+        """
+        Setup all objects (enemies and items so far)
+        :param level: the desired level
+        :return:
+        """
+        all_pos = self.map.get_all_available_tiles(c.T_FLOOR, self.objects, without_objects=True)
+        number_enemies = int(len(all_pos) / 50)
+        for i in range(number_enemies):
+            roll = rd.randint(0,100)
+            if level == 1:
+                if 0 < roll < 5:
+                    pass
+
+
 
     def go_next_level(self):
 
