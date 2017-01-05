@@ -86,6 +86,7 @@ class Game:
         self.player_took_action = False
         self.minimap_enable = False
         self.objects = []
+        self.level = 1
 
         # Loading fonts and initialize text system
         self.textbox = TextBox(self)
@@ -99,7 +100,7 @@ class Game:
         }
 
         # initializing map structure
-        self.map = MapFactory("Map of the dead", self.all_images).map
+        self.map = MapFactory("Map of the dead - Level {}".format(self.level), self.all_images).map
         self.minimap = Minimap(self)
 
         # Field of view
@@ -122,20 +123,7 @@ class Game:
         self.camera = Camera(self.map.tile_width * TILESIZE_SCREEN,
                              self.map.tile_height * TILESIZE_SCREEN)
 
-
-        # place doors - except if we are in a pure maze
-        # The line below can be replaced with teh property door_pos which is part of tilemap.
-        pos_list = self.map.doors_pos[:]
-        for pos in pos_list:
-            DoorHelper(self, pos, ("DOOR_CLOSED", "DOOR_H_OPEN", "DOOR_CLOSED", "DOOR_V_OPEN"),
-                       name="Door {}".format(pos),
-                       open_function=DoorHelper.open_door)
-
-        # Place stairs - Here we have multiple.
-        stair_pos = self.map.get_all_available_isolated_tiles(c.T_FLOOR, self.objects, without_objects=True)
-        print("Stair pos: {}".format(len(stair_pos)))
-        for i in range(100):
-            StairHelper(self, stair_pos.pop(), "STAIRS", name="Stairs {}".format(pos), use_function=StairHelper.next_level)
+        self.place_doors_stairs_traps(self.level)
 
         # Place player
         all_pos = self.map.get_all_available_tiles(c.T_FLOOR, self.objects, without_objects=True)
@@ -205,6 +193,36 @@ class Game:
             # Entity(self, "Necklace", x, y, 'NECKLACE', blocks=False,
             #        equipment=EquipmentEntity(slot=EquipmentEntity.SLOT_NECKLACE, vision_bonus=2))
 
+    def place_doors_stairs_traps(self, level):
+        """
+        This will place the basic objects: stairs, stairs and traps
+        :param level: the current level
+        :return: nothing
+        """
+        # place doors - except if we are in a pure maze
+        pos_list = self.map.doors_pos[:]
+        for pos in pos_list:
+            DoorHelper(self, pos, ("DOOR_CLOSED", "DOOR_H_OPEN", "DOOR_CLOSED", "DOOR_V_OPEN"),
+                       name="Door {}".format(pos),
+                       open_function=DoorHelper.open_door)
+
+        # Place stairs - Here we may have multiple.
+        stair_pos = self.map.get_all_available_isolated_tiles(c.T_FLOOR, self.objects, without_objects=False)
+        stairs_to_be_placed = 10 - level
+        if len(stair_pos) > stairs_to_be_placed:
+            for i in range(stairs_to_be_placed):
+                StairHelper(self, stair_pos.pop(), "STAIRS", name="Stairs {}".format(i),
+                            use_function=StairHelper.next_level)
+        else:
+            # Most probably we have far too many corridors - Maze like dungeon...
+            print("Not found convenient way to place stairs - using second method")
+            all_pos = self.map.get_all_available_tiles(c.T_FLOOR, self.objects, without_objects=True)
+            for i in range(stairs_to_be_placed):
+                StairHelper(self, all_pos.pop(), "STAIRS", name="Stairs {}".format(i),
+                            use_function=StairHelper.next_level)
+
+        # Traps: TODO
+
     def place_object(self, level):
         """
         Setup all objects (enemies and items so far)
@@ -230,20 +248,16 @@ class Game:
                 entity.remove_completely_object()
         print("Ticker now empty: {}".format(self.ticker.schedule))
 
+        self.level += 1
+
         # initializing map structure
-        self.map = MapFactory("Map of the dead2", self.all_images).map
+        self.map = MapFactory("Map of the dead - Level {}".format(self.level), self.all_images).map
         self.minimap = Minimap(self)
 
         # Field of view
         self.fov = FieldOfView(self)
 
-        # place doors - except if we are in a pure maze
-        # The line below can be replaced with teh property door_pos which is part of tilemap.
-        pos_list = self.map.doors_pos[:]
-        for pos in pos_list:
-            DoorHelper(self, pos, ("DOOR_CLOSED", "DOOR_H_OPEN", "DOOR_CLOSED", "DOOR_V_OPEN"),
-                       name="Door {}".format(pos),
-                       open_function=DoorHelper.open_door)
+        self.place_doors_stairs_traps(self.level)
 
         # Place player
         all_pos = self.map.get_all_available_tiles(c.T_FLOOR, self.objects, without_objects=True)

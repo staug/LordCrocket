@@ -3,7 +3,7 @@ from settings import *
 import random
 from os import path
 import constants as c
-
+import utilities as ut
 
 class Tile:
     """
@@ -97,10 +97,15 @@ class MapFactory:
         else:
             while not map_correctly_initialized:
                 print(" *** GENERATING DUNGEON *** ")
-                # self.map = CaveMap(name, graphical_resources, dimension)
-                # self.map = MazeMap(name, graphical_resources, dimension)
-                # self.map = RoomAndMazeMap(name, graphical_resources, dimension)
-                self.map = RoomMap(name, graphical_resources, dimension)
+                map_type = ut.roll(4)
+                if map_type == 1:
+                    self.map = CaveMap(name, graphical_resources, dimension)
+                elif map_type == 2:
+                    self.map = MazeMap(name, graphical_resources, dimension)
+                elif map_type == 3:
+                    self.map = RoomAndMazeMap(name, graphical_resources, dimension)
+                else:
+                    self.map = RoomMap(name, graphical_resources, dimension)
                 all_size = int(dimension[0] * dimension[1])
                 print("DUNGEON: Available Tile: {} Limit {}".format(
                     len(self.map.get_all_available_tiles(c.T_FLOOR, [], without_objects=True)),
