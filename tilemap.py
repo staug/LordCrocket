@@ -231,10 +231,39 @@ class Map:
         for x in range(self.tile_width):
             for y in range(self.tile_height):
                 if self.tiles[x][y].tile_type == tile_type:
-                    if without_objects and (x, y) not in entity_pos_listing and (x, y) not in self.doors_pos:
+                    if without_objects:
+                        if (x, y) not in entity_pos_listing and (x, y) not in self.doors_pos:
+                            listing.append((x, y))
+                    else:
                         listing.append((x, y))
         random.shuffle(listing)
         return listing
+
+    def get_all_available_isolated_tiles(self, tile_type, game_objects, without_objects=False, surrounded=7):
+        """
+        Return all tile matching the characteristics: given tile type, surrounded by 8 cells of same type
+        Used to get a spawning position...
+        :param tile_type: the type of tile that we look for
+        :param without_objects: set to True to remove objects overlap
+        :param game_objects: the list of current game objects
+        :param surrounded: the number of tiles of same type that the tile should have around
+        :return: a list of tile positions (tuple)
+        """
+        listing = self.get_all_available_tiles(tile_type, game_objects, without_objects=without_objects)
+        result = []
+        for pos in listing:
+            x, y = pos
+            v = 0
+            for delta in [(-1, -1), (-1, 0), (-1, 1), (0, 1), (0, -1), (1, -1), (1, 0), (1, 1)]:
+                dx, dy = delta
+                if without_objects and (x + dx, y + dy) in listing:
+                    v += 1
+                elif 0 <= x + dx < self.tile_width and 0 <= y+dy < self.tile_height:
+                    if self.tiles[x+dx][y+dy].tile_type == tile_type:
+                        v += 1
+            if v >= surrounded:
+                result.append(pos)
+        return result
 
     def get_room_at(self, x, y):
         if hasattr(self, "rooms"):

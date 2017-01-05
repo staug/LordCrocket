@@ -391,7 +391,6 @@ class DoorHelper(Entity):
     def open_door(door, entity_that_actioned):
         door.blocks = False
         door.actionable = None
-        print()
         door.game.textbox.add = "The door {} has been opened by {}".format(door.name, entity_that_actioned.name)
         door.image_ref = door.image_refs[door.index + 1 % 4]
         door.image = door.game.all_images[door.image_ref]
@@ -399,6 +398,40 @@ class DoorHelper(Entity):
 
     def __str__(self):
         return "Door {} opened:{}".format(self.name, not self.blocks)
+
+
+class StairHelper(Entity):
+    """
+    Class used to create an Item
+    """
+    def __init__(self, game, pos, image_ref, use_function=None, name=None):
+        """
+        Initialization method
+        :param game: reference to the game variable
+        :param pos: the pos (as tuple) of the item
+        :param image_ref: the reference for the images
+        :param use_function: the function to be used when open the door if any
+        Sample: use_function=lambda player=self.player: StairHelper.next_lever(player)
+        """
+
+        if name is None:
+            name = "Stair to next level"
+
+        if use_function is None:
+            use_function = StairHelper.next_level
+
+        Entity.__init__(self, game, name, pos, image_ref, blocks=True,
+                        actionable=ActionableEntity(function=use_function))
+
+    @staticmethod
+    def next_level(stair, entity_that_actioned):
+        stair.game.textbox.add = "The stair {} has been used by {}".format(stair.name, entity_that_actioned.name)
+        stair.game.go_next_level()
+
+    def __str__(self):
+        return "Door {} opened:{}".format(self.name, not self.blocks)
+
+
 
 
 class EquipmentHelper(Entity):

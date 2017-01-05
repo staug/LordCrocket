@@ -6,7 +6,7 @@ import pygame as pg
 
 import constants as c
 import random as rd
-from entities import MonsterHelper, EquipmentHelper, ItemHelper, DoorHelper
+from entities import MonsterHelper, EquipmentHelper, ItemHelper, DoorHelper, StairHelper
 from player import PlayerHelper
 from settings import *
 from tilemap import MapFactory, Camera, FieldOfView, Minimap
@@ -72,6 +72,7 @@ class Game:
             "DOOR_V_OPEN": load_image(IMG_FOLDER, level_image_src, 15, 2),
             "DOOR_H_OPEN": load_image(IMG_FOLDER, level_image_src, 16, 2),
             "DOOR_CLOSED": load_image(IMG_FOLDER, level_image_src, 14, 2),
+            "STAIRS": load_image(IMG_FOLDER, level_image_src, 13, 0),
             "FIREBALL": load_image(IMG_FOLDER, level_image_src, 42, 27),
             "SPECIAL_EFFECT": [load_image(IMG_FOLDER, level_image_src, x, 21) for x in range(4)]
         }
@@ -130,10 +131,17 @@ class Game:
                        name="Door {}".format(pos),
                        open_function=DoorHelper.open_door)
 
+        # Place stairs - Here we have multiple.
+        stair_pos = self.map.get_all_available_isolated_tiles(c.T_FLOOR, self.objects, without_objects=True)
+        print("Stair pos: {}".format(len(stair_pos)))
+        for i in range(100):
+            StairHelper(self, stair_pos.pop(), "STAIRS", name="Stairs {}".format(pos), use_function=StairHelper.next_level)
+
         # Place player
         all_pos = self.map.get_all_available_tiles(c.T_FLOOR, self.objects, without_objects=True)
         self.player = PlayerHelper(self, all_pos.pop())
         self.visible_player_array = self.fov.get_vision_matrix_for(self.player, flag_explored=True)
+
 
 
         # place monsters
@@ -219,7 +227,6 @@ class Game:
         # Warning: we must act on a copy of the list!!!!!
         for entity in self.objects[:]:
             if entity != self.player:
-                # TODO: fix the method below to remove fromspritegroup...
                 entity.remove_completely_object()
         print("Ticker now empty: {}".format(self.ticker.schedule))
 
