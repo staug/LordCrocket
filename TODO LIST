@@ -10,8 +10,7 @@ NPC
 
 GENERAL GAME
 * CLean up UI
-* Stairs between maps
-* Character view mode
+* [Done] Stairs between maps
 * [DONE] Move all constants (tile tyep, equipment...) to constant file, and simplify all imports
 
 MESSAGING BETWEEN ALL

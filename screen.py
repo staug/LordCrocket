@@ -1,5 +1,6 @@
 import pygame as pg
 import constants as c
+import dill as pick
 
 from settings import *
 from os import path
@@ -240,7 +241,8 @@ class MapScreen(Screen):
         self.game.screen.fill(BGCOLOR)
 
         map_image = self.game.minimap.build_background(zoom_factor=4)
-        self.game.screen.blit(map_image, (10, 10))
+        self.game.screen.blit(map_image, (int((self.game.screen.get_width() - map_image.get_width()) / 2),
+                                          int((self.game.screen.get_height() - map_image.get_height()) / 2)))
 
         text = self.font.render(self.game.map.name, 1, WHITE)
         pos_x = int((self.game.screen.get_width() - text.get_width()) / 2)
