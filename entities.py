@@ -7,6 +7,7 @@ from fighter import MonsterFighter
 from ai import AIEntity, FollowingAIEntity
 from tilemap import FieldOfView
 import pygame
+import random as rd
 from math import sqrt
 import constants as c
 
@@ -487,6 +488,22 @@ class MonsterHelper(Entity):
                         fighter=MonsterFighter(armor_class=armor, hit_dice=hit_dice, attacks=attacks, morale=morale,
                                                saving_throw=saving_throw, specials=special,
                                                death_function=death_function))
+
+class MonsterFactory:
+    """
+    Used to generate a list of Monster
+    """
+    def __init__(self, game, seed=None):
+
+        rd.seed(seed)
+        self.game = game
+
+    def build_list(self, number_monster):
+        pos_list = self.map.get_all_available_tiles(c.T_FLOOR, self.game.objects, without_objects=True)
+        assert number_monster < len(pos_list), \
+            "Number of monster generated {} must be greater than available positions {}".format(number_monster,
+                                                                                                len(pos_list))
+
 
 
 class NPCHelper(Entity):

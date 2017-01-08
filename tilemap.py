@@ -5,6 +5,7 @@ from os import path
 import constants as c
 import utilities as ut
 
+
 class Tile:
     """
     A tile of the map and its properties
@@ -163,22 +164,23 @@ class Map:
                     if count == 8:
                         self.tiles[x][y].tile_type = c.T_VOID
 
-    def wall_weight(self, x, y, door_list):
+    def wall_weight(self, x, y, door_list, tile_type=c.T_WALL):
         """
         Taken from http://www.angryfishstudios.com/2011/04/adventures-in-bitmasking/
         :param x:
         :param y:
         :param door_list: current list of doors
+        :param tile_type: the tyle type used as reference
         :return:
         """
         weight = 0
-        if y - 1 > 0 and (self.tiles[x][y-1].tile_type == c.T_WALL or (x, y-1) in door_list):
+        if y - 1 > 0 and (self.tiles[x][y-1].tile_type == tile_type or (x, y-1) in door_list):
             weight += 1
-        if x - 1 > 0 and (self.tiles[x-1][y].tile_type == c.T_WALL or (x - 1, y) in door_list):
+        if x - 1 > 0 and (self.tiles[x-1][y].tile_type == tile_type or (x - 1, y) in door_list):
             weight += 8
-        if y+1 < self.tile_height and (self.tiles[x][y+1].tile_type == c.T_WALL or (x, y+1) in door_list):
+        if y+1 < self.tile_height and (self.tiles[x][y+1].tile_type == tile_type or (x, y+1) in door_list):
             weight += 4
-        if x+1 < self.tile_width and (self.tiles[x+1][y].tile_type == c.T_WALL or (x + 1, y) in door_list):
+        if x+1 < self.tile_width and (self.tiles[x+1][y].tile_type == tile_type or (x + 1, y) in door_list):
             weight += 2
         return weight
 
@@ -287,47 +289,81 @@ class Map:
             self._background = pg.Surface((self.tile_width * TILESIZE_SCREEN,
                                            self.tile_height * TILESIZE_SCREEN))
             self._background.fill(BGCOLOR)
+            if IMG_STYLE == c.IM_STYLE_DAWNLIKE:
+                self._build_background_dawnlike()
 
-            complex_walls = type(self.graphical_resources['WALLS']) is list
-
-            floor_serie = random.randint(0, len(self.graphical_resources['FLOOR']) - 1)
-
-            wall_series = 0
-            if complex_walls:
-                wall_series = random.randint(0, len(self.graphical_resources['WALLS']) - 1)
-
-            for y in range(self.tile_height):
-                for x in range(self.tile_width):
-                    if self.tiles[x][y].tile_type == c.T_FLOOR:
-                        if random.randint(0, 100) >= 85:
-                            floor_image = random.randint(0, len(self.graphical_resources['FLOOR_EXT'][floor_serie]) - 1)
-                        else:
-                            floor_image = random.randint(0, len(self.graphical_resources['FLOOR'][floor_serie]) - 1)
-                        self._background.blit(self.graphical_resources['FLOOR'][floor_serie][floor_image],
-                                              (x * TILESIZE_SCREEN, y * TILESIZE_SCREEN))
-
-                    elif self.tiles[x][y].tile_type == c.T_WALL:
-                        if not complex_walls:
-                            self._background.blit(self.graphical_resources['WALLS'],
-                                                  (x * TILESIZE_SCREEN, y * TILESIZE_SCREEN))
-                        else:
-                            # First, we copy an image of the floor to make it look better
-                            floor_image = random.randint(0, len(self.graphical_resources['FLOOR'][floor_serie]) - 1)
-                            self._background.blit(self.graphical_resources['FLOOR'][floor_serie][floor_image],
-                                                  (x * TILESIZE_SCREEN, y * TILESIZE_SCREEN))
-                            # Then the wall
-                            door_list = []
-                            # build door list - except if we are in a pure maze
-                            if hasattr(self, "rooms") and self.rooms is not None:
-                                for room in self.rooms:
-                                    for door_pos in room.doors:
-                                        door_list.append(door_pos)
-                            weight = self.wall_weight(x, y, door_list)
-                            self._background.blit(self.graphical_resources['WALLS'][wall_series][weight],
-                                                  (x * TILESIZE_SCREEN, y * TILESIZE_SCREEN))
+            # complex_walls = type(self.graphical_resources['WALLS']) is list
+            #
+            # floor_serie = random.randint(0, len(self.graphical_resources['FLOOR']) - 1)
+            #
+            # wall_series = 0
+            # if complex_walls:
+            #     wall_series = random.randint(0, len(self.graphical_resources['WALLS']) - 1)
+            #
+            # for y in range(self.tile_height):
+            #     for x in range(self.tile_width):
+            #         if self.tiles[x][y].tile_type == c.T_FLOOR:
+            #             if random.randint(0, 100) >= 85:
+            #                 floor_image = random.randint(0, len(self.graphical_resources['FLOOR_EXT'][floor_serie]) - 1)
+            #             else:
+            #                 floor_image = random.randint(0, len(self.graphical_resources['FLOOR'][floor_serie]) - 1)
+            #             self._background.blit(self.graphical_resources['FLOOR'][floor_serie][floor_image],
+            #                                   (x * TILESIZE_SCREEN, y * TILESIZE_SCREEN))
+            #
+            #         elif self.tiles[x][y].tile_type == c.T_WALL:
+            #             if not complex_walls:
+            #                 self._background.blit(self.graphical_resources['WALLS'],
+            #                                       (x * TILESIZE_SCREEN, y * TILESIZE_SCREEN))
+            #             else:
+            #                 # First, we copy an image of the floor to make it look better
+            #                 floor_image = random.randint(0, len(self.graphical_resources['FLOOR'][floor_serie]) - 1)
+            #                 self._background.blit(self.graphical_resources['FLOOR'][floor_serie][floor_image],
+            #                                       (x * TILESIZE_SCREEN, y * TILESIZE_SCREEN))
+            #                 # Then the wall
+            #                 door_list = []
+            #                 # build door list - except if we are in a pure maze
+            #                 if hasattr(self, "rooms") and self.rooms is not None:
+            #                     for room in self.rooms:
+            #                         for door_pos in room.doors:
+            #                             door_list.append(door_pos)
+            #                 weight = self.wall_weight(x, y, door_list)
+            #                 self._background.blit(self.graphical_resources['WALLS'][wall_series][weight],
+            #                                       (x * TILESIZE_SCREEN, y * TILESIZE_SCREEN))
 
         if name is not None:
             pg.image.save(self._background, path.dirname(__file__) + '/' + name)
+
+    def _build_background_dawnlike(self):
+        """
+        Build background using dawnlike tileset
+        :return: Nothing, just blitting things on _background property
+        """
+        # First, we choose our wall serie
+        wall_series = random.randint(0, len(self.graphical_resources['WALLS']) - 1)
+        floor_series = random.randint(0, len(self.graphical_resources['FLOOR']) - 1)
+
+        for y in range(self.tile_height):
+            for x in range(self.tile_width):
+
+                door_list = []
+                # build door list - except if we are in a pure maze
+                if hasattr(self, "rooms") and self.rooms is not None:
+                    for room in self.rooms:
+                        for door_pos in room.doors:
+                            door_list.append(door_pos)
+                weight_wall = self.wall_weight(x, y, door_list)
+                weight_floor = self.wall_weight(x, y, door_list, tile_type=c.T_FLOOR)
+
+                if self.tiles[x][y].tile_type == c.T_WALL:
+                    # We always blit a floor... but using the wall as reference for weight
+                    self._background.blit(self.graphical_resources['FLOOR'][floor_series][weight_wall],
+                                          (x * TILESIZE_SCREEN, y * TILESIZE_SCREEN))
+                    self._background.blit(self.graphical_resources['WALLS'][wall_series][weight_wall],
+                                          (x * TILESIZE_SCREEN, y * TILESIZE_SCREEN))
+                elif self.tiles[x][y].tile_type == c.T_FLOOR:
+                    self._background.blit(self.graphical_resources['FLOOR'][floor_series][weight_floor],
+                                          (x * TILESIZE_SCREEN, y * TILESIZE_SCREEN))
+
 
 
 class MazeMap(Map):

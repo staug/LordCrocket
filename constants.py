@@ -1,6 +1,11 @@
 # This file holds all the constants for all the game.
 # Contrary to settings, these are things that should not be changed.
 
+# Image Styles
+IM_STYLE_DAWNLIKE = "DAWNLIKE"
+IM_STYLE_ORYX = "ORYX"
+IM_STYLE_PIXEL = "PIXEL"
+
 # Utilities - class Publisher
 P_ALL = "ALL"
 P_CAT_LOG = "LOG"

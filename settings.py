@@ -1,6 +1,7 @@
 # GAME
 GAME_TITLE = "Lord Crocket"
 GAME_VER = "0.16"
+IMG_STYLE = "DAWNLIKE"
 
 # define some colors (R, G, B)
 WHITE = (255, 255, 255)
@@ -30,6 +31,9 @@ GAME_WIDTH = PLAYABLE_WIDTH
 
 # Folders and files
 IMG_FOLDER = 'img'
+IMG_DAWNLIKE_SUB = 'dawnlike'
+IMG_ORYX_SUB = 'oryx'
+IMG_PIXEL_SUB = 'pixel'
 
 FONT_FOLDER = 'font'
 FONT_NAME = 'unispace.ttf'

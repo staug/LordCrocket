@@ -357,19 +357,19 @@ class Input:
             if len(self.value) > self.maxlength >= 0:
                 self.value = self.value[:-1]
 
+# Specialized class to load graphics
 
-def load_image_list(img_folder_name, filename, width=st.TILESIZE_FILE, height=st.TILESIZE_FILE):
+
+def load_image_list(image_src_list, folder, image_name, width=st.TILESIZE_FILE, height=st.TILESIZE_FILE):
     """
     Load a set of consecutive image, to be used in animation. All images of files are read.
-    :param img_folder_name:
-    :param filename:
+    :param folder:
+    :param image_name:
     :param width:
     :param height:
     :return:
     """
-    game_folder = path.dirname(__file__)
-    image_folder = path.join(game_folder, img_folder_name)
-    image_src = pg.image.load(path.join(image_folder, filename)).convert_alpha()
+    image_src = get_image(image_src_list, folder, image_name)
     number = int(image_src.get_width() / width)
     if width == height == st.TILESIZE_SCREEN:
         return [image_src.subsurface(pg.Rect(width * i, 0, width, height)) for i in range(number)]
@@ -378,7 +378,7 @@ def load_image_list(img_folder_name, filename, width=st.TILESIZE_FILE, height=st
                                    (st.TILESIZE_SCREEN, st.TILESIZE_SCREEN)) for i in range(number)]
 
 
-def load_image(img_folder_name, image, tile_x, tile_y, width=st.TILESIZE_FILE, height=st.TILESIZE_FILE):
+def load_image(image_src_list, folder, image_name, tile_x, tile_y, width=st.TILESIZE_FILE, height=st.TILESIZE_FILE):
     """
     Load a single image from a file
     :param img_folder_name:
@@ -389,11 +389,7 @@ def load_image(img_folder_name, image, tile_x, tile_y, width=st.TILESIZE_FILE, h
     :param height:
     :return:
     """
-    image_src = image
-    if not (type(image) is pg.Surface):
-        game_folder = path.dirname(__file__)
-        image_folder = path.join(game_folder, img_folder_name)
-        image_src = pg.image.load(path.join(image_folder, image)).convert_alpha()
+    image_src = get_image(image_src_list, folder, image_name)
     if width == height == st.TILESIZE_SCREEN:
         return image_src.subsurface(pg.Rect(width * tile_x, height * tile_y, width, height))
     else:
@@ -401,7 +397,7 @@ def load_image(img_folder_name, image, tile_x, tile_y, width=st.TILESIZE_FILE, h
                                       (st.TILESIZE_SCREEN, st.TILESIZE_SCREEN))
 
 
-def load_image_list_dawnlike(img_folder_name, image1, image2, tile_x, tile_y,
+def load_image_list_dawnlike(image_src_list, folder, image_name1, image_name2, tile_x, tile_y,
                              width=st.TILESIZE_FILE, height=st.TILESIZE_FILE):
     """
     Load an image list from two different files following dawnlike approach
@@ -414,17 +410,8 @@ def load_image_list_dawnlike(img_folder_name, image1, image2, tile_x, tile_y,
     :param height:
     :return: a list of two images
     """
-    image_src1 = image1
-    if not (type(image1) is pg.Surface):
-        game_folder = path.dirname(__file__)
-        image_folder = path.join(game_folder, img_folder_name)
-        image_src1 = pg.image.load(path.join(image_folder, image1)).convert_alpha()
-
-    image_src2 = image2
-    if not (type(image2) is pg.Surface):
-        game_folder = path.dirname(__file__)
-        image_folder = path.join(game_folder, img_folder_name)
-        image_src2 = pg.image.load(path.join(image_folder, image2)).convert_alpha()
+    image_src1 = get_image(image_src_list, folder, image_name1)
+    image_src2 = get_image(image_src_list, folder, image_name2)
 
     if width == height == st.TILESIZE_SCREEN:
         return [image_src1.subsurface(pg.Rect(width * tile_x, height * tile_y, width, height)),
@@ -436,13 +423,14 @@ def load_image_list_dawnlike(img_folder_name, image1, image2, tile_x, tile_y,
                                    (st.TILESIZE_SCREEN, st.TILESIZE_SCREEN))]
 
 
-def load_wall_structure_dawnlike(image_src):
+def load_wall_structure_dawnlike(image_src_list, folder, image_name):
     """
     Load the set of walls from dawnlike file
     :param image_src:
     :return: a list of dictionary item following convention
     http://www.angryfishstudios.com/2011/04/adventures-in-bitmasking/
     """
+    image_src = get_image(image_src_list, folder, image_name)
     image_set = []
     ref_tuples = {0: (1, 1), 1: (1, 1),
                   2: (1, 0), 3: (0, 2),
@@ -464,3 +452,136 @@ def load_wall_structure_dawnlike(image_src):
                                                      (st.TILESIZE_SCREEN, st.TILESIZE_SCREEN))
             image_set.append(dict_image)
     return image_set
+
+def load_floor_structure_dawnlike(image_src_list, folder, image_name):
+    """
+    Load the set of walls from dawnlike file
+    :param image_src:
+    :return: a list of dictionary item following convention
+    http://www.angryfishstudios.com/2011/04/adventures-in-bitmasking/
+    """
+    image_src = get_image(image_src_list, folder, image_name)
+    image_set = []
+    ref_tuples = {0: (5, 0), 1: (3, 2),
+                  2: (4, 1), 3: (0, 2),
+                  4: (3, 0), 5: (3, 1),
+                  6: (0, 0), 7: (0, 1),
+                  8: (6, 1), 9: (2, 2),
+                  10: (5, 1), 11: (1, 2),
+                  12: (2, 0), 13: (2, 1),
+                  14: (1, 0), 15: (1, 1)}
+    for line in range(8):
+        for column in range(3):
+            top_x = column * (7 * 16)
+            top_y = line * (3 * 16) + 3 * 16
+            dict_image = {}
+            for key in ref_tuples:
+                delta_x = ref_tuples[key][0] * 16 + top_x
+                delta_y = ref_tuples[key][1] * 16 + top_y
+                dict_image[key] = pg.transform.scale(image_src.subsurface(pg.Rect(delta_x, delta_y, 16, 16)),
+                                                     (st.TILESIZE_SCREEN, st.TILESIZE_SCREEN))
+            image_set.append(dict_image)
+    return image_set
+
+def load_player_dawnlike(image_src_list, folder, image_name, width=st.TILESIZE_FILE, height=st.TILESIZE_FILE):
+    result = {"S": [load_image(image_src_list, folder, image_name, i, 0, width=width, height=height) for i in range(4)],
+              "W": [load_image(image_src_list, folder, image_name, i, 1, width=width, height=height) for i in range(4)],
+              "E": [load_image(image_src_list, folder, image_name, i, 2, width=width, height=height) for i in range(4)],
+              "N": [load_image(image_src_list, folder, image_name, i, 3, width=width, height=height) for i in range(4)]}
+    return result
+
+
+def get_image(image_src_list, folder, image_name):
+    key = str(folder) + image_name
+    if key not in image_src_list:
+        image_src_list[key] = pg.image.load(path.join(folder, image_name)).convert_alpha()
+    return image_src_list[key]
+
+
+def build_listing_dawnlike(image_root_folder):
+    image_root_folder = path.join(image_root_folder, st.IMG_DAWNLIKE_SUB)
+    character_folder = path.join(image_root_folder, "Characters")
+    item_folder = path.join(image_root_folder, "Items")
+    object_folder = path.join(image_root_folder, "Objects")
+    player_folder = path.join(image_root_folder, "Player")
+
+    image_src_list = {}  # a cache for objects
+    images = {}  # the actual list of images to be built
+
+    # Expected Keys:
+    # PLAYER
+    images["PLAYER"] = load_player_dawnlike(image_src_list, player_folder, "Warrior.png")
+    # ENEMIES
+    images["BAT"] = load_image_list_dawnlike(image_src_list, character_folder, "Avian0.png", "Avian1.png", 2, 11)
+    images["BEAR"] = load_image_list_dawnlike(image_src_list, character_folder, "Misc0.png", "Misc1.png", 0, 0)
+    images["MONKEY"] = load_image_list_dawnlike(image_src_list, character_folder, "Misc0.png", "Misc1.png", 2, 3)
+    # NPC
+    images["DOG"] = load_image_list_dawnlike(image_src_list, character_folder, "Dog0.png", "Dog1.png", 0, 0)
+    # ITEMS
+    images["REMAINS"] = load_image_list_dawnlike(image_src_list, object_folder, "Decor0.png", "Decor1.png", 0, 12)
+    images["POTION_R"] = load_image(image_src_list, item_folder, "Potion.png", 0, 0)
+    # EQUIPMENT
+    images["SWORD"] = load_image(image_src_list, item_folder, "MedWep.png", 3, 0)
+    images["HELMET"] = load_image(image_src_list, item_folder, "Hat.png", 2, 1)
+    images["CAPE"] = load_image(image_src_list, item_folder, "Armor.png", 7, 7)
+    images["ARMOR"] = load_image(image_src_list, item_folder, "Armor.png", 0, 0)
+    images["LEG"] = load_image(image_src_list, item_folder, "Armor.png", 5, 4)
+    images["GLOVE"] = load_image(image_src_list, item_folder, "Glove.png", 1, 0)
+    images["SHOES"] = load_image(image_src_list, item_folder, "Boot.png", 7, 0)
+    images["SHIELD"] = load_image(image_src_list, item_folder, "Shield.png", 0, 0)
+    images["BOW"] = load_image(image_src_list, item_folder, "Ammo.png", 0, 1)
+    images["ARROW"] = load_image(image_src_list, item_folder, "Ammo.png", 5, 2)
+    images["RING"] = load_image(image_src_list, item_folder, "Ring.png", 0, 0)
+    images["NECKLACE"] = load_image(image_src_list, item_folder, "Tool.png", 1, 2)
+    # OTHER
+    images["WALLS"] = load_wall_structure_dawnlike(image_src_list, object_folder, "Wall.png")
+    images["CANDLE_SIMPLE"] = load_image_list_dawnlike(image_src_list, object_folder, "Decor0.png", "Decor1.png", 0, 9)
+    images["CANDLE_DOUBLE"] = load_image_list_dawnlike(image_src_list, object_folder, "Decor0.png", "Decor1.png", 1, 9)
+    images["FLOOR"] = load_floor_structure_dawnlike(image_src_list, object_folder, "Floor.png")
+    # images["FLOOR_EXT"] = [load_image(image_src_list, object_folder, "Floor.png", 1, y) for y in (4, 7, 10)] -> Not used
+    images["DOOR_V_OPEN"] = load_image(image_src_list, object_folder, "Door1.png", 1, 0)
+    images["DOOR_V_CLOSED"] = load_image(image_src_list, object_folder, "Door0.png", 1, 0)
+    images["DOOR_H_OPEN"] = load_image(image_src_list, object_folder, "Door1.png", 0, 0)
+    images["DOOR_H_CLOSED"] = load_image(image_src_list, object_folder, "Door0.png", 0, 0)
+    images["STAIRS"] = load_image(image_src_list, object_folder, "Tile.png", 1, 1)
+    images["FIREBALL"] = load_image_list_dawnlike(image_src_list, object_folder, "Effect0.png", "Effect1.png", 1, 24)
+    images["SPECIAL_EFFECT"] = load_image_list_dawnlike(image_src_list, object_folder, "Effect0.png", "Effect1.png", 1, 22)
+
+    # "PLAYER": {
+    #     "E": load_image_list(IMG_FOLDER, 'HeroEast.png'),
+    #     "W": load_image_list(IMG_FOLDER, 'HeroWest.png'),
+    #     "N": load_image_list(IMG_FOLDER, 'HeroNorth.png'),
+    #     "S": load_image_list(IMG_FOLDER, 'HeroSouth.png')},
+    # # ENEMIES
+    # "BAT": load_image_list(IMG_FOLDER, 'BatA.png'),
+    # "BEARD": load_image_list(IMG_FOLDER, 'BeardA.png'),
+    # "MONKEY": load_image_list_dawnlike(IMG_FOLDER, "Misc0.png", "Misc1.png", 2, 3),
+    # # NPC
+    # "DOG": load_image_list(IMG_FOLDER, 'DogA.png'),
+    # # ITEMS
+    # "REMAINS": load_image(IMG_FOLDER, item_image_src, 44, 2),
+    # "POTION_R": load_image(IMG_FOLDER, item_image_src, 1, 1),
+    # # EQUIPMENT
+    # "SWORD": load_image(IMG_FOLDER, item_image_src, 1, 16),
+    # "HELMET": load_image(IMG_FOLDER, item_image_src, 13, 16),
+    # "CAPE": load_image(IMG_FOLDER, item_image_src, 27, 17),
+    # "ARMOR": load_image(IMG_FOLDER, item_image_src, 14, 16),
+    # "LEG": load_image(IMG_FOLDER, item_image_src, 15, 16),
+    # "GLOVE": load_image(IMG_FOLDER, item_image_src, 16, 16),
+    # "SHOES": load_image(IMG_FOLDER, item_image_src, 17, 16),
+    # "SHIELD": load_image(IMG_FOLDER, item_image_src, 11, 13),
+    # "BOW": load_image(IMG_FOLDER, item_image_src, 11, 17),
+    # "ARROW": load_image(IMG_FOLDER, item_image_src, 21, 17),
+    # "RING": load_image(IMG_FOLDER, item_image_src, 1, 4),
+    # "NECKLACE": load_image(IMG_FOLDER, item_image_src, 1, 5),
+    # #
+    # "WALLS": load_wall_structure_dawnlike(wall_image_src),
+    # "FLOOR": [[load_image(IMG_FOLDER, level_image_src, x, y) for x in range(4)] for y in range(15)],
+    # "FLOOR_EXT": [[load_image(IMG_FOLDER, level_image_src, x, y) for x in range(4, 6)] for y in range(15)],
+    # "DOOR_V_OPEN": load_image(IMG_FOLDER, level_image_src, 15, 2),
+    # "DOOR_H_OPEN": load_image(IMG_FOLDER, level_image_src, 16, 2),
+    # "DOOR_CLOSED": load_image(IMG_FOLDER, level_image_src, 14, 2),
+    # "STAIRS": load_image(IMG_FOLDER, level_image_src, 13, 0),
+    # "FIREBALL": load_image(IMG_FOLDER, level_image_src, 42, 27),
+    # "SPECIAL_EFFECT": [load_image(IMG_FOLDER, level_image_src, x, 21) for x in range(4)]
+    return images

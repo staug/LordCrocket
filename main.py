@@ -11,7 +11,7 @@ from player import PlayerHelper
 from settings import *
 from tilemap import MapFactory, Camera, FieldOfView, Minimap
 from utilities import Ticker, Publisher
-from utilities_ui import TextBox, load_image, load_image_list, load_wall_structure_dawnlike, load_image_list_dawnlike
+from utilities_ui import TextBox, build_listing_dawnlike
 from screen import CharacterScreen, PlayingScreen, InventoryScreen, MapScreen
 
 
@@ -32,50 +32,51 @@ class Game:
     def load_data(self):
         game_folder = path.dirname(__file__)
         image_folder = path.join(game_folder, IMG_FOLDER)
+        self.all_images = build_listing_dawnlike(image_folder)
         # loading graphics
-        item_image_src = pg.image.load(path.join(image_folder, 'Item.png')).convert_alpha()
-        level_image_src = pg.image.load(path.join(image_folder, 'Level.png')).convert_alpha()
-        wall_image_src = pg.image.load(path.join(image_folder, 'Wall.png')).convert_alpha()
-
-        self.all_images = {
-            "PLAYER": {
-                "E": load_image_list(IMG_FOLDER, 'HeroEast.png'),
-                "W": load_image_list(IMG_FOLDER, 'HeroWest.png'),
-                "N": load_image_list(IMG_FOLDER, 'HeroNorth.png'),
-                "S": load_image_list(IMG_FOLDER, 'HeroSouth.png')},
-            # ENEMIES
-            "BAT": load_image_list(IMG_FOLDER, 'BatA.png'),
-            "BEARD": load_image_list(IMG_FOLDER, 'BeardA.png'),
-            "MONKEY": load_image_list_dawnlike(IMG_FOLDER, "Misc0.png", "Misc1.png", 2, 3),
-            # NPC
-            "DOG": load_image_list(IMG_FOLDER, 'DogA.png'),
-            # ITEMS
-            "REMAINS": load_image(IMG_FOLDER, item_image_src, 44, 2),
-            "POTION_R": load_image(IMG_FOLDER, item_image_src, 1, 1),
-            # EQUIPMENT
-            "SWORD": load_image(IMG_FOLDER, item_image_src, 1, 16),
-            "HELMET": load_image(IMG_FOLDER, item_image_src, 13, 16),
-            "CAPE": load_image(IMG_FOLDER, item_image_src, 27, 17),
-            "ARMOR": load_image(IMG_FOLDER, item_image_src, 14, 16),
-            "LEG": load_image(IMG_FOLDER, item_image_src, 15, 16),
-            "GLOVE": load_image(IMG_FOLDER, item_image_src, 16, 16),
-            "SHOES": load_image(IMG_FOLDER, item_image_src, 17, 16),
-            "SHIELD": load_image(IMG_FOLDER, item_image_src, 11, 13),
-            "BOW": load_image(IMG_FOLDER, item_image_src, 11, 17),
-            "ARROW": load_image(IMG_FOLDER, item_image_src, 21, 17),
-            "RING": load_image(IMG_FOLDER, item_image_src, 1, 4),
-            "NECKLACE": load_image(IMG_FOLDER, item_image_src, 1, 5),
-            #
-            "WALLS": load_wall_structure_dawnlike(wall_image_src),
-            "FLOOR": [[load_image(IMG_FOLDER, level_image_src, x, y) for x in range(4)] for y in range(15)],
-            "FLOOR_EXT": [[load_image(IMG_FOLDER, level_image_src, x, y) for x in range(4, 6)] for y in range(15)],
-            "DOOR_V_OPEN": load_image(IMG_FOLDER, level_image_src, 15, 2),
-            "DOOR_H_OPEN": load_image(IMG_FOLDER, level_image_src, 16, 2),
-            "DOOR_CLOSED": load_image(IMG_FOLDER, level_image_src, 14, 2),
-            "STAIRS": load_image(IMG_FOLDER, level_image_src, 13, 0),
-            "FIREBALL": load_image(IMG_FOLDER, level_image_src, 42, 27),
-            "SPECIAL_EFFECT": [load_image(IMG_FOLDER, level_image_src, x, 21) for x in range(4)]
-        }
+        # item_image_src = pg.image.load(path.join(image_folder, 'Item.png')).convert_alpha()
+        # level_image_src = pg.image.load(path.join(image_folder, 'Level.png')).convert_alpha()
+        # wall_image_src = pg.image.load(path.join(image_folder, 'Wall.png')).convert_alpha()
+        #
+        # self.all_images = {
+        #     "PLAYER": {
+        #         "E": load_image_list(IMG_FOLDER, 'HeroEast.png'),
+        #         "W": load_image_list(IMG_FOLDER, 'HeroWest.png'),
+        #         "N": load_image_list(IMG_FOLDER, 'HeroNorth.png'),
+        #         "S": load_image_list(IMG_FOLDER, 'HeroSouth.png')},
+        #     # ENEMIES
+        #     "BAT": load_image_list(IMG_FOLDER, 'BatA.png'),
+        #     "BEARD": load_image_list(IMG_FOLDER, 'BeardA.png'),
+        #     "MONKEY": load_image_list_dawnlike(IMG_FOLDER, "Misc0.png", "Misc1.png", 2, 3),
+        #     # NPC
+        #     "DOG": load_image_list(IMG_FOLDER, 'DogA.png'),
+        #     # ITEMS
+        #     "REMAINS": load_image(IMG_FOLDER, item_image_src, 44, 2),
+        #     "POTION_R": load_image(IMG_FOLDER, item_image_src, 1, 1),
+        #     # EQUIPMENT
+        #     "SWORD": load_image(IMG_FOLDER, item_image_src, 1, 16),
+        #     "HELMET": load_image(IMG_FOLDER, item_image_src, 13, 16),
+        #     "CAPE": load_image(IMG_FOLDER, item_image_src, 27, 17),
+        #     "ARMOR": load_image(IMG_FOLDER, item_image_src, 14, 16),
+        #     "LEG": load_image(IMG_FOLDER, item_image_src, 15, 16),
+        #     "GLOVE": load_image(IMG_FOLDER, item_image_src, 16, 16),
+        #     "SHOES": load_image(IMG_FOLDER, item_image_src, 17, 16),
+        #     "SHIELD": load_image(IMG_FOLDER, item_image_src, 11, 13),
+        #     "BOW": load_image(IMG_FOLDER, item_image_src, 11, 17),
+        #     "ARROW": load_image(IMG_FOLDER, item_image_src, 21, 17),
+        #     "RING": load_image(IMG_FOLDER, item_image_src, 1, 4),
+        #     "NECKLACE": load_image(IMG_FOLDER, item_image_src, 1, 5),
+        #     #
+        #     "WALLS": load_wall_structure_dawnlike(wall_image_src),
+        #     "FLOOR": [[load_image(IMG_FOLDER, level_image_src, x, y) for x in range(4)] for y in range(15)],
+        #     "FLOOR_EXT": [[load_image(IMG_FOLDER, level_image_src, x, y) for x in range(4, 6)] for y in range(15)],
+        #     "DOOR_V_OPEN": load_image(IMG_FOLDER, level_image_src, 15, 2),
+        #     "DOOR_H_OPEN": load_image(IMG_FOLDER, level_image_src, 16, 2),
+        #     "DOOR_CLOSED": load_image(IMG_FOLDER, level_image_src, 14, 2),
+        #     "STAIRS": load_image(IMG_FOLDER, level_image_src, 13, 0),
+        #     "FIREBALL": load_image(IMG_FOLDER, level_image_src, 42, 27),
+        #     "SPECIAL_EFFECT": [load_image(IMG_FOLDER, level_image_src, x, 21) for x in range(4)]
+        # }
 
     def new(self):
 
@@ -202,7 +203,7 @@ class Game:
         # place doors - except if we are in a pure maze
         pos_list = self.map.doors_pos[:]
         for pos in pos_list:
-            DoorHelper(self, pos, ("DOOR_CLOSED", "DOOR_H_OPEN", "DOOR_CLOSED", "DOOR_V_OPEN"),
+            DoorHelper(self, pos, ("DOOR_H_CLOSED", "DOOR_H_OPEN", "DOOR_V_CLOSED", "DOOR_V_OPEN"),
                        name="Door {}".format(pos),
                        open_function=DoorHelper.open_door)
 
@@ -273,7 +274,7 @@ class Game:
                              self.map.tile_height * TILESIZE_SCREEN)
         # place monsters
         for i in range(60):
-            MonsterHelper(self, "Beard"+str(i), all_pos.pop(), 'BEARD', 10, (1, 4, 0),
+            MonsterHelper(self, "Bear"+str(i), all_pos.pop(), 'BEAR', 10, (1, 4, 0),
                           [("bite", (1, 2, 0)), ("snicker", (1, 4, 0))],
                           6, 0, vision=2, speed=10)
 

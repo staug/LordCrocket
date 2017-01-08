@@ -1,3 +1,7 @@
+GRAPHICS
+* Work with three possible tilesets: dawnlike, oryx and pixel
+* The type of graphic must be selectable
+
 DUNGEON
 * Make Dungeon beautiful
 * [DONE] Split dungeon in subclasses
