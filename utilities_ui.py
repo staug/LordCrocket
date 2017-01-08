@@ -512,11 +512,12 @@ def build_listing_dawnlike(image_root_folder):
     # PLAYER
     images["PLAYER"] = load_player_dawnlike(image_src_list, player_folder, "Warrior.png")
     # ENEMIES
+    images["BABOON"] = load_image_list_dawnlike(image_src_list, character_folder, "Misc0.png", "Misc1.png", 2, 3)
+    images["BADGER"] = load_image_list_dawnlike(image_src_list, character_folder, "Rodent0.png", "Rodent1.png", 2, 2)
     images["BAT"] = load_image_list_dawnlike(image_src_list, character_folder, "Avian0.png", "Avian1.png", 2, 11)
-    images["BEAR"] = load_image_list_dawnlike(image_src_list, character_folder, "Misc0.png", "Misc1.png", 0, 0)
-    images["MONKEY"] = load_image_list_dawnlike(image_src_list, character_folder, "Misc0.png", "Misc1.png", 2, 3)
-    # NPC
     images["DOG"] = load_image_list_dawnlike(image_src_list, character_folder, "Dog0.png", "Dog1.png", 0, 0)
+    images["GIANT_ANT"] = load_image_list_dawnlike(image_src_list, character_folder, "Pest0.png", "Pest1.png", 0, 4)
+    # NPC
     # ITEMS
     images["REMAINS"] = load_image_list_dawnlike(image_src_list, object_folder, "Decor0.png", "Decor1.png", 0, 12)
     images["POTION_R"] = load_image(image_src_list, item_folder, "Potion.png", 0, 0)

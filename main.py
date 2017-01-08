@@ -6,7 +6,7 @@ import pygame as pg
 
 import constants as c
 import random as rd
-from entities import MonsterHelper, EquipmentHelper, ItemHelper, DoorHelper, StairHelper
+from entities import MonsterFactory, EquipmentHelper, ItemHelper, DoorHelper, StairHelper
 from player import PlayerHelper
 from settings import *
 from tilemap import MapFactory, Camera, FieldOfView, Minimap
@@ -134,14 +134,9 @@ class Game:
 
 
         # place monsters
-        for i in range(20):
-            MonsterHelper(self, "Bat"+str(i), all_pos.pop(), 'BAT', 10, (1, 4, 0),
-                          [("bite", (1, 2, 0)), ("snicker", (1, 4, 0))],
-                          6, 0, vision=2, speed=10)
-            MonsterHelper(self, "Baboon"+str(i), all_pos.pop(), 'MONKEY', 12, (1, 8, 0),
-                          [("bite", (1, 4, 1))],
-                          6, 18, vision=3, speed=10)
+        MonsterFactory(self).build_list(25)
 
+        all_pos = self.map.get_all_available_tiles(c.T_FLOOR, self.objects, without_objects=True)
         for i in range(200):
             ItemHelper(self, "Healing Potion"+str(i), all_pos.pop(), "POTION_R",
                        use_function=lambda player=self.player: ItemHelper.cast_heal(player))
@@ -273,11 +268,9 @@ class Game:
         self.camera = Camera(self.map.tile_width * TILESIZE_SCREEN,
                              self.map.tile_height * TILESIZE_SCREEN)
         # place monsters
-        for i in range(60):
-            MonsterHelper(self, "Bear"+str(i), all_pos.pop(), 'BEAR', 10, (1, 4, 0),
-                          [("bite", (1, 2, 0)), ("snicker", (1, 4, 0))],
-                          6, 0, vision=2, speed=10)
+        MonsterFactory(self).build_list(30)
 
+        all_pos = self.map.get_all_available_tiles(c.T_FLOOR, self.objects, without_objects=True)
         for i in range(200):
             EquipmentHelper(self, "Cape", all_pos.pop(), "CAPE", slot=c.SLOT_CAPE, modifiers={c.BONUS_STR: 2})
             EquipmentHelper(self, "Ring", all_pos.pop(), "RING", slot=c.SLOT_RING, modifiers={c.BONUS_STR: -1})

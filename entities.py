@@ -154,6 +154,8 @@ class Entity(Sprite):
         :return: Nothing
         """
         if self.groups is not None:
+            for group in self.game.all_groups:
+                self.remove(group)
             self.add(self.groups)
         elif not in_inventory:
             self.add(self.game.player_sprite_group)
@@ -498,13 +500,78 @@ class MonsterFactory:
         rd.seed(seed)
         self.game = game
 
+        # chance of each monster
+        self.monster_chances = {}
+        self.monster_chances["GIANT_ANT"] = self.from_dungeon_level([[10, 3], [15, 5]])
+        self.monster_chances["BABOON"] = 20  # always shows up, even if all other monsters have 0 chance
+        self.monster_chances["BADGER"] = 10  # blaireau
+        self.monster_chances["BAT"] = 55
+        self.monster_chances["DOG"] = 8
+        # self.monster_chances["DOG_WAR"] = self.from_dungeon_level([[15, 2], [25, 6]])
+        # self.monster_chances["RAT_GIANT"] = 9
+        # self.monster_chances["HAWK"] = 10
+        # self.monster_chances["CHEETAH"] = self.from_dungeon_level([[25, 3], [40, 6]])
+
+    @staticmethod
+    def random_choice(chances_dict):
+        # choose one option from dictionary of chances, returning its key
+        chances = chances_dict.values()
+        strings = list(chances_dict.keys())
+        return strings[MonsterFactory.random_choice_index(chances)]
+
+    @staticmethod
+    def random_choice_index(chances):  # choose one option from list of chances, returning its index
+        # the dice will land on some number between 1 and the sum of the chances
+        dice = rd.randint(1, sum(chances))
+
+        # go through all chances, keeping the sum so far
+        running_sum = 0
+        choice = 0
+        for w in chances:
+            running_sum += w
+
+            # see if the dice landed in the part that corresponds to this choice
+            if dice <= running_sum:
+                return choice
+            choice += 1
+
+    def from_dungeon_level(self, table):
+        # returns a value that depends on level. the table specifies what value occurs after each level, default is 0.
+        for (value, level) in reversed(table):
+            if self.game.level >= level:
+                return value
+        return 0
+
     def build_list(self, number_monster):
-        pos_list = self.map.get_all_available_tiles(c.T_FLOOR, self.game.objects, without_objects=True)
+        pos_list = self.game.map.get_all_available_tiles(c.T_FLOOR, self.game.objects, without_objects=True)
         assert number_monster < len(pos_list), \
             "Number of monster generated {} must be greater than available positions {}".format(number_monster,
                                                                                                 len(pos_list))
 
-
+        print("Total number of mosnter requested: {}".format(number_monster))
+        for i in range(number_monster):
+            monster = MonsterFactory.random_choice(self.monster_chances)
+            print("{}: {}".format(i, monster))
+            if monster == "GIANT_ANT":
+                MonsterHelper(self.game, "Giant Ant " + str(i), pos_list.pop(), 'GIANT_ANT', 16, (3, 8, 0),
+                              [("bite", (1, 6, 3))],
+                              12, 16, vision=2, speed=8)
+            elif monster == "BABOON":
+                MonsterHelper(self.game, "Baboon " + str(i), pos_list.pop(), 'BABOON', 12, (1, 8, 0),
+                              [("bite", (1, 4, 1))],
+                              6, 18, vision=3, speed=7)
+            elif monster == "BADGER":
+                MonsterHelper(self.game, "Badger " + str(i), pos_list.pop(), 'BADGER', 15, (1, 8, 0),
+                              [("bite", (1, 3, 1)), ("claws", (1, 2, 1))],
+                              7, 18, vision=2, speed=10)
+            elif monster == "BAT":
+                MonsterHelper(self.game, "Bat " + str(i), pos_list.pop(), 'BAT', 10, (1, 4, 0),
+                              [("bite", (1, 2, 1))],
+                              6, 19, vision=3, speed=6)
+            elif monster == "DOG":
+                MonsterHelper(self.game, "Dog " + str(i), pos_list.pop(), 'DOG', 11, (1, 8, 0),
+                              [("bite", (1, 4, 1))],
+                              7, 18, vision=4, speed=9)
 
 class NPCHelper(Entity):
 
