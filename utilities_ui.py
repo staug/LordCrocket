@@ -380,13 +380,14 @@ def load_image_list(image_src_list, folder, image_name, width=st.TILESIZE_FILE, 
 
 def load_image(image_src_list, folder, image_name, tile_x, tile_y, width=st.TILESIZE_FILE, height=st.TILESIZE_FILE):
     """
-    Load a single image from a file
-    :param img_folder_name:
-    :param image:
-    :param tile_x:
-    :param tile_y:
-    :param width:
-    :param height:
+    Load a single image from a file and put it in the image dictionnary
+    :param image_src_list: the image dictionnary that will be modified
+    :param folder: the folder from which the image needs to be loaded
+    :param image_name: the name of the file to be loaded
+    :param tile_x: the position in the file of the sub part to be loaded (x)
+    :param tile_y: the position in the file of the sub part to be loaded (y)
+    :param width: the dimension of a tile
+    :param height: th edimension of a tile
     :return:
     """
     image_src = get_image(image_src_list, folder, image_name)
@@ -455,8 +456,10 @@ def load_wall_structure_dawnlike(image_src_list, folder, image_name):
 
 def load_floor_structure_dawnlike(image_src_list, folder, image_name):
     """
-    Load the set of walls from dawnlike file
-    :param image_src:
+    Load the set of walls from dawnlike file and put it in a dictionary
+    :param image_src_list: the actual dictionary that may aldready contain the source
+    :param folder: the folder from which the image will be loaded
+    :param the name of teh image file
     :return: a list of dictionary item following convention
     http://www.angryfishstudios.com/2011/04/adventures-in-bitmasking/
     """
@@ -482,6 +485,37 @@ def load_floor_structure_dawnlike(image_src_list, folder, image_name):
                                                      (st.TILESIZE_SCREEN, st.TILESIZE_SCREEN))
             image_set.append(dict_image)
     return image_set
+
+def load_floor_structure_oryx(image_src_list, folder, image_name):
+    """
+    Load the set of walls from dawnlike file and put it in a dictionary
+    :param image_src_list: the actual dictionary that may aldready contain the source
+    :param folder: the folder from which the image will be loaded
+    :param the name of teh image file
+    :return: a list of dictionary item following convention
+    http://www.angryfishstudios.com/2011/04/adventures-in-bitmasking/
+    """
+    image_src = get_image(image_src_list, folder, image_name)
+    image_set = []
+    ref_tuples = {0: (9, 0), 1: (15, 0),
+                  2: (10, 0), 3: (18, 0),
+                  4: (13, 0), 5: (14, 0),
+                  6: (16, 0), 7: (23, 0),
+                  8: (12, 0), 9: (19, 0),
+                  10: (11, 0), 11: (24, 0),
+                  12: (17, 0), 13: (22, 0),
+                  14: (21, 0), 15: (20, 0)}
+    for line in range(21):
+        top_y = line * 16
+        dict_image = {}
+        for key in ref_tuples:
+            delta_x = ref_tuples[key][0] * 16
+            delta_y = ref_tuples[key][1] * 16 + top_y
+            dict_image[key] = pg.transform.scale(image_src.subsurface(pg.Rect(delta_x, delta_y, 16, 16)),
+                                                 (st.TILESIZE_SCREEN, st.TILESIZE_SCREEN))
+        image_set.append(dict_image)
+    return image_set
+
 
 def load_player_dawnlike(image_src_list, folder, image_name, width=st.TILESIZE_FILE, height=st.TILESIZE_FILE):
     result = {"S": [load_image(image_src_list, folder, image_name, i, 0, width=width, height=height) for i in range(4)],
@@ -586,3 +620,12 @@ def build_listing_dawnlike(image_root_folder):
     # "FIREBALL": load_image(IMG_FOLDER, level_image_src, 42, 27),
     # "SPECIAL_EFFECT": [load_image(IMG_FOLDER, level_image_src, x, 21) for x in range(4)]
     return images
+
+def build_listing_oryx(img_root):
+    img_root = path.join(img_root, st.IMG_ORYX_SUB)
+
+    image_src_list = {}  # a cache for objects
+    images = {}  # the actual list of images to be built
+
+    # OTHER
+    images["WALLS"] = load_wall_structure_dawnlike(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png")

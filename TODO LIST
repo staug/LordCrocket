@@ -14,6 +14,7 @@ NPC
 
 GENERAL GAME
 * CLean up UI
+* Redesign the text box
 * [Done] Stairs between maps
 * [DONE] Move all constants (tile tyep, equipment...) to constant file, and simplify all imports
 
@@ -46,6 +47,7 @@ ITEM
 * Eahc item has a weight
 * Each item has durability index
 * Each item, monster... has a long description
+* Create a chest as an actionable item
 
 Spells and potions
 * Increase and decrease visibility radius
@@ -54,6 +56,7 @@ Spells and potions
 BUGS
 * In save, make sure the floor is always the same...
 * Textbox: if a line is multi line, then the number of messages displayed in the textbox is incorrect
+* Textbox: if teh window has been resized, the textbox may be used to display text out of surface!
 * Potion heals only hit opints, not body points
 
 Notes:

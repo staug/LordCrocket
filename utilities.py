@@ -15,7 +15,6 @@ class Ticker(object):
 
     def _advance_ticks(self, interval):
         for i in range(interval):
-            # print("Turn {}".format(self.ticks))
             things_to_do = self.schedule.pop(self.ticks, [])
             for obj in things_to_do:
                 if obj is not None:
