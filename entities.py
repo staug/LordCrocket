@@ -204,7 +204,13 @@ class Entity(Sprite):
 
     def animate(self):
         now = pygame.time.get_ticks()
-        if now - self.last_update > 200:
+        delta = 200
+        if hasattr(self, "ai") and self.ai != None:
+            if hasattr(self.ai, "speed"):
+                delta = self.ai.speed * 30
+        elif hasattr(self, "speed"):
+            delta = self.speed * 30
+        if now - self.last_update > delta:
             self.last_update = now
             reference = 'E'
             if hasattr(self, "dict_image"):

@@ -376,7 +376,7 @@ class Map:
         """
         # First, we choose our wall serie
         wall_series = floor_series = self.wall_ref_number
-        type_floor=random.randint(0, 3)
+        type_floor = 0
 
         for y in range(self.tile_height):
             for x in range(self.tile_width):
@@ -397,12 +397,30 @@ class Map:
                     self._background.blit(self.graphical_resources['WALLS'][wall_series][weight_wall],
                                           (x * TILESIZE_SCREEN, y * TILESIZE_SCREEN))
                 elif self.tiles[x][y].tile_type == c.T_FLOOR:
-                    self._background.blit(self.graphical_resources['FLOOR'][floor_series][type_floor],
+                    other_floor = random.randint(0, 99)
+                    _type_floor = type_floor
+                    if other_floor > 70:
+                        _type_floor = other_floor % len(self.graphical_resources['FLOOR'][floor_series])
+                    self._background.blit(self.graphical_resources['FLOOR'][floor_series][_type_floor],
                                           (x * TILESIZE_SCREEN, y * TILESIZE_SCREEN))
                     # Adding wall shadow on floor tile
                     if weight_floor in (0, 2, 4, 6, 8, 10, 12, 14):
                         self._background.blit(self.graphical_resources['WALLS_SHADOW'],
                                               (x * TILESIZE_SCREEN, y * TILESIZE_SCREEN))
+                    if random.randint(0, 100) <= 40:
+                        # Adding spider web on floor tile if the wall is correct
+                        if weight_floor == 6:
+                            self._background.blit(self.graphical_resources['SPIDER_WEB_TOP_LEFT'],
+                                                  (x * TILESIZE_SCREEN, y * TILESIZE_SCREEN))
+                        elif weight_floor == 3:
+                            self._background.blit(self.graphical_resources['SPIDER_WEB_BOTTOM_LEFT'],
+                                                  (x * TILESIZE_SCREEN, y * TILESIZE_SCREEN))
+                        elif weight_floor == 9:
+                            self._background.blit(self.graphical_resources['SPIDER_WEB_BOTTOM_RIGHT'],
+                                                  (x * TILESIZE_SCREEN, y * TILESIZE_SCREEN))
+                        elif weight_floor == 12:
+                            self._background.blit(self.graphical_resources['SPIDER_WEB_TOP_RIGHT'],
+                                                  (x * TILESIZE_SCREEN, y * TILESIZE_SCREEN))
 
 
 class MazeMap(Map):
