@@ -360,7 +360,7 @@ class Input:
 # Specialized class to load graphics
 
 
-def load_image_list(image_src_list, folder, image_name, width=st.TILESIZE_FILE, height=st.TILESIZE_FILE):
+def load_image_list_all(image_src_list, folder, image_name, width=st.TILESIZE_FILE, height=st.TILESIZE_FILE):
     """
     Load a set of consecutive image, to be used in animation. All images of files are read.
     :param folder:
@@ -376,6 +376,28 @@ def load_image_list(image_src_list, folder, image_name, width=st.TILESIZE_FILE, 
     else:
         return [pg.transform.scale(image_src.subsurface(pg.Rect(width * i, 0, width, height)),
                                    (st.TILESIZE_SCREEN, st.TILESIZE_SCREEN)) for i in range(number)]
+
+
+def load_image_list(image_src_list, folder, image_name, listing, width=st.TILESIZE_FILE, height=st.TILESIZE_FILE):
+    """
+    Load a set of consecutive image, to be used in animation. All images of files are read.
+    :param folder:
+    :param image_name:
+    :param width:
+    :param height:
+    :param listing: the list of ref to be loaded, as (tile_x, tile_y) tuples
+    :return:
+    """
+    image_src = get_image(image_src_list, folder, image_name)
+    res = []
+    for refs in listing:
+        tile_x, tile_y = refs
+        if width == height == st.TILESIZE_SCREEN:
+            res.append(image_src.subsurface(pg.Rect(width * tile_x, height * tile_y, width, height)))
+        else:
+            res.append(pg.transform.scale(image_src.subsurface(pg.Rect(width * tile_x, height * tile_y, width, height)),
+                                       (st.TILESIZE_SCREEN, st.TILESIZE_SCREEN)))
+    return res
 
 
 def load_image(image_src_list, folder, image_name, tile_x, tile_y, width=st.TILESIZE_FILE, height=st.TILESIZE_FILE):
@@ -486,9 +508,10 @@ def load_floor_structure_dawnlike(image_src_list, folder, image_name):
             image_set.append(dict_image)
     return image_set
 
-def load_floor_structure_oryx(image_src_list, folder, image_name, width=32, height=32):
+
+def load_wall_structure_oryx(image_src_list, folder, image_name, width=24, height=24):
     """
-    Load the set of walls from dawnlike file and put it in a dictionary
+    Load the set of walls from oryx file and put it in a dictionary
     :param image_src_list: the actual dictionary that may aldready contain the source
     :param folder: the folder from which the image will be loaded
     :param the name of teh image file
@@ -505,13 +528,35 @@ def load_floor_structure_oryx(image_src_list, folder, image_name, width=32, heig
                   10: (12, 0), 11: (25, 0),
                   12: (18, 0), 13: (23, 0),
                   14: (22, 0), 15: (21, 0)}
-    for line in range(1):
+    for line in range(20):
         top_y = line * height + height
         dict_image = {}
         for key in ref_tuples:
             delta_x = ref_tuples[key][0] * width
             delta_y = ref_tuples[key][1] * height + top_y
             dict_image[key] = pg.transform.scale(image_src.subsurface(pg.Rect(delta_x, delta_y, width, height)),
+                                                 (st.TILESIZE_SCREEN, st.TILESIZE_SCREEN))
+        image_set.append(dict_image)
+    return image_set
+
+
+def load_floor_structure_oryx(image_src_list, folder, image_name, width=24, height=24):
+    """
+    Load the set of floors from oryx file and put it in a dictionary
+    :param image_src_list: the actual dictionary that may aldready contain the source
+    :param folder: the folder from which the image will be loaded
+    :param the name of teh image file
+    :return: a list of dictionary item following convention
+    4 tiles, each can be used. Each 4 tiles group matches with a wall set.
+    """
+    image_src = get_image(image_src_list, folder, image_name)
+    image_set = []
+    for line in range(20):
+        top_y = line * height + height
+        dict_image = {}
+        for key in range(4):
+            delta_x = key * width + 4 * width
+            dict_image[key] = pg.transform.scale(image_src.subsurface(pg.Rect(delta_x, top_y, width, height)),
                                                  (st.TILESIZE_SCREEN, st.TILESIZE_SCREEN))
         image_set.append(dict_image)
     return image_set
@@ -524,6 +569,17 @@ def load_player_dawnlike(image_src_list, folder, image_name, width=st.TILESIZE_F
               "N": [load_image(image_src_list, folder, image_name, i, 3, width=width, height=height) for i in range(4)]}
     return result
 
+
+def load_creature_oryx(image_src_list, folder, image_name, ref_pos, width=st.TILESIZE_FILE, height=st.TILESIZE_FILE):
+    west = load_image_list(image_src_list, folder, image_name, ref_pos, width=24, height=24)
+    east = []
+    for image in west:
+        east.append(pg.transform.flip(image.copy(), True, False))
+    result = {"S": east,
+              "W": west,
+              "E": east,
+              "N": west}
+    return result
 
 def get_image(image_src_list, folder, image_name):
     key = str(folder) + image_name
@@ -627,7 +683,18 @@ def build_listing_oryx(img_root):
     image_src_list = {}  # a cache for objects
     images = {}  # the actual list of images to be built
 
-    # OTHER
-    images["WALLS"] = load_wall_structure_dawnlike(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png")
+    # PLAYER
+    images["PLAYER"] = load_creature_oryx(image_src_list, img_root, "oryx_16bit_fantasy_creatures_trans.png", [(1, 1), (1, 2)], width=24, height=24)
 
+    # ENEMIES
+    images["BAT"] = load_creature_oryx(image_src_list, img_root, "oryx_16bit_fantasy_creatures_trans.png", [(3, 13), (3, 14)], width=24, height=24)
+    images["DOG"] = load_creature_oryx(image_src_list, img_root, "oryx_16bit_fantasy_creatures_trans.png", [(14, 13), (14, 14)], width=24, height=24)
+
+
+    # OTHER
+    images["WALLS"] = load_wall_structure_oryx(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png")
+    images["FLOOR"] = load_floor_structure_oryx(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png")
+
+    # ORYX SPECIFIC
+    images["WALLS_SHADOW"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png", 30, 37, width=24, height=24)
     return images

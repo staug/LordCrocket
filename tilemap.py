@@ -137,6 +137,8 @@ class Map:
         self.rooms = []
         self._doors_pos = None
 
+        self.wall_ref_number = random.randint(0, len(self.graphical_resources['WALLS']) - 1)  # we keep this as a ref for later
+
     @property
     def background(self):
         if self._background is None:
@@ -174,13 +176,15 @@ class Map:
         :return:
         """
         weight = 0
-        if y - 1 > 0 and (self.tiles[x][y-1].tile_type == tile_type or (x, y-1) in door_list):
+        if (y - 1 >= 0 and (self.tiles[x][y-1].tile_type == tile_type or (x, y-1) in door_list)) or y == 0:
             weight += 1
-        if x - 1 > 0 and (self.tiles[x-1][y].tile_type == tile_type or (x - 1, y) in door_list):
+        if (x - 1 >= 0 and (self.tiles[x-1][y].tile_type == tile_type or (x - 1, y) in door_list)) or x == 0:
             weight += 8
-        if y+1 < self.tile_height and (self.tiles[x][y+1].tile_type == tile_type or (x, y+1) in door_list):
+        if (y+1 < self.tile_height and (self.tiles[x][y+1].tile_type == tile_type or (x, y+1) in door_list)) or\
+                        y == self.tile_height - 1:
             weight += 4
-        if x+1 < self.tile_width and (self.tiles[x+1][y].tile_type == tile_type or (x + 1, y) in door_list):
+        if (x+1 < self.tile_width and (self.tiles[x+1][y].tile_type == tile_type or (x + 1, y) in door_list)) or\
+                        x == self.tile_width - 1:
             weight += 2
         return weight
 
@@ -290,7 +294,8 @@ class Map:
                                            self.tile_height * TILESIZE_SCREEN))
             self._background.fill(BGCOLOR)
             if IMG_STYLE == c.IM_STYLE_DAWNLIKE:
-                self._build_background_dawnlike()
+                #self._build_background_dawnlike()
+                self._build_background_oryx()
 
             # complex_walls = type(self.graphical_resources['WALLS']) is list
             #
@@ -364,6 +369,40 @@ class Map:
                     self._background.blit(self.graphical_resources['FLOOR'][floor_series][weight_floor],
                                           (x * TILESIZE_SCREEN, y * TILESIZE_SCREEN))
 
+    def _build_background_oryx(self):
+        """
+        Build background using oryx tileset
+        :return: Nothing, just blitting things on _background property
+        """
+        # First, we choose our wall serie
+        wall_series = floor_series = self.wall_ref_number
+        type_floor=random.randint(0, 3)
+
+        for y in range(self.tile_height):
+            for x in range(self.tile_width):
+
+                door_list = []
+                # build door list - except if we are in a pure maze
+                if hasattr(self, "rooms") and self.rooms is not None:
+                    for room in self.rooms:
+                        for door_pos in room.doors:
+                            door_list.append(door_pos)
+                weight_wall = self.wall_weight(x, y, door_list)
+                weight_floor = self.wall_weight(x, y, door_list, tile_type=c.T_FLOOR)
+
+                if self.tiles[x][y].tile_type == c.T_WALL:
+                    # We always blit a floor... but using the wall as reference for weight
+                    self._background.blit(self.graphical_resources['FLOOR'][floor_series][type_floor],
+                                          (x * TILESIZE_SCREEN, y * TILESIZE_SCREEN))
+                    self._background.blit(self.graphical_resources['WALLS'][wall_series][weight_wall],
+                                          (x * TILESIZE_SCREEN, y * TILESIZE_SCREEN))
+                elif self.tiles[x][y].tile_type == c.T_FLOOR:
+                    self._background.blit(self.graphical_resources['FLOOR'][floor_series][type_floor],
+                                          (x * TILESIZE_SCREEN, y * TILESIZE_SCREEN))
+                    # Adding wall shadow on floor tile
+                    if weight_floor in (0, 2, 4, 6, 8, 10, 12, 14):
+                        self._background.blit(self.graphical_resources['WALLS_SHADOW'],
+                                              (x * TILESIZE_SCREEN, y * TILESIZE_SCREEN))
 
 
 class MazeMap(Map):

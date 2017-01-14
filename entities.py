@@ -194,9 +194,11 @@ class Entity(Sprite):
         self.image = None
         self.animated = False
         if hasattr(self, "dict_image"):
-            self.dict_image = None
+            # self.dict_image = None
+            delattr(self, "dict_image")
         if hasattr(self, "list_image"):
             self.list_image = None
+            delattr(self, "list_image")
         if not image_only:
             self.game = None
 
@@ -215,7 +217,7 @@ class Entity(Sprite):
                 if self.last_direction[1] > 0:
                     reference = 'S'
 
-                self.current_frame = (self.current_frame + 1) % len(self.dict_image)
+                self.current_frame = (self.current_frame + 1) % len(self.dict_image[reference])
                 self.image = self.dict_image[reference][self.current_frame]
             else:
                 self.current_frame = (self.current_frame + 1) % len(self.list_image)
@@ -502,7 +504,7 @@ class MonsterFactory:
 
         # chance of each monster
         self.monster_chances = {}
-        self.monster_chances["GIANT_ANT"] = self.from_dungeon_level([[10, 3], [15, 5]])
+        self.monster_chances["GIANT_ANT"] = self.from_dungeon_level([[60, 3], [15, 5]])
         self.monster_chances["BABOON"] = 20  # always shows up, even if all other monsters have 0 chance
         self.monster_chances["BADGER"] = 10  # blaireau
         self.monster_chances["BAT"] = 55

@@ -33,7 +33,9 @@ class Game:
         game_folder = path.dirname(__file__)
         image_folder = path.join(game_folder, IMG_FOLDER)
         self.all_images = build_listing_dawnlike(image_folder)
-        self.all_images["WALLS"] = build_listing_oryx(image_folder)["WALLS"]
+        test = build_listing_oryx(image_folder)
+        for key in test:
+            self.all_images[key] = test[key]
 
         # loading graphics
         # item_image_src = pg.image.load(path.join(image_folder, 'Item.png')).convert_alpha()
