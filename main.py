@@ -11,7 +11,7 @@ from player import PlayerHelper
 from settings import *
 from tilemap import MapFactory, Camera, FieldOfView, Minimap
 from utilities import Ticker, Publisher
-from utilities_ui import TextBox, build_listing_dawnlike
+from utilities_ui import TextBox, build_listing_dawnlike, build_listing_oryx
 from screen import CharacterScreen, PlayingScreen, InventoryScreen, MapScreen
 
 
@@ -33,6 +33,8 @@ class Game:
         game_folder = path.dirname(__file__)
         image_folder = path.join(game_folder, IMG_FOLDER)
         self.all_images = build_listing_dawnlike(image_folder)
+        self.all_images["WALLS"] = build_listing_oryx(image_folder)["WALLS"]
+
         # loading graphics
         # item_image_src = pg.image.load(path.join(image_folder, 'Item.png')).convert_alpha()
         # level_image_src = pg.image.load(path.join(image_folder, 'Level.png')).convert_alpha()

@@ -486,7 +486,7 @@ def load_floor_structure_dawnlike(image_src_list, folder, image_name):
             image_set.append(dict_image)
     return image_set
 
-def load_floor_structure_oryx(image_src_list, folder, image_name):
+def load_floor_structure_oryx(image_src_list, folder, image_name, width=32, height=32):
     """
     Load the set of walls from dawnlike file and put it in a dictionary
     :param image_src_list: the actual dictionary that may aldready contain the source
@@ -497,21 +497,21 @@ def load_floor_structure_oryx(image_src_list, folder, image_name):
     """
     image_src = get_image(image_src_list, folder, image_name)
     image_set = []
-    ref_tuples = {0: (9, 0), 1: (15, 0),
-                  2: (10, 0), 3: (18, 0),
-                  4: (13, 0), 5: (14, 0),
-                  6: (16, 0), 7: (23, 0),
-                  8: (12, 0), 9: (19, 0),
-                  10: (11, 0), 11: (24, 0),
-                  12: (17, 0), 13: (22, 0),
-                  14: (21, 0), 15: (20, 0)}
-    for line in range(21):
-        top_y = line * 16
+    ref_tuples = {0: (10, 0), 1: (16, 0),
+                  2: (11, 0), 3: (19, 0),
+                  4: (14, 0), 5: (15, 0),
+                  6: (17, 0), 7: (24, 0),
+                  8: (13, 0), 9: (20, 0),
+                  10: (12, 0), 11: (25, 0),
+                  12: (18, 0), 13: (23, 0),
+                  14: (22, 0), 15: (21, 0)}
+    for line in range(1):
+        top_y = line * height + height
         dict_image = {}
         for key in ref_tuples:
-            delta_x = ref_tuples[key][0] * 16
-            delta_y = ref_tuples[key][1] * 16 + top_y
-            dict_image[key] = pg.transform.scale(image_src.subsurface(pg.Rect(delta_x, delta_y, 16, 16)),
+            delta_x = ref_tuples[key][0] * width
+            delta_y = ref_tuples[key][1] * height + top_y
+            dict_image[key] = pg.transform.scale(image_src.subsurface(pg.Rect(delta_x, delta_y, width, height)),
                                                  (st.TILESIZE_SCREEN, st.TILESIZE_SCREEN))
         image_set.append(dict_image)
     return image_set
@@ -629,3 +629,5 @@ def build_listing_oryx(img_root):
 
     # OTHER
     images["WALLS"] = load_wall_structure_dawnlike(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png")
+
+    return images
