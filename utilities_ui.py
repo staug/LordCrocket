@@ -723,17 +723,255 @@ def build_listing_dawnlike(image_root_folder):
     return images
 
 def build_listing_oryx(img_root):
+    
+    def _t(x, y):
+        return [(x, y), (x, y + 1)]
+    
     img_root = path.join(img_root, st.IMG_ORYX_SUB)
 
     image_src_list = {}  # a cache for objects
     images = {}  # the actual list of images to be built
+    
 
     # PLAYER
     images["PLAYER"] = load_creature_oryx(image_src_list, img_root, "oryx_16bit_fantasy_creatures_trans.png", [(1, 1), (1, 2)], width=24, height=24)
 
-    # ENEMIES
+    # CREATURES
+    img_creature = "oryx_16bit_fantasy_creatures_trans.png"
+
+    images["KNIGHT_M"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(1, 1), width=24, height=24)
+    images["THIEF_M"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(2, 1), width=24, height=24)
+    images["RANGER_M"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(3, 1), width=24, height=24)
+    images["WIZARD_M"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(4, 1), width=24, height=24)
+    images["PRIEST_M"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(5, 1), width=24, height=24)
+    images["SHAMAN_M"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(6, 1), width=24, height=24)
+    images["BERSERKER_M"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(7, 1), width=24, height=24)
+    images["SWORDSMAN_M"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(8, 1), width=24, height=24)
+    images["PALADIN_M"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(9, 1), width=24, height=24)
+    images["KNIGHT_F"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(10, 1), width=24, height=24)
+    images["THIEF_F"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(11, 1), width=24, height=24)
+    images["RANGER_F"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(12, 1), width=24, height=24)
+    images["WIZARD_F"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(13, 1), width=24, height=24)
+    images["PRIEST_F"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(14, 1), width=24, height=24)
+    images["SHAMAN_F"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(15, 1), width=24, height=24)
+    images["BERSERKER_F"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(16, 1), width=24, height=24)
+    images["SWORDSMAN_F"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(17, 1), width=24, height=24)
+    images["PALADIN_F"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(18, 1), width=24, height=24)
+
+    images["BANDIT"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(1, 3), width=24, height=24)
+    images["HOODED_HUMAN"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(2, 3), width=24, height=24)
+    images["HUMAN_M"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(3, 3), width=24, height=24)
+    images["HUMAN_F"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(4, 3), width=24, height=24)
+    images["MERCHANT"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(5, 3), width=24, height=24)
+    images["BUTCHER"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(6, 3), width=24, height=24)
+    images["CHEF"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(7, 3), width=24, height=24)
+    images["BISHOP"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(8, 3), width=24, height=24)
+    images["KING"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(9, 3), width=24, height=24)
+    images["QUEEN"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(10, 3), width=24, height=24)
+    images["PRINCE"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(11, 3), width=24, height=24)
+    images["PRINCESS"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(12, 3), width=24, height=24)
+    images["GUARD_M"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(13, 3), width=24, height=24)
+    images["GUARD_F"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(14, 3), width=24, height=24)
+    images["KNIGHT"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(15, 3), width=24, height=24)
+    images["GUARD_ALT_M"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(16, 3), width=24, height=24)
+    images["GUARD_ALT_F"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(17, 3), width=24, height=24)
+    images["KNIGHT_ALT"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(18, 3), width=24, height=24)
+
+    images["BANDIT_2"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(1, 5), width=24, height=24)
+    images["HOODED_HUMAN_2"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(2, 5), width=24, height=24)
+    images["HUMAN_M_2"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(3, 5), width=24, height=24)
+    images["HUMAN_F_2"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(4, 5), width=24, height=24)
+    images["MERCHANT_2"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(5, 5), width=24, height=24)
+    images["SLAVE_2"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(6, 5), width=24, height=24)
+    images["ALCHEMIST_2"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(7, 5), width=24, height=24)
+    images["PROPHET_2"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(8, 5), width=24, height=24)
+    images["KING_2"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(9, 5), width=24, height=24)
+    images["QUEEN_2"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(10, 5), width=24, height=24)
+    images["PRINCE_2"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(11, 5), width=24, height=24)
+    images["PRINCESS_2"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(12, 5), width=24, height=24)
+    images["GUARD_M_2"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(13, 5), width=24, height=24)
+    images["GUARD_F_2"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(14, 5), width=24, height=24)
+    images["KNIGHT_2"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(15, 5), width=24, height=24)
+    images["GUARD_ALT_M_2"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(16, 5), width=24, height=24)
+    images["GUARD_ALT_F_2"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(17, 5), width=24, height=24)
+    images["KNIGHT_ALT_2"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(18, 5), width=24, height=24)
+
+    images["ASSASSIN"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(1, 7), width=24, height=24)
+    images["BANDIT_3"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(2, 7), width=24, height=24)
+    images["DWARF"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(3, 7), width=24, height=24)
+    images["DWARF_ALT"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(4, 7), width=24, height=24)
+    images["DWARF_PRIEST"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(5, 7), width=24, height=24)
+    images["DROW_ASSASSIN"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(6, 7), width=24, height=24)
+    images["DROW_FIGHTER"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(7, 7), width=24, height=24)
+    images["DROW_RANGER"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(8, 7), width=24, height=24)
+    images["DROW_MAGE"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(9, 7), width=24, height=24)
+    images["DROW_SORCERESS"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(10, 7), width=24, height=24)
+    images["HIGH_ELF_FIGHTER_M"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(11, 7), width=24, height=24)
+    images["HIGH_ELF_SHIELD_FIGHTER_M"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(12, 7), width=24, height=24)
+    images["HIGH_ELF_RANGER_M"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(13, 7), width=24, height=24)
+    images["HIGH_ELF_MAGE_M"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(14, 7), width=24, height=24)
+    images["HIGH_ELF_FIGHTER_F"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(15, 7), width=24, height=24)
+    images["HIGH_ELF_SHIELD_FIGHTER_F"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(16, 7), width=24, height=24)
+    images["HIGH_ELF_RANGER_F"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(17, 7), width=24, height=24)
+    images["HIGH_ELF_MAGE_F"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(18, 7), width=24, height=24)
+
+    images["WOOD_ELF_FIGHTER_M"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(1, 9), width=24, height=24)
+    images["WOOD_ELF_SHIELD_FIGHTER_M"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(2, 9), width=24, height=24)
+    images["WOOD_ELF_RANGER_M"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(3, 9), width=24, height=24)
+    images["WOOD_ELF_DRUID_M"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(4, 9), width=24, height=24)
+    images["WOOD_ELF_FIGHTER_F"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(5, 9), width=24, height=24)
+    images["WOOD_ELF_SHIELD_FIGHTER_F"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(6, 9), width=24, height=24)
+    images["WOOD_ELF_RANGER_F"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(7, 9), width=24, height=24)
+    images["WOOD_ELF_DRUID_F"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(8, 9), width=24, height=24)
+    images["LIZARDMAN_WARRIOR"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(9, 9), width=24, height=24)
+    images["LIZARDMAN_ARCHER"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(10, 9), width=24, height=24)
+    images["LIZARDMAN_CAPTAIN"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(11, 9), width=24, height=24)
+    images["LIZARDMAN_SHAMAN"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(12, 9), width=24, height=24)
+    images["LIZARDMAN_HIGH_SHAMAN"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(13, 9), width=24, height=24)
+    images["GNOME_FIGHTER"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(14, 9), width=24, height=24)
+    images["GNOME_FIGHTER_2"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(15, 9), width=24, height=24)
+    images["GNOME_FIGHTER_3"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(16, 9), width=24, height=24)
+    images["GNOME_WIZARD"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(17, 9), width=24, height=24)
+    images["GNOME_WIZARD_ALT"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(18, 9), width=24, height=24)
+
+    images["GNOLL_FIGHTER"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(1, 11), width=24, height=24)
+    images["GNOLL_FIGHTER_ALT"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(2, 11), width=24, height=24)
+    images["GNOLL_FIGHTER_CAPTAIN"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(3, 11), width=24, height=24)
+    images["GNOLL_SHAMAN"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(4, 11), width=24, height=24)
+    images["MINOTAUR_AXE"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(5, 11), width=24, height=24)
+    images["MINOTAUR_CLUB"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(6, 11), width=24, height=24)
+    images["MINOTAUR_ALT"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(7, 11), width=24, height=24)
+    images["ELDER_DEMON"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(8, 11), width=24, height=24)
+    images["FIRE_DEMON"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(9, 11), width=24, height=24)
+    images["HORNED_DEMON"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(10, 11), width=24, height=24)
+    images["STONE_GOLEM"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(11, 11), width=24, height=24)
+    images["MUD_GOLEM"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(12, 11), width=24, height=24)
+    images["FLESH_GOLEM"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(13, 11), width=24, height=24)
+    images["LAVA_GOLEM"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(14, 11), width=24, height=24)
+    images["BONE_GOLEM"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(15, 11), width=24, height=24)
+    images["DJINN"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(16, 11), width=24, height=24)
+    images["TREANT"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(17, 11), width=24, height=24)
+    images["MIMIC"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(18, 11), width=24, height=24)
+
+    images["PURPLE_SLIME"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(1, 13), width=24, height=24)
+    images["GREEN_SLIME"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(2, 13), width=24, height=24)
+    images["BLACK_BAT"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(3, 13), width=24, height=24)
+    images["RED_BAT"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(4, 13), width=24, height=24)
+    images["BEHOLDER"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(5, 13), width=24, height=24)
+    images["RED_SPIDER"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(6, 13), width=24, height=24)
+    images["BLACK_SPIDER"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(7, 13), width=24, height=24)
+    images["GREY_RAT"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(8, 13), width=24, height=24)
+    images["BROWN_RAT"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(9, 13), width=24, height=24)
+    images["COBRA"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(10, 13), width=24, height=24)
+    images["BEETLE"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(11, 13), width=24, height=24)
+    images["FIRE_BEETLE"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(12, 13), width=24, height=24)
+    images["GREY_WOLF"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(13, 13), width=24, height=24)
+    images["BROWN_WOLF"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(14, 13), width=24, height=24)
+    images["BLACK_WOLF"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(15, 13), width=24, height=24)
+    images["PIGEON"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(16, 13), width=24, height=24)
+    images["BLUE_BIRD"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(17, 13), width=24, height=24)
+    images["RAVEN"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(18, 13), width=24, height=24)
+    """
+    images[""] = load_creature_oryx(image_src_list, img_root, img_creature, _t(1, 15), width=24, height=24)
+    images[""] = load_creature_oryx(image_src_list, img_root, img_creature, _t(2, 15), width=24, height=24)
+    images[""] = load_creature_oryx(image_src_list, img_root, img_creature, _t(3, 15), width=24, height=24)
+    images[""] = load_creature_oryx(image_src_list, img_root, img_creature, _t(4, 15), width=24, height=24)
+    images[""] = load_creature_oryx(image_src_list, img_root, img_creature, _t(5, 15), width=24, height=24)
+    images[""] = load_creature_oryx(image_src_list, img_root, img_creature, _t(6, 15), width=24, height=24)
+    images[""] = load_creature_oryx(image_src_list, img_root, img_creature, _t(7, 15), width=24, height=24)
+    images[""] = load_creature_oryx(image_src_list, img_root, img_creature, _t(8, 15), width=24, height=24)
+    images[""] = load_creature_oryx(image_src_list, img_root, img_creature, _t(9, 15), width=24, height=24)
+    images[""] = load_creature_oryx(image_src_list, img_root, img_creature, _t(10, 15), width=24, height=24)
+    images[""] = load_creature_oryx(image_src_list, img_root, img_creature, _t(11, 15), width=24, height=24)
+    images[""] = load_creature_oryx(image_src_list, img_root, img_creature, _t(12, 15), width=24, height=24)
+    images[""] = load_creature_oryx(image_src_list, img_root, img_creature, _t(13, 15), width=24, height=24)
+    images[""] = load_creature_oryx(image_src_list, img_root, img_creature, _t(14, 15), width=24, height=24)
+    images[""] = load_creature_oryx(image_src_list, img_root, img_creature, _t(15, 15), width=24, height=24)
+    images[""] = load_creature_oryx(image_src_list, img_root, img_creature, _t(16, 15), width=24, height=24)
+    images[""] = load_creature_oryx(image_src_list, img_root, img_creature, _t(17, 15), width=24, height=24)
+    images[""] = load_creature_oryx(image_src_list, img_root, img_creature, _t(18, 15), width=24, height=24)
+    """
     images["BAT"] = load_creature_oryx(image_src_list, img_root, "oryx_16bit_fantasy_creatures_trans.png", [(3, 13), (3, 14)], width=24, height=24)
     images["DOG"] = load_creature_oryx(image_src_list, img_root, "oryx_16bit_fantasy_creatures_trans.png", [(14, 13), (14, 14)], width=24, height=24)
+    """  
+
+    GOBLIN_FIGHTER
+    GOBLIN_ARCHER
+    GOBLIN_CAPTAIN
+    GOBLIN_KING
+    GOBLIN_MYSTIC
+    ORC_FIGHTER
+    ORC_CAPTAIN
+    ORC_MYSTIC
+    TROLL
+    TROLL_CAPTAIN
+    CYCOPS
+    CYCLOPS_ALT
+    DEATH_KNIGHT
+    DEATH_KNIGHT_ALT
+    DEATH_KNIGHT_ALT
+    EARTH_ELEMENTAL
+    ICE / WATER_ELEMENTAL
+    AIR_ELEMENTAL
+
+    ZOMBIE
+    HEADLESS_ZOMBIE
+    SKELETON
+    SKELETON_ARCHER
+    SKELETON_WARRIOR
+    SHADOW
+    GHOST
+    MUMMY
+    PHAROAH
+    NECROMANCER
+    DARK_WIZARD
+    DEATH
+    VAMPIRE
+    VAMPIRE_ALT
+    VAMPIRE_LORD
+    WITCH
+    FROST_WITCH
+    GREEN_WITCH
+
+    RED_DRAGON
+    PURPLE_DRAGON
+    GOLD_DRAGON
+    GREEN_DRAGON
+    YETI
+    YETI_ALT
+    GIANT_LEECH
+    GIANT_WORM
+    BROWN_BEAR
+    GREY_BEAR
+    POLAR_BEAR
+    GIANT_SCORPION
+    SCORPION_ALT
+    SCORPION_ALT
+    ETTIN
+    ETTIN_ALT
+    PIXIE / FAIRY / SPRITE
+    IMP / DEMON / DEVIL
+
+    WISP
+    WISP_ALT
+    TURNIP
+    ROTTEN_TURNIP
+    FIRE_MINION
+    ICE_MINION
+    SMOKE_MINION
+    MUD_MINION
+    EYE
+    EYES
+    RED_SPECTER
+    BLUE_SPECTER
+    BROWN_SPECTER
+    BLUE_JELLY
+    GREEN_JELLY
+    RED_JELLY
+    FLAME
+    COLD_FLAME
+
+    """
 
     # ITEMS
     images["REMAINS"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 1, 7, width=16, height=16)
