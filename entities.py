@@ -510,11 +510,13 @@ class MonsterFactory:
 
         # chance of each monster
         self.monster_chances = {}
-        self.monster_chances["GIANT_ANT"] = self.from_dungeon_level([[60, 3], [15, 5]])
-        self.monster_chances["BABOON"] = 20  # always shows up, even if all other monsters have 0 chance
-        self.monster_chances["BADGER"] = 10  # blaireau
-        self.monster_chances["BAT"] = 55
-        self.monster_chances["DOG"] = 8
+        if IMG_STYLE == c.IM_STYLE_ORYX:
+            self.monster_chances["BAT"] = 55
+            self.monster_chances["DOG"] = 8
+        elif IMG_STYLE == c.IM_STYLE_DAWNLIKE:
+            self.monster_chances["GIANT_ANT"] = self.from_dungeon_level([[60, 3], [15, 5]])
+            self.monster_chances["BABOON"] = 20  # always shows up, even if all other monsters have 0 chance
+            self.monster_chances["BADGER"] = 10  # blaireau
         # self.monster_chances["DOG_WAR"] = self.from_dungeon_level([[15, 2], [25, 6]])
         # self.monster_chances["RAT_GIANT"] = 9
         # self.monster_chances["HAWK"] = 10
@@ -559,7 +561,6 @@ class MonsterFactory:
         print("Total number of mosnter requested: {}".format(number_monster))
         for i in range(number_monster):
             monster = MonsterFactory.random_choice(self.monster_chances)
-            print("{}: {}".format(i, monster))
             if monster == "GIANT_ANT":
                 MonsterHelper(self.game, "Giant Ant " + str(i), pos_list.pop(), 'GIANT_ANT', 16, (3, 8, 0),
                               [("bite", (1, 6, 3))],

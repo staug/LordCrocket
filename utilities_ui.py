@@ -512,11 +512,15 @@ def load_floor_structure_dawnlike(image_src_list, folder, image_name):
 def load_wall_structure_oryx(image_src_list, folder, image_name, width=24, height=24):
     """
     Load the set of walls from oryx file and put it in a dictionary
+    Note that only the walls in the oryx mockup are taken. The list of walls is built according to the mockup: the
+     first is the top left image (image with plants in walls), the second is the image just below (brownish).
+     9 walls set are built that way.
     :param image_src_list: the actual dictionary that may aldready contain the source
     :param folder: the folder from which the image will be loaded
     :param the name of teh image file
     :return: a list of dictionary item following convention
     http://www.angryfishstudios.com/2011/04/adventures-in-bitmasking/
+    in addition, the index 16 is the scrambled vertical wall, the 17 is the scrambled horizontal wall.
     """
     image_src = get_image(image_src_list, folder, image_name)
     image_set = []
@@ -527,8 +531,10 @@ def load_wall_structure_oryx(image_src_list, folder, image_name, width=24, heigh
                   8: (13, 0), 9: (20, 0),
                   10: (12, 0), 11: (25, 0),
                   12: (18, 0), 13: (23, 0),
-                  14: (22, 0), 15: (21, 0)}
-    for line in range(20):
+                  14: (22, 0), 15: (21, 0),
+                  16: (26, 0), 17: (27, 0)}
+    for line in (12, 4, 6, 18, 2, 7, 14, 13, 5):
+        print("line: {}".format(line))
         top_y = line * height + height
         dict_image = {}
         for key in ref_tuples:
@@ -540,25 +546,64 @@ def load_wall_structure_oryx(image_src_list, folder, image_name, width=24, heigh
     return image_set
 
 
+
 def load_floor_structure_oryx(image_src_list, folder, image_name, width=24, height=24):
     """
-    Load the set of floors from oryx file and put it in a dictionary
-    :param image_src_list: the actual dictionary that may aldready contain the source
-    :param folder: the folder from which the image will be loaded
-    :param the name of teh image file
-    :return: a list of dictionary item following convention
-    4 tiles, each can be used. Each 4 tiles group matches with a wall set.
-    """
+        Load the set of floors from oryx file and put it in a dictionary. Only the floors matching the walls are taken.
+        :param image_src_list: the actual dictionary that may aldready contain the source
+        :param folder: the folder from which the image will be loaded
+        :param the name of teh image file
+        :return: a list of dictionary item following convention
+        Multiple tiles, each can be used (but the first one is used most). Each 4 tiles group matches with a wall set.
+        """
+
+    def _load_image(image_src, refs, width=24, height=24):
+        res = []
+        for ref in refs:
+            x, y = ref
+            res.append(pg.transform.scale(image_src.subsurface(pg.Rect(x * width, y * width, width, height)),
+                                                 (st.TILESIZE_SCREEN, st.TILESIZE_SCREEN)))
+        return res
+
     image_src = get_image(image_src_list, folder, image_name)
     image_set = []
-    for line in range(20):
-        top_y = line * height + height
-        dict_image = {}
-        for key in range(4):
-            delta_x = key * width + 4 * width
-            dict_image[key] = pg.transform.scale(image_src.subsurface(pg.Rect(delta_x, top_y, width, height)),
-                                                 (st.TILESIZE_SCREEN, st.TILESIZE_SCREEN))
-        image_set.append(dict_image)
+
+    # First column, first row
+    image_set.append(_load_image(image_src,
+                                 [(4, 13), (5, 13), (18, 26), (19, 26), (20, 26), (18, 27), (19, 27), (20, 27)],
+                                 width=width, height=height))
+    # First column, second row
+    image_set.append(_load_image(image_src,
+                                 [(14, 27), (13, 27), (12, 27), (14, 26), (13, 26), (12, 26)],
+                                 width=width, height=height))
+    # First column, third row
+    image_set.append(_load_image(image_src,
+                                 [(4, 7), (6, 7)],
+                                 width=width, height=height))
+    # First column, fourth row
+    image_set.append(_load_image(image_src,
+                                 [(4, 19), (5, 19), (6, 19), (7, 19), (7, 18)],
+                                 width=width, height=height))
+    # First column, fifth row
+    image_set.append(_load_image(image_src,
+                                 [(4, 15), (5, 15), (6, 15), (7, 15)],
+                                 width=width, height=height))
+    # Second column, first row
+    image_set.append(_load_image(image_src,
+                                 [(4, 8), (6, 8), (7, 8)],
+                                 width=width, height=height))
+    # Second column, second row
+    image_set.append(_load_image(image_src,
+                                 [(4, 13)],
+                                 width=width, height=height))
+    # Second column, third row
+    image_set.append(_load_image(image_src,
+                                 [(4, 4)],
+                                 width=width, height=height))
+    # Second column, fourth row
+    image_set.append(_load_image(image_src,
+                                 [(6, 6), (7, 6)],
+                                 width=width, height=height))
     return image_set
 
 
@@ -715,6 +760,10 @@ def build_listing_oryx(img_root):
     images["DOOR_H_OPEN"] = images["DOOR_V_OPEN"]
     images["DOOR_V_CLOSED"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png", 29, 3, width=24, height=24)
     images["DOOR_H_CLOSED"] = images["DOOR_V_CLOSED"]
+    images["ALL_STAIRS"] = load_image_list(image_src_list, img_root,
+                                           "oryx_16bit_fantasy_world_trans.png",
+                                           [(9, 13), (9, 5), (9, 7), (9, 19), (9, 3), (9, 8), (9, 15), (9, 14), (9, 6)],
+                                           width=24, height=24)
 
     # ORYX SPECIFIC
     images["WALLS_SHADOW"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png", 30, 37, width=24, height=24)

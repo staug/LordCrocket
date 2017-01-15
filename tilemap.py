@@ -138,6 +138,12 @@ class Map:
         self._doors_pos = None
 
         self.wall_ref_number = random.randint(0, len(self.graphical_resources['WALLS']) - 1)  # we keep this as a ref for later
+        # The following is a trick to adapt the graphics
+        self._adapt_graphical_resources(graphical_resources)
+
+    def _adapt_graphical_resources(self, graphical_resources):
+        if IMG_STYLE == c.IM_STYLE_ORYX:
+            graphical_resources["STAIRS"] = graphical_resources["ALL_STAIRS"][self.wall_ref_number]
 
     @property
     def background(self):
@@ -294,7 +300,8 @@ class Map:
                                            self.tile_height * TILESIZE_SCREEN))
             self._background.fill(BGCOLOR)
             if IMG_STYLE == c.IM_STYLE_DAWNLIKE:
-                #self._build_background_dawnlike()
+                self._build_background_dawnlike()
+            elif IMG_STYLE == c.IM_STYLE_ORYX:
                 self._build_background_oryx()
 
             # complex_walls = type(self.graphical_resources['WALLS']) is list
@@ -421,6 +428,7 @@ class Map:
                         elif weight_floor == 12:
                             self._background.blit(self.graphical_resources['SPIDER_WEB_TOP_RIGHT'],
                                                   (x * TILESIZE_SCREEN, y * TILESIZE_SCREEN))
+
 
 
 class MazeMap(Map):

@@ -30,12 +30,16 @@ class Game:
         self.load_data()
 
     def load_data(self):
+
         game_folder = path.dirname(__file__)
         image_folder = path.join(game_folder, IMG_FOLDER)
-        self.all_images = build_listing_dawnlike(image_folder)
-        test = build_listing_oryx(image_folder)
-        for key in test:
-            self.all_images[key] = test[key]
+        assert IMG_STYLE in ("DAWNLIKE", "ORYX"), "Image style must be DAWNLIKE or ORYX"
+
+        if IMG_STYLE == "DAWNLIKE":
+            self.all_images = build_listing_dawnlike(image_folder)
+        elif IMG_STYLE == "ORYX":
+            self.all_images = build_listing_oryx(image_folder)
+
 
         # loading graphics
         # item_image_src = pg.image.load(path.join(image_folder, 'Item.png')).convert_alpha()
@@ -236,8 +240,6 @@ class Game:
             if level == 1:
                 if 0 < roll < 5:
                     pass
-
-
 
     def go_next_level(self):
 
