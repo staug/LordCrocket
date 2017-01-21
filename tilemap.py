@@ -143,7 +143,11 @@ class Map:
 
     def _adapt_graphical_resources(self, graphical_resources):
         if IMG_STYLE == c.IM_STYLE_ORYX:
-            graphical_resources["STAIRS"] = graphical_resources["ALL_STAIRS"][self.wall_ref_number]
+            graphical_resources["STAIRS"] = graphical_resources["STAIRS_LIST"][self.wall_ref_number]
+            graphical_resources["DOOR_V_CLOSED"] = graphical_resources["DOOR_V_CLOSED_LIST"][self.wall_ref_number]
+            graphical_resources["DOOR_H_CLOSED"] = graphical_resources["DOOR_H_CLOSED_LIST"][self.wall_ref_number]
+            graphical_resources["DOOR_V_OPEN"] = graphical_resources["DOOR_V_OPEN_LIST"][self.wall_ref_number]
+            graphical_resources["DOOR_H_OPEN"] = graphical_resources["DOOR_H_OPEN_LIST"][self.wall_ref_number]
 
     @property
     def background(self):

@@ -360,25 +360,27 @@ class Input:
 # Specialized class to load graphics
 
 
-def load_image_list_all(image_src_list, folder, image_name, width=st.TILESIZE_FILE, height=st.TILESIZE_FILE):
+def load_image_list_all(image_src_list, folder, image_name, width=st.TILESIZE_FILE, height=st.TILESIZE_FILE, adapt_ratio=1):
     """
     Load a set of consecutive image, to be used in animation. All images of files are read.
     :param folder:
     :param image_name:
     :param width:
     :param height:
+    :param adapt_ratio: the ratio to match (1= align to TILESIZE_SCREEN, 0.5 = half of teh tilesize screen...)
     :return:
     """
     image_src = get_image(image_src_list, folder, image_name)
     number = int(image_src.get_width() / width)
-    if width == height == st.TILESIZE_SCREEN:
+    if width == height == st.TILESIZE_SCREEN * adapt_ratio:
         return [image_src.subsurface(pg.Rect(width * i, 0, width, height)) for i in range(number)]
     else:
         return [pg.transform.scale(image_src.subsurface(pg.Rect(width * i, 0, width, height)),
-                                   (st.TILESIZE_SCREEN, st.TILESIZE_SCREEN)) for i in range(number)]
+                                   (int(st.TILESIZE_SCREEN * adapt_ratio), int(st.TILESIZE_SCREEN * adapt_ratio)))
+                for i in range(number)]
 
 
-def load_image_list(image_src_list, folder, image_name, listing, width=st.TILESIZE_FILE, height=st.TILESIZE_FILE):
+def load_image_list(image_src_list, folder, image_name, listing, width=st.TILESIZE_FILE, height=st.TILESIZE_FILE, adapt_ratio=1):
     """
     Load a set of consecutive image, to be used in animation. All images of files are read.
     :param folder:
@@ -392,15 +394,15 @@ def load_image_list(image_src_list, folder, image_name, listing, width=st.TILESI
     res = []
     for refs in listing:
         tile_x, tile_y = refs
-        if width == height == st.TILESIZE_SCREEN:
+        if width == height == st.TILESIZE_SCREEN * adapt_ratio:
             res.append(image_src.subsurface(pg.Rect(width * tile_x, height * tile_y, width, height)))
         else:
             res.append(pg.transform.scale(image_src.subsurface(pg.Rect(width * tile_x, height * tile_y, width, height)),
-                                       (st.TILESIZE_SCREEN, st.TILESIZE_SCREEN)))
+                                       (int(st.TILESIZE_SCREEN * adapt_ratio), int(st.TILESIZE_SCREEN * adapt_ratio))))
     return res
 
 
-def load_image(image_src_list, folder, image_name, tile_x, tile_y, width=st.TILESIZE_FILE, height=st.TILESIZE_FILE):
+def load_image(image_src_list, folder, image_name, tile_x, tile_y, width=st.TILESIZE_FILE, height=st.TILESIZE_FILE, adapt_ratio=1):
     """
     Load a single image from a file and put it in the image dictionnary
     :param image_src_list: the image dictionnary that will be modified
@@ -413,11 +415,11 @@ def load_image(image_src_list, folder, image_name, tile_x, tile_y, width=st.TILE
     :return:
     """
     image_src = get_image(image_src_list, folder, image_name)
-    if width == height == st.TILESIZE_SCREEN:
+    if width == height == st.TILESIZE_SCREEN * adapt_ratio:
         return image_src.subsurface(pg.Rect(width * tile_x, height * tile_y, width, height))
     else:
         return pg.transform.scale(image_src.subsurface(pg.Rect(width * tile_x, height * tile_y, width, height)),
-                                      (st.TILESIZE_SCREEN, st.TILESIZE_SCREEN))
+                                      (int(st.TILESIZE_SCREEN * adapt_ratio), int(st.TILESIZE_SCREEN * adapt_ratio)))
 
 
 def load_image_list_dawnlike(image_src_list, folder, image_name1, image_name2, tile_x, tile_y,
@@ -615,8 +617,8 @@ def load_player_dawnlike(image_src_list, folder, image_name, width=st.TILESIZE_F
     return result
 
 
-def load_creature_oryx(image_src_list, folder, image_name, ref_pos, width=st.TILESIZE_FILE, height=st.TILESIZE_FILE):
-    west = load_image_list(image_src_list, folder, image_name, ref_pos, width=24, height=24)
+def load_creature_oryx(image_src_list, folder, image_name, ref_pos, width=st.TILESIZE_FILE, height=st.TILESIZE_FILE, adapt_ratio=1):
+    west = load_image_list(image_src_list, folder, image_name, ref_pos, width=24, height=24, adapt_ratio=adapt_ratio)
     east = []
     for image in west:
         east.append(pg.transform.flip(image.copy(), True, False))
@@ -734,7 +736,7 @@ def build_listing_oryx(img_root):
     
 
     # PLAYER
-    images["PLAYER"] = load_creature_oryx(image_src_list, img_root, "oryx_16bit_fantasy_creatures_trans.png", [(1, 1), (1, 2)], width=24, height=24)
+    images["PLAYER"] = load_creature_oryx(image_src_list, img_root, "oryx_16bit_fantasy_creatures_trans.png", [(1, 1), (1, 2)], width=24, height=24, adapt_ratio=0.9)
 
     # CREATURES
     img_creature = "oryx_16bit_fantasy_creatures_trans.png"
@@ -952,31 +954,51 @@ def build_listing_oryx(img_root):
     images["DOG"] = load_creature_oryx(image_src_list, img_root, "oryx_16bit_fantasy_creatures_trans.png", [(14, 13), (14, 14)], width=24, height=24)
 
     # ITEMS
-    images["REMAINS"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 1, 7, width=16, height=16)
-    images["POTION_R"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 3, 1, width=16, height=16)
+    images["REMAINS"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 1, 7, width=16, height=16, adapt_ratio=0.75)
+    images["POTION_R"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 3, 1, width=16, height=16, adapt_ratio=0.75)
 
     # EQUIPMENT
-    images["SWORD"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 13, 10, width=16, height=16)
-    images["HELMET"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 15, 13, width=16, height=16)
-    images["CAPE"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 2, 12, width=16, height=16)
-    images["ARMOR"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 2, 13, width=16, height=16)
-    images["LEG"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 15, 14, width=16, height=16)
-    images["GLOVE"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 17, 12, width=16, height=16)
-    images["SHOES"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 6, 14, width=16, height=16)
-    images["SHIELD"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 3, 11, width=16, height=16)
-    images["BOW"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 17, 9, width=16, height=16)
-    images["ARROW"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 1, 8, width=16, height=16)
-    images["RING"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 10, 4, width=16, height=16)
-    images["NECKLACE"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 1, 2, width=16, height=16)
+    images["SWORD"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 13, 10, width=16, height=16, adapt_ratio=0.75)
+    images["HELMET"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 15, 13, width=16, height=16, adapt_ratio=0.75)
+    images["CAPE"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 2, 12, width=16, height=16, adapt_ratio=0.75)
+    images["ARMOR"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 2, 13, width=16, height=16, adapt_ratio=0.75)
+    images["LEG"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 15, 14, width=16, height=16, adapt_ratio=0.75)
+    images["GLOVE"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 17, 12, width=16, height=16, adapt_ratio=0.75)
+    images["SHOES"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 6, 14, width=16, height=16, adapt_ratio=0.75)
+    images["SHIELD"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 3, 11, width=16, height=16, adapt_ratio=0.75)
+    images["BOW"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 17, 9, width=16, height=16, adapt_ratio=0.75)
+    images["ARROW"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 1, 8, width=16, height=16, adapt_ratio=0.75)
+    images["RING"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 10, 4, width=16, height=16, adapt_ratio=0.75)
+    images["NECKLACE"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 1, 2, width=16, height=16, adapt_ratio=0.75)
 
     # OTHER
     images["WALLS"] = load_wall_structure_oryx(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png")
     images["FLOOR"] = load_floor_structure_oryx(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png")
-    images["DOOR_V_OPEN"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png", 30, 3, width=24, height=24)
-    images["DOOR_H_OPEN"] = images["DOOR_V_OPEN"]
-    images["DOOR_V_CLOSED"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png", 29, 3, width=24, height=24)
-    images["DOOR_H_CLOSED"] = images["DOOR_V_CLOSED"]
-    images["ALL_STAIRS"] = load_image_list(image_src_list, img_root,
+    images["DOOR_V_CLOSED_LIST"] = [
+        load_image(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png", 29, 3, width=24, height=24),
+        load_image(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png", 29, 3, width=24, height=24),
+        load_image(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png", 38, 3, width=24, height=24),
+        load_image(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png", 36, 3, width=24, height=24),
+        load_image(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png", 29, 4, width=24, height=24),
+        load_image(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png", 36, 3, width=24, height=24),
+        load_image(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png", 29, 4, width=24, height=24),
+        load_image(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png", 29, 3, width=24, height=24),
+        load_image(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png", 29, 4, width=24, height=24),
+    ]
+    images["DOOR_H_CLOSED_LIST"] = images["DOOR_V_CLOSED_LIST"]
+    images["DOOR_V_OPEN_LIST"] = [
+        load_image(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png", 30, 3, width=24, height=24),
+        load_image(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png", 30, 3, width=24, height=24),
+        load_image(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png", 39, 3, width=24, height=24),
+        load_image(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png", 37, 3, width=24, height=24),
+        load_image(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png", 30, 4, width=24, height=24),
+        load_image(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png", 37, 3, width=24, height=24),
+        load_image(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png", 30, 4, width=24, height=24),
+        load_image(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png", 30, 3, width=24, height=24),
+        load_image(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png", 30, 4, width=24, height=24),
+    ]
+    images["DOOR_H_OPEN_LIST"] = images["DOOR_V_OPEN_LIST"]
+    images["STAIRS_LIST"] = load_image_list(image_src_list, img_root,
                                            "oryx_16bit_fantasy_world_trans.png",
                                            [(9, 13), (9, 5), (9, 7), (9, 19), (9, 3), (9, 8), (9, 15), (9, 14), (9, 6)],
                                            width=24, height=24)

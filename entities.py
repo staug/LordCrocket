@@ -179,8 +179,8 @@ class Entity(Sprite):
         else:
             self.image = image
         self.rect = self.image.get_rect()
-        self.rect.x = self.x * TILESIZE_SCREEN  # initial position for the camera
-        self.rect.y = self.y * TILESIZE_SCREEN
+        self.rect.centerx = self.x * TILESIZE_SCREEN + int(TILESIZE_SCREEN / 2)  # initial position for the camera
+        self.rect.centery = self.y * TILESIZE_SCREEN + int(TILESIZE_SCREEN / 2)
 
     def clean_before_save(self, image_only=False):
         """
@@ -242,8 +242,8 @@ class Entity(Sprite):
     def update(self):
         if self.animated:
             self.animate()
-        self.rect.x = self.x * TILESIZE_SCREEN
-        self.rect.y = self.y * TILESIZE_SCREEN
+        self.rect.centerx = self.x * TILESIZE_SCREEN + int(TILESIZE_SCREEN / 2)
+        self.rect.centery = self.y * TILESIZE_SCREEN + int(TILESIZE_SCREEN / 2)
 
     def change(self, **kwargs):
         """
