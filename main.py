@@ -6,7 +6,7 @@ import pygame as pg
 
 import constants as c
 import random as rd
-from entities import MonsterFactory, EquipmentHelper, ItemHelper, DoorHelper, StairHelper
+from entities import MonsterFactory, EquipmentHelper, ItemHelper, DoorHelper, StairHelper, OpenableObjectHelper
 from player import PlayerHelper
 from settings import *
 from tilemap import MapFactory, Camera, FieldOfView, Minimap
@@ -151,7 +151,13 @@ class Game:
 
             EquipmentHelper(self, "Sword", all_pos.pop(), "SWORD", slot=c.SLOT_HAND_RIGHT, modifiers={c.BONUS_STR: 2})
             EquipmentHelper(self, "Helmet", all_pos.pop(), "HELMET", slot=c.SLOT_HEAD, modifiers={c.BONUS_STR: -1})
-            # EquipmentHelper(self, "Cape", all_pos.pop(), "CAPE", slot=c.SLOT_CAPE, modifiers={})
+        for i in range(200):
+            OpenableObjectHelper(self, all_pos.pop(), "CHEST_CLOSED", "CHEST_OPEN_GOLD", name="Gold {}".format(i), use_function=OpenableObjectHelper.manipulate_treasure)
+            OpenableObjectHelper(self, all_pos.pop(), "CHEST_CLOSED", "CHEST_OPEN_TRAP", name="Trap {}".format(i),
+                             use_function=OpenableObjectHelper.manipulate_trap)
+            OpenableObjectHelper(self, all_pos.pop(), "CHEST_CLOSED", "CHEST_OPEN_EMPTY", name="Empty {}".format(i),
+                             use_function=OpenableObjectHelper.manipulate_empty)
+        # EquipmentHelper(self, "Cape", all_pos.pop(), "CAPE", slot=c.SLOT_CAPE, modifiers={})
             # EquipmentHelper(self, "Leg", all_pos.pop(), "LEG", slot=c.SLOT_LEG, modifiers={})
             # EquipmentHelper(self, "Armor", all_pos.pop(), "ARMOR", slot=c.SLOT_TORSO, modifiers={})
 

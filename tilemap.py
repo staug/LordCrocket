@@ -410,6 +410,7 @@ class Map:
                 elif self.tiles[x][y].tile_type == c.T_FLOOR:
                     other_floor = random.randint(0, 99)
                     _type_floor = type_floor
+                    with_spider_web = False
                     if other_floor > 70:
                         _type_floor = other_floor % len(self.graphical_resources['FLOOR'][floor_series])
                     self._background.blit(self.graphical_resources['FLOOR'][floor_series][_type_floor],
@@ -419,6 +420,7 @@ class Map:
                         self._background.blit(self.graphical_resources['WALLS_SHADOW'],
                                               (x * TILESIZE_SCREEN, y * TILESIZE_SCREEN))
                     if random.randint(0, 100) <= 40:
+                        with_spider_web = True
                         # Adding spider web on floor tile if the wall is correct
                         if weight_floor == 6:
                             self._background.blit(self.graphical_resources['SPIDER_WEB_TOP_LEFT'],
@@ -432,7 +434,9 @@ class Map:
                         elif weight_floor == 12:
                             self._background.blit(self.graphical_resources['SPIDER_WEB_TOP_RIGHT'],
                                                   (x * TILESIZE_SCREEN, y * TILESIZE_SCREEN))
-
+                    if not with_spider_web and random.randint(0, 100) <= 5:
+                        self._background.blit(random.choice(self.graphical_resources['FLOOR_DECO_LIST']),
+                                              (x * TILESIZE_SCREEN, y * TILESIZE_SCREEN))
 
 
 class MazeMap(Map):

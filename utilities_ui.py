@@ -954,24 +954,26 @@ def build_listing_oryx(img_root):
     images["DOG"] = load_creature_oryx(image_src_list, img_root, "oryx_16bit_fantasy_creatures_trans.png", [(14, 13), (14, 14)], width=24, height=24)
 
     # ITEMS
-    images["REMAINS"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 1, 7, width=16, height=16, adapt_ratio=0.75)
-    images["POTION_R"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 3, 1, width=16, height=16, adapt_ratio=0.75)
+    ratio_item = 16 / st.TILESIZE_SCREEN
+    
+    images["REMAINS"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 1, 7, width=16, height=16, adapt_ratio=ratio_item)
+    images["POTION_R"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 3, 1, width=16, height=16, adapt_ratio=ratio_item)
 
     # EQUIPMENT
-    images["SWORD"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 13, 10, width=16, height=16, adapt_ratio=0.75)
-    images["HELMET"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 15, 13, width=16, height=16, adapt_ratio=0.75)
-    images["CAPE"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 2, 12, width=16, height=16, adapt_ratio=0.75)
-    images["ARMOR"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 2, 13, width=16, height=16, adapt_ratio=0.75)
-    images["LEG"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 15, 14, width=16, height=16, adapt_ratio=0.75)
-    images["GLOVE"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 17, 12, width=16, height=16, adapt_ratio=0.75)
-    images["SHOES"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 6, 14, width=16, height=16, adapt_ratio=0.75)
-    images["SHIELD"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 3, 11, width=16, height=16, adapt_ratio=0.75)
-    images["BOW"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 17, 9, width=16, height=16, adapt_ratio=0.75)
-    images["ARROW"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 1, 8, width=16, height=16, adapt_ratio=0.75)
-    images["RING"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 10, 4, width=16, height=16, adapt_ratio=0.75)
-    images["NECKLACE"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 1, 2, width=16, height=16, adapt_ratio=0.75)
+    images["SWORD"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 13, 10, width=16, height=16, adapt_ratio=ratio_item)
+    images["HELMET"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 15, 13, width=16, height=16, adapt_ratio=ratio_item)
+    images["CAPE"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 2, 12, width=16, height=16, adapt_ratio=ratio_item)
+    images["ARMOR"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 2, 13, width=16, height=16, adapt_ratio=ratio_item)
+    images["LEG"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 15, 14, width=16, height=16, adapt_ratio=ratio_item)
+    images["GLOVE"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 17, 12, width=16, height=16, adapt_ratio=ratio_item)
+    images["SHOES"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 6, 14, width=16, height=16, adapt_ratio=ratio_item)
+    images["SHIELD"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 3, 11, width=16, height=16, adapt_ratio=ratio_item)
+    images["BOW"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 17, 9, width=16, height=16, adapt_ratio=ratio_item)
+    images["ARROW"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 1, 8, width=16, height=16, adapt_ratio=ratio_item)
+    images["RING"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 10, 4, width=16, height=16, adapt_ratio=ratio_item)
+    images["NECKLACE"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 1, 2, width=16, height=16, adapt_ratio=ratio_item)
 
-    # OTHER
+    # OTHER - Not all are based on series of walls
     images["WALLS"] = load_wall_structure_oryx(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png")
     images["FLOOR"] = load_floor_structure_oryx(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png")
     images["DOOR_V_CLOSED_LIST"] = [
@@ -1001,8 +1003,21 @@ def build_listing_oryx(img_root):
     images["STAIRS_LIST"] = load_image_list(image_src_list, img_root,
                                            "oryx_16bit_fantasy_world_trans.png",
                                            [(9, 13), (9, 5), (9, 7), (9, 19), (9, 3), (9, 8), (9, 15), (9, 14), (9, 6)],
-                                           width=24, height=24)
-
+                                            width=24, height=24)
+    images["FLOOR_DECO_LIST"] = [
+        load_image(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png", 32, 1, width=24, height=24),
+        load_image(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png", 33, 1, width=24, height=24),
+        load_image(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png", 34, 1, width=24, height=24),
+        load_image(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png", 35, 1, width=24, height=24),
+        load_image(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png", 36, 1, width=24, height=24),
+        load_image(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png", 37, 1, width=24, height=24),
+        load_image(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png", 38, 1, width=24, height=24)
+    ]
+    # CHESTS
+    images["CHEST_CLOSED"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png", 32, 4, width=24, height=24)
+    images["CHEST_OPEN_GOLD"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png", 33, 4, width=24, height=24)
+    images["CHEST_OPEN_TRAP"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png", 34, 4, width=24, height=24)
+    images["CHEST_OPEN_EMPTY"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png", 35, 4, width=24, height=24)
     # ORYX SPECIFIC
     images["WALLS_SHADOW"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png", 30, 37, width=24, height=24)
     images["SPIDER_WEB_TOP_LEFT"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png", 29, 2, width=24, height=24)

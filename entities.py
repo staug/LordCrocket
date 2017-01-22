@@ -413,7 +413,7 @@ class DoorHelper(Entity):
 
 class StairHelper(Entity):
     """
-    Class used to create an Item
+    Class used to create a STair
     """
     def __init__(self, game, pos, image_ref, use_function=None, name=None):
         """
@@ -440,9 +440,91 @@ class StairHelper(Entity):
         stair.game.go_next_level()
 
     def __str__(self):
-        return "Door {} opened:{}".format(self.name, not self.blocks)
+        return "Stairs {} to next level".format(self.name)
 
 
+class OpenableObjectHelper(Entity):
+    """
+    Generic Object that can be Opened (chest, vase...)
+    It is generally blocking while closed.
+    """
+    def __init__(self, game, pos, image_ref_closed, image_ref_opened, closed=True, name=None,
+                 use_function=None, keep_blocking=True):
+        """
+        Initialization method
+        :param game: reference to the game variable
+        :param pos: the pos (as tuple) of the item
+        :param image_ref_closed: the reference for the image when closed
+        :param image_ref_opened: the reference for the image when opened
+        :param closed: the default starting state
+        :param name: any specific name
+        :param use_function: the function to be used when manipulating it
+        :param keep_blocking: if set, it will be blocking even if it is manipulated
+        """
+        if name is None:
+            name = "An openable object"
+
+        if use_function is None:
+            use_function = OpenableObjectHelper.manipulate
+
+        self.closed = closed
+        self.keep_blocking = keep_blocking
+        self.closed_image = image_ref_closed
+        self.opened_image = image_ref_opened
+
+        image = image_ref_opened
+        if closed:
+            image = image_ref_closed
+
+        Entity.__init__(self, game, name, pos, image, blocks=True,
+                        actionable=ActionableEntity(function=use_function))
+        self.set_in_spritegroup(-1)
+
+    def __str__(self):
+        return "{}".format(self.name)
+    
+    @staticmethod
+    def _manipulate_generic(openable_object, entity_that_actioned):
+        """
+        This function will always be called by default
+        :param openable_object:
+        :param entity_that_actioned:
+        :return:
+        """
+        openable_object.closed = not openable_object
+        if not openable_object.keep_blocking:
+            openable_object.blocks = False
+
+        openable_object.actionable = None
+
+        image = openable_object.opened_image
+        if openable_object.closed:
+            image = openable_object.closed_image
+        openable_object.change(image_ref=image)
+
+    @staticmethod
+    def manipulate(openable_object, entity_that_actioned):
+        OpenableObjectHelper._manipulate_generic(openable_object, entity_that_actioned)
+        openable_object.game.textbox.add = "The {} has been opened by {}".format(openable_object.name, entity_that_actioned.name)
+
+    @staticmethod
+    def manipulate_empty(openable_object, entity_that_actioned):
+        OpenableObjectHelper._manipulate_generic(openable_object, entity_that_actioned)
+        openable_object.game.textbox.add = "The {} has been opened by {} but it was empty".format(openable_object.name, entity_that_actioned.name)
+
+    @staticmethod
+    def manipulate_trap(openable_object, entity_that_actioned):
+        OpenableObjectHelper._manipulate_generic(openable_object, entity_that_actioned)
+        damage = rd.randint(1, 5)
+        openable_object.game.textbox.add = "The {} has been opened by {} but it was a trap, causing {} damages".format(openable_object.name, entity_that_actioned.name, damage)
+        entity_that_actioned.fighter.take_damage(damage)
+
+    @staticmethod
+    def manipulate_treasure(openable_object, entity_that_actioned):
+        OpenableObjectHelper._manipulate_generic(openable_object, entity_that_actioned)
+        wealth = rd.randint(10, 50)
+        openable_object.game.textbox.add = "The {} has been opened by {}, it contained {} wealth".format(openable_object.name, entity_that_actioned.name, wealth)
+        entity_that_actioned.wealth += wealth
 
 
 class EquipmentHelper(Entity):

@@ -41,6 +41,7 @@ class PlayerHelper(Entity):
                                               physical_combat_bonus=1, magical_combat_bonus=0))
         self.inventory_max = 100
         self.base_speed = 10
+        self.wealth = 0
 
         self.invalidate_fog_of_war = True
 
