@@ -288,6 +288,9 @@ class Entity(Sprite):
             self.image_ref = kwargs.pop("image_ref")
             self.init_graphics()
 
+        if "sprite_level" in kwargs:
+            self.set_in_spritegroup(kwargs.pop("sprite_level"))
+
         assert len(kwargs) == 0, "Attributes not changed: {}".format(kwargs)
 
     def remove_completely_object(self):
@@ -449,7 +452,7 @@ class OpenableObjectHelper(Entity):
     It is generally blocking while closed.
     """
     def __init__(self, game, pos, image_ref_closed, image_ref_opened, closed=True, name=None,
-                 use_function=None, keep_blocking=True):
+                 use_function=None, keep_blocking=False):
         """
         Initialization method
         :param game: reference to the game variable
@@ -495,12 +498,10 @@ class OpenableObjectHelper(Entity):
         if not openable_object.keep_blocking:
             openable_object.blocks = False
 
-        openable_object.actionable = None
-
         image = openable_object.opened_image
         if openable_object.closed:
             image = openable_object.closed_image
-        openable_object.change(image_ref=image)
+        openable_object.change(image_ref=image, sprite_level=-1, actionable=None)
 
     @staticmethod
     def manipulate(openable_object, entity_that_actioned):
@@ -525,6 +526,16 @@ class OpenableObjectHelper(Entity):
         wealth = rd.randint(10, 50)
         openable_object.game.textbox.add = "The {} has been opened by {}, it contained {} wealth".format(openable_object.name, entity_that_actioned.name, wealth)
         entity_that_actioned.wealth += wealth
+
+    @staticmethod
+    def manipulate_vampire(openable_object, entity_that_actioned):
+        OpenableObjectHelper._manipulate_generic(openable_object, entity_that_actioned)
+        openable_object.game.textbox.add = "The {} has been opened by {}, disturbing a vampire".format(openable_object.name, entity_that_actioned.name)
+        pos = openable_object.game.map.get_close_available_tile(openable_object.pos,
+                                                                c.T_FLOOR,
+                                                                openable_object.game.objects)
+
+        MonsterFactory.instantiate_monster(openable_object.game, "VAMPIRE_SLAVE", pos)
 
 
 class EquipmentHelper(Entity):
@@ -643,26 +654,35 @@ class MonsterFactory:
         print("Total number of mosnter requested: {}".format(number_monster))
         for i in range(number_monster):
             monster = MonsterFactory.random_choice(self.monster_chances)
-            if monster == "GIANT_ANT":
-                MonsterHelper(self.game, "Giant Ant " + str(i), pos_list.pop(), 'GIANT_ANT', 16, (3, 8, 0),
-                              [("bite", (1, 6, 3))],
-                              12, 16, vision=2, speed=8)
-            elif monster == "BABOON":
-                MonsterHelper(self.game, "Baboon " + str(i), pos_list.pop(), 'BABOON', 12, (1, 8, 0),
-                              [("bite", (1, 4, 1))],
-                              6, 18, vision=3, speed=7)
-            elif monster == "BADGER":
-                MonsterHelper(self.game, "Badger " + str(i), pos_list.pop(), 'BADGER', 15, (1, 8, 0),
-                              [("bite", (1, 3, 1)), ("claws", (1, 2, 1))],
-                              7, 18, vision=2, speed=10)
-            elif monster == "BAT":
-                MonsterHelper(self.game, "Bat " + str(i), pos_list.pop(), 'BAT', 10, (1, 4, 0),
-                              [("bite", (1, 2, 1))],
-                              6, 19, vision=3, speed=6)
-            elif monster == "DOG":
-                MonsterHelper(self.game, "Dog " + str(i), pos_list.pop(), 'DOG', 11, (1, 8, 0),
-                              [("bite", (1, 4, 1))],
-                              7, 18, vision=4, speed=9)
+            MonsterFactory.instantiate_monster(self.game, monster, pos_list.pop())
+
+    @staticmethod
+    def instantiate_monster(game, monster, pos):
+        if monster == "GIANT_ANT":
+            MonsterHelper(game, "Giant Ant", pos, 'GIANT_ANT', 16, (3, 8, 0),
+                          [("bite", (1, 6, 3))],
+                          12, 16, vision=2, speed=8)
+        elif monster == "BABOON":
+            MonsterHelper(game, "Baboon", pos, 'BABOON', 12, (1, 8, 0),
+                          [("bite", (1, 4, 1))],
+                          6, 18, vision=3, speed=7)
+        elif monster == "BADGER":
+            MonsterHelper(game, "Badger", pos, 'BADGER', 15, (1, 8, 0),
+                          [("bite", (1, 3, 1)), ("claws", (1, 2, 1))],
+                          7, 18, vision=2, speed=10)
+        elif monster == "BAT":
+            MonsterHelper(game, "Bat", pos, 'BAT', 10, (1, 4, 0),
+                          [("bite", (1, 2, 1))],
+                          6, 19, vision=3, speed=6)
+        elif monster == "DOG":
+            MonsterHelper(game, "Dog", pos, 'DOG', 11, (1, 8, 0),
+                          [("bite", (1, 4, 1))],
+                          7, 18, vision=4, speed=9)
+        elif monster == "VAMPIRE_SLAVE":
+            MonsterHelper(game, "Vampire Underling", pos, 'VAMPIRE', 17, (9, 8, 0),
+                          [("bite", (1, 6, 9))],
+                          8, 11, vision=2, speed=20)
+
 
 class NPCHelper(Entity):
 

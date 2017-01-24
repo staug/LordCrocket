@@ -1013,11 +1013,15 @@ def build_listing_oryx(img_root):
         load_image(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png", 37, 1, width=24, height=24),
         load_image(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png", 38, 1, width=24, height=24)
     ]
-    # CHESTS
+    # CHESTS AND OTHER OPENABLE OBJECTS
     images["CHEST_CLOSED"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png", 32, 4, width=24, height=24)
     images["CHEST_OPEN_GOLD"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png", 33, 4, width=24, height=24)
     images["CHEST_OPEN_TRAP"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png", 34, 4, width=24, height=24)
     images["CHEST_OPEN_EMPTY"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png", 35, 4, width=24, height=24)
+    images["COFFIN_CLOSED"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png", 36, 4, width=24, height=24)
+    images["COFFIN_OPEN"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png", 38, 4, width=24, height=24)
+    images["BARREL_CLOSED"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png", 39, 4, width=24, height=24)
+    images["BARREL_OPEN"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png", 40, 4, width=24, height=24)
     # ORYX SPECIFIC
     images["WALLS_SHADOW"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png", 30, 37, width=24, height=24)
     images["SPIDER_WEB_TOP_LEFT"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png", 29, 2, width=24, height=24)

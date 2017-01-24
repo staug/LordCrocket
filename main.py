@@ -157,7 +157,9 @@ class Game:
                              use_function=OpenableObjectHelper.manipulate_trap)
             OpenableObjectHelper(self, all_pos.pop(), "CHEST_CLOSED", "CHEST_OPEN_EMPTY", name="Empty {}".format(i),
                              use_function=OpenableObjectHelper.manipulate_empty)
-        # EquipmentHelper(self, "Cape", all_pos.pop(), "CAPE", slot=c.SLOT_CAPE, modifiers={})
+            OpenableObjectHelper(self, all_pos.pop(), "COFFIN_CLOSED", "COFFIN_OPEN", name="Vampire {}".format(i),
+                             use_function=OpenableObjectHelper.manipulate_vampire)
+            # EquipmentHelper(self, "Cape", all_pos.pop(), "CAPE", slot=c.SLOT_CAPE, modifiers={})
             # EquipmentHelper(self, "Leg", all_pos.pop(), "LEG", slot=c.SLOT_LEG, modifiers={})
             # EquipmentHelper(self, "Armor", all_pos.pop(), "ARMOR", slot=c.SLOT_TORSO, modifiers={})
 

@@ -223,6 +223,37 @@ class Map:
                 elif (x, y) not in self.doors_pos:
                     return x, y
 
+    def get_close_available_tile(self, ref_pos, tile_type, game_objects, without_objects=True):
+        """
+        Return a tile matching the characteristics: given tile type near entity
+        By default, the tile should be without objects and out of any doors position
+        :param ref_pos: the ref position for the object
+        :param tile_type: the type of tile that we look for
+        :param without_objects: check if no objects is there, and that it is not a possible door position
+        :param game_objects: the list of current objects in the game
+        :return: a tile position (tuple) that matches free, the ref pos if none is found
+        """
+        entity_pos_listing = []
+
+        if without_objects:
+            for entity in game_objects:
+                entity_pos_listing.append((entity.x, entity.y))
+
+        delta = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
+        random.shuffle(delta)
+        pos_x, pos_y = ref_pos
+
+        for d in delta:
+            x = pos_x + d[0]
+            y = pos_y + d[1]
+            if self.tiles[x][y].tile_type == tile_type:
+                if without_objects and ((x, y) not in entity_pos_listing and (x, y) not in self.doors_pos):
+                    return x, y
+                elif (x, y) not in self.doors_pos:
+                    return x, y
+        return ref_pos
+
+
     @property
     def doors_pos(self):
         if self._doors_pos is None:
