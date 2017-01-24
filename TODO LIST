@@ -15,6 +15,7 @@ NPC
 GENERAL GAME
 * CLean up UI
 * Redesign the text box
+* Redesign the question box, make a generic pattern (type, sentence, list of choice, list of call backs with variable parameters)
 * [Done] Stairs between maps
 * [DONE] Move all constants (tile tyep, equipment...) to constant file, and simplify all imports
 

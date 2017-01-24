@@ -101,6 +101,8 @@ class Game:
         self.textbox = TextBox(self)
         self.textbox.text = "Welcome to the dungeon - {}".format(GAME_VER)
 
+        self.questionbox = None  # The question box will capture input from the player
+
         self.screens = {
             c.GAME_STATE_INVENTORY: InventoryScreen(self, c.GAME_STATE_PLAYING),
             c.GAME_STATE_MAP: MapScreen(self, c.GAME_STATE_PLAYING),
@@ -152,7 +154,8 @@ class Game:
             EquipmentHelper(self, "Sword", all_pos.pop(), "SWORD", slot=c.SLOT_HAND_RIGHT, modifiers={c.BONUS_STR: 2})
             EquipmentHelper(self, "Helmet", all_pos.pop(), "HELMET", slot=c.SLOT_HEAD, modifiers={c.BONUS_STR: -1})
         for i in range(200):
-            OpenableObjectHelper(self, all_pos.pop(), "CHEST_CLOSED", "CHEST_OPEN_GOLD", name="Gold {}".format(i), use_function=OpenableObjectHelper.manipulate_treasure)
+            OpenableObjectHelper(self, all_pos.pop(), "CHEST_CLOSED", "CHEST_OPEN_GOLD", name="Gold {}".format(i),
+                                 use_function=OpenableObjectHelper.manipulate_treasure)
             OpenableObjectHelper(self, all_pos.pop(), "CHEST_CLOSED", "CHEST_OPEN_TRAP", name="Trap {}".format(i),
                              use_function=OpenableObjectHelper.manipulate_trap)
             OpenableObjectHelper(self, all_pos.pop(), "CHEST_CLOSED", "CHEST_OPEN_EMPTY", name="Empty {}".format(i),

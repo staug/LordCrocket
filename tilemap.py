@@ -450,7 +450,7 @@ class Map:
                     if weight_floor in (0, 2, 4, 6, 8, 10, 12, 14):
                         self._background.blit(self.graphical_resources['WALLS_SHADOW'],
                                               (x * TILESIZE_SCREEN, y * TILESIZE_SCREEN))
-                    if random.randint(0, 100) <= 40:
+                    if random.randint(0, 100) <= 20:
                         with_spider_web = True
                         # Adding spider web on floor tile if the wall is correct
                         if weight_floor == 6:

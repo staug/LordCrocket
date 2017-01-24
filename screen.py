@@ -383,130 +383,137 @@ class PlayingScreen(Screen):
         pg.draw.rect(self.game.screen, WHITE, self.game.textbox._ktext.rect.inflate(6, 6), 2)
         self.game.textbox.draw(self.game.screen)
 
+        # Question box?
+        if self.game.questionbox != None:
+            self.game.questionbox.draw(self.game.screen)
+
         pg.display.flip()
 
     def events(self):
 
         # catch all events here
-        for event in pg.event.get():
-            if event.type == pg.QUIT:
-                self.game.quit()
-            if event.type == pg.VIDEORESIZE:
-                old_w = self.game.screen.get_rect().width
-                old_h = self.game.screen.get_rect().height
-
-                self.screen = pg.display.set_mode((event.w, event.h),
-                                                  pg.RESIZABLE)
-                self.game.player.invalidate_fog_of_war = True
-                self.game.textbox.resize(old_w, old_h, event.w, event.h)
-
-            if event.type == pg.KEYDOWN:
-                if event.key == pg.K_ESCAPE:
+        if self.game.questionbox is not None:
+            self.game.questionbox.update(pg.event.get())
+        else:
+            for event in pg.event.get():
+                if event.type == pg.QUIT:
                     self.game.quit()
-                if event.key in (pg.K_LEFT, pg.K_q, pg.K_KP4):
-                    self.game.player.move(dx=-1)
-                if event.key in (pg.K_RIGHT, pg.K_d, pg.K_KP6):
-                    self.game.player.move(dx=1)
-                if event.key in (pg.K_UP, pg.K_z, pg.K_KP8):
-                    self.game.player.move(dy=-1)
-                if event.key in (pg.K_DOWN, pg.K_x, pg.K_KP2):
-                    self.game.player.move(dy=1)
-                if event.key in (pg.K_KP7, pg.K_a):
-                    self.game.player.move(dx=-1, dy=-1)
-                if event.key in (pg.K_KP9, pg.K_e):
-                    self.game.player.move(dx=1, dy=-1)
-                if event.key in (pg.K_KP1, pg.K_w):
-                    self.game.player.move(dx=-1, dy=1)
-                if event.key in (pg.K_KP3, pg.K_c):
-                    self.game.player.move(dx=1, dy=1)
-                if event.key == pg.K_m:
-                    self.game.minimap_enable = not self.game.minimap_enable
-                if event.key == pg.K_p:
-                    self.game.game_state = c.GAME_STATE_MAP
-                if event.key == pg.K_f:
-                    self.game.game_state = c.GAME_STATE_CHARACTER
-                if event.key == pg.K_i:
-                    self.game.game_state = c.GAME_STATE_INVENTORY
-                if event.key == pg.K_g:
-                    for object in self.game.objects:
-                        if (object.x, object.y) == (self.game.player.x, self.game.player.y) and object.item:
-                            object.item.pick_up()
+                if event.type == pg.VIDEORESIZE:
+                    old_w = self.game.screen.get_rect().width
+                    old_h = self.game.screen.get_rect().height
 
-                if event.key == pg.K_y:
-                    ThrowableHelper(self.game, self.game.player.pos, "FIREBALL", (1, 0), ThrowableHelper.light_damage,
-                                    stopped_by=[c.T_WALL, c.T_VOID])
+                    self.screen = pg.display.set_mode((event.w, event.h),
+                                                      pg.RESIZABLE)
+                    self.game.player.invalidate_fog_of_war = True
+                    self.game.textbox.resize(old_w, old_h, event.w, event.h)
 
-                if event.key == pg.K_n:
-                    self.game.go_next_level()
-                    return
+                if event.type == pg.KEYDOWN:
+                    if event.key == pg.K_ESCAPE:
+                        self.game.quit()
+                    if event.key in (pg.K_LEFT, pg.K_q, pg.K_KP4):
+                        self.game.player.move(dx=-1)
+                    if event.key in (pg.K_RIGHT, pg.K_d, pg.K_KP6):
+                        self.game.player.move(dx=1)
+                    if event.key in (pg.K_UP, pg.K_z, pg.K_KP8):
+                        self.game.player.move(dy=-1)
+                    if event.key in (pg.K_DOWN, pg.K_x, pg.K_KP2):
+                        self.game.player.move(dy=1)
+                    if event.key in (pg.K_KP7, pg.K_a):
+                        self.game.player.move(dx=-1, dy=-1)
+                    if event.key in (pg.K_KP9, pg.K_e):
+                        self.game.player.move(dx=1, dy=-1)
+                    if event.key in (pg.K_KP1, pg.K_w):
+                        self.game.player.move(dx=-1, dy=1)
+                    if event.key in (pg.K_KP3, pg.K_c):
+                        self.game.player.move(dx=1, dy=1)
+                    if event.key == pg.K_m:
+                        self.game.minimap_enable = not self.game.minimap_enable
+                    if event.key == pg.K_p:
+                        self.game.game_state = c.GAME_STATE_MAP
+                    if event.key == pg.K_f:
+                        self.game.game_state = c.GAME_STATE_CHARACTER
+                    if event.key == pg.K_i:
+                        self.game.game_state = c.GAME_STATE_INVENTORY
+                    if event.key == pg.K_g:
+                        for object in self.game.objects:
+                            if (object.x, object.y) == (self.game.player.x, self.game.player.y) and object.item:
+                                object.item.pick_up()
 
-                if event.key == pg.K_h:
-                    (x, y) = self.game.player.pos
-                    x += 1
-                    NPCHelper(self.game, "Companion", (x, y), "DOG")
+                    if event.key == pg.K_y:
+                        ThrowableHelper(self.game, self.game.player.pos, "FIREBALL", (1, 0), ThrowableHelper.light_damage,
+                                        stopped_by=[c.T_WALL, c.T_VOID])
 
-                if event.key == pg.K_s:
-                    print("SAVING and EXIT")
-                    # We cleanup all objects
-                    for entities in self.game.objects:
-                        entities.clean_before_save()
-                    self.game.map.clean_before_save()
-                    for entities in self.game.player.inventory:
-                        entities.clean_before_save()
-                    with open("savegame", "wb") as f:
-                        pick.dump([self.game.objects, self.game.map, self.game.player.name, self.game.all_groups], f)
-                    self.game.quit()
+                    if event.key == pg.K_n:
+                        self.game.go_next_level()
+                        return
 
-                if event.key in (pg.K_l, pg.K_KP5):
-                    self.game.textbox.add = str(self.game.player)
-                    room = self.game.map.get_room_at(self.game.player.x, self.game.player.y)
-                    if room is not None:
-                        self.game.textbox.add = room.name
-                    self.game.textbox.add = "Objects:"
-                    for entity in self.game.objects:
-                        if entity.x == self.game.player.x and entity.y == self.game.player.y:
-                            self.game.textbox.add = entity.name
+                    if event.key == pg.K_h:
+                        (x, y) = self.game.player.pos
+                        x += 1
+                        NPCHelper(self.game, "Companion", (x, y), "DOG")
 
-            if event.type == pg.MOUSEBUTTONDOWN:
-                (button1, button2, button3) = pg.mouse.get_pressed()
-                (x, y) = pg.mouse.get_pos()
+                    if event.key == pg.K_s:
+                        print("SAVING and EXIT")
+                        # We cleanup all objects
+                        for entities in self.game.objects:
+                            entities.clean_before_save()
+                        self.game.map.clean_before_save()
+                        for entities in self.game.player.inventory:
+                            entities.clean_before_save()
+                        with open("savegame", "wb") as f:
+                            pick.dump([self.game.objects, self.game.map, self.game.player.name, self.game.all_groups], f)
+                        self.game.quit()
 
-                # Test intersection with text box
-                if self.game.textbox._ktext.rect.collidepoint(x, y):
-                    self.game.textbox.drag_drop_text_box = True
-                    self.game.textbox.old_x = x
-                    self.game.textbox.old_y = y
+                    if event.key in (pg.K_l, pg.K_KP5):
+                        self.game.textbox.add = str(self.game.player)
+                        room = self.game.map.get_room_at(self.game.player.x, self.game.player.y)
+                        if room is not None:
+                            self.game.textbox.add = room.name
+                        self.game.textbox.add = "Objects:"
+                        for entity in self.game.objects:
+                            if entity.x == self.game.player.x and entity.y == self.game.player.y:
+                                self.game.textbox.add = entity.name
 
-                else:
-                    if button1:
-                        (rev_x, rev_y) = self.game.camera.reverse((x, y))
-                        (x, y) = (int(rev_x / TILESIZE_SCREEN), int(rev_y / TILESIZE_SCREEN))
-                        if self.game.map.tiles[x][y].explored and self.game.map.tiles[x][y].tile_type != c.T_VOID:
-                            self.game.textbox.add = "Position {} {}".format(x, y)
-                            room = self.game.map.get_room_at(x, y)
-                            if room is not None:
-                                self.game.textbox.add = room.name
-                            self.game.textbox.add = "Objects:"
-                            for entity in self.game.objects:
-                                if entity.x == x and entity.y == y:
-                                    self.game.textbox.add = entity.name
+                if event.type == pg.MOUSEBUTTONDOWN:
+                    (button1, button2, button3) = pg.mouse.get_pressed()
+                    (x, y) = pg.mouse.get_pos()
 
-            if event.type == pg.MOUSEBUTTONUP and self.game.textbox.drag_drop_text_box:
-                (x, y) = pg.mouse.get_pos()
-                self.game.textbox.drag_drop_text_box = False
-                if abs(x - self.game.textbox.old_x) > 30 or abs(y - self.game.textbox.old_y) > 30:
-                    self.game.textbox._ktext.rect = \
-                        self.game.textbox._ktext.rect.move(x - self.game.textbox.old_x, y - self.game.textbox.old_y)
-                    self.game.textbox._ktext.rect.x = max(0, self.game.textbox._ktext.rect.x)
-                    self.game.textbox._ktext.rect.y = max(0, self.game.textbox._ktext.rect.y)
-                    self.game.textbox._ktext.rect.right = min(self.game.textbox._ktext.rect.right, GAME_WIDTH)
-                    self.game.textbox._ktext.rect.bottom = min(self.game.textbox._ktext.rect.bottom, GAME_HEIGHT)
-                else:
-                    pos_in_chat = y - self.game.textbox._ktext.rect.y
-                    if pos_in_chat > self.game.textbox._ktext.rect.height / 2:
-                        self.game.textbox.scroll(1)
+                    # Test intersection with text box
+                    if self.game.textbox._ktext.rect.collidepoint(x, y):
+                        self.game.textbox.drag_drop_text_box = True
+                        self.game.textbox.old_x = x
+                        self.game.textbox.old_y = y
+
                     else:
-                        self.game.textbox.scroll(-1)
+                        if button1:
+                            (rev_x, rev_y) = self.game.camera.reverse((x, y))
+                            (x, y) = (int(rev_x / TILESIZE_SCREEN), int(rev_y / TILESIZE_SCREEN))
+                            if self.game.map.tiles[x][y].explored and self.game.map.tiles[x][y].tile_type != c.T_VOID:
+                                self.game.textbox.add = "Position {} {}".format(x, y)
+                                room = self.game.map.get_room_at(x, y)
+                                if room is not None:
+                                    self.game.textbox.add = room.name
+                                self.game.textbox.add = "Objects:"
+                                for entity in self.game.objects:
+                                    if entity.x == x and entity.y == y:
+                                        self.game.textbox.add = entity.name
+
+                if event.type == pg.MOUSEBUTTONUP and self.game.textbox.drag_drop_text_box:
+                    (x, y) = pg.mouse.get_pos()
+                    self.game.textbox.drag_drop_text_box = False
+                    if abs(x - self.game.textbox.old_x) > 30 or abs(y - self.game.textbox.old_y) > 30:
+                        self.game.textbox._ktext.rect = \
+                            self.game.textbox._ktext.rect.move(x - self.game.textbox.old_x, y - self.game.textbox.old_y)
+                        self.game.textbox._ktext.rect.x = max(0, self.game.textbox._ktext.rect.x)
+                        self.game.textbox._ktext.rect.y = max(0, self.game.textbox._ktext.rect.y)
+                        self.game.textbox._ktext.rect.right = min(self.game.textbox._ktext.rect.right, GAME_WIDTH)
+                        self.game.textbox._ktext.rect.bottom = min(self.game.textbox._ktext.rect.bottom, GAME_HEIGHT)
+                    else:
+                        pos_in_chat = y - self.game.textbox._ktext.rect.y
+                        if pos_in_chat > self.game.textbox._ktext.rect.height / 2:
+                            self.game.textbox.scroll(1)
+                        else:
+                            self.game.textbox.scroll(-1)
 
     def update(self):
         # Update actions

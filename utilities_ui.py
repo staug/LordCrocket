@@ -103,7 +103,7 @@ class Input:
     """ A text input for pygame apps """
     def __init__(self, game, pos, font_name=st.FONT_NAME, 
                  font_size=10,
-                 limit_message=-1, focus=False):
+                 limit_message=-1, focus=False, callback=None):
         self.game = game
         
         game_folder = path.dirname(__file__)
@@ -121,6 +121,7 @@ class Input:
         self.shifted = False
         self.pause = 0
         self.focus = focus
+        self.callback = callback
 
     def set_pos(self, x, y):
         """ Set the position to x, y """
@@ -162,7 +163,7 @@ class Input:
                 elif event.key == pg.K_SPACE:
                     self.value += ' '
                 elif event.key == pg.K_RETURN:
-                    return self.value  # return value
+                    self.callback(self.value)  # return value
                 if not self.shifted:
                     if event.key == pg.K_a and 'a' in self.restricted:
                         self.value += 'a'
