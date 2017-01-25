@@ -11,7 +11,7 @@ from player import PlayerHelper
 from settings import *
 from tilemap import MapFactory, Camera, FieldOfView, Minimap
 from utilities import Ticker, Publisher
-from utilities_ui import TextBox, build_listing_dawnlike, build_listing_oryx
+from utilities_ui import TextBox, build_listing_dawnlike, build_listing_oryx, Button
 from screen import CharacterScreen, PlayingScreen, InventoryScreen, MapScreen
 
 
@@ -40,51 +40,11 @@ class Game:
         elif IMG_STYLE == "ORYX":
             self.all_images = build_listing_oryx(image_folder)
 
-
-        # loading graphics
-        # item_image_src = pg.image.load(path.join(image_folder, 'Item.png')).convert_alpha()
-        # level_image_src = pg.image.load(path.join(image_folder, 'Level.png')).convert_alpha()
-        # wall_image_src = pg.image.load(path.join(image_folder, 'Wall.png')).convert_alpha()
-        #
-        # self.all_images = {
-        #     "PLAYER": {
-        #         "E": load_image_list(IMG_FOLDER, 'HeroEast.png'),
-        #         "W": load_image_list(IMG_FOLDER, 'HeroWest.png'),
-        #         "N": load_image_list(IMG_FOLDER, 'HeroNorth.png'),
-        #         "S": load_image_list(IMG_FOLDER, 'HeroSouth.png')},
-        #     # ENEMIES
-        #     "BAT": load_image_list(IMG_FOLDER, 'BatA.png'),
-        #     "BEARD": load_image_list(IMG_FOLDER, 'BeardA.png'),
-        #     "MONKEY": load_image_list_dawnlike(IMG_FOLDER, "Misc0.png", "Misc1.png", 2, 3),
-        #     # NPC
-        #     "DOG": load_image_list(IMG_FOLDER, 'DogA.png'),
-        #     # ITEMS
-        #     "REMAINS": load_image(IMG_FOLDER, item_image_src, 44, 2),
-        #     "POTION_R": load_image(IMG_FOLDER, item_image_src, 1, 1),
-        #     # EQUIPMENT
-        #     "SWORD": load_image(IMG_FOLDER, item_image_src, 1, 16),
-        #     "HELMET": load_image(IMG_FOLDER, item_image_src, 13, 16),
-        #     "CAPE": load_image(IMG_FOLDER, item_image_src, 27, 17),
-        #     "ARMOR": load_image(IMG_FOLDER, item_image_src, 14, 16),
-        #     "LEG": load_image(IMG_FOLDER, item_image_src, 15, 16),
-        #     "GLOVE": load_image(IMG_FOLDER, item_image_src, 16, 16),
-        #     "SHOES": load_image(IMG_FOLDER, item_image_src, 17, 16),
-        #     "SHIELD": load_image(IMG_FOLDER, item_image_src, 11, 13),
-        #     "BOW": load_image(IMG_FOLDER, item_image_src, 11, 17),
-        #     "ARROW": load_image(IMG_FOLDER, item_image_src, 21, 17),
-        #     "RING": load_image(IMG_FOLDER, item_image_src, 1, 4),
-        #     "NECKLACE": load_image(IMG_FOLDER, item_image_src, 1, 5),
-        #     #
-        #     "WALLS": load_wall_structure_dawnlike(wall_image_src),
-        #     "FLOOR": [[load_image(IMG_FOLDER, level_image_src, x, y) for x in range(4)] for y in range(15)],
-        #     "FLOOR_EXT": [[load_image(IMG_FOLDER, level_image_src, x, y) for x in range(4, 6)] for y in range(15)],
-        #     "DOOR_V_OPEN": load_image(IMG_FOLDER, level_image_src, 15, 2),
-        #     "DOOR_H_OPEN": load_image(IMG_FOLDER, level_image_src, 16, 2),
-        #     "DOOR_CLOSED": load_image(IMG_FOLDER, level_image_src, 14, 2),
-        #     "STAIRS": load_image(IMG_FOLDER, level_image_src, 13, 0),
-        #     "FIREBALL": load_image(IMG_FOLDER, level_image_src, 42, 27),
-        #     "SPECIAL_EFFECT": [load_image(IMG_FOLDER, level_image_src, x, 21) for x in range(4)]
-        # }
+    def test(self, *args, **kwargs):
+        print("Test {} {}".format(args, kwargs))
+        for widget in self.widgets[:]:
+            if widget.id == kwargs['widget']:
+                self.widgets.remove(widget)
 
     def new(self):
 
@@ -101,7 +61,8 @@ class Game:
         self.textbox = TextBox(self)
         self.textbox.text = "Welcome to the dungeon - {}".format(GAME_VER)
 
-        self.questionbox = None  # The question box will capture input from the player
+        self.widgets = []  # Any widget to be drawn on top...
+
 
         self.screens = {
             c.GAME_STATE_INVENTORY: InventoryScreen(self, c.GAME_STATE_PLAYING),
@@ -141,7 +102,12 @@ class Game:
         self.player = PlayerHelper(self, all_pos.pop())
         self.visible_player_array = self.fov.get_vision_matrix_for(self.player, flag_explored=True)
 
-
+        bt1 = Button((10, 10, 50, 20), None, font=pg.font.Font(None, 12), text="CLICK", id='A')
+        bt1.command = lambda player=self.player, game=self: game.test(player=player, widget=bt1.id)
+        bt2 = Button((10, 30, 50, 20), None, font=pg.font.Font(None, 12), text="CLICK2", id='B')
+        bt2.command = lambda player=self.player, game=self: game.test(player=player, widget=bt2.id)
+        self.widgets.append(bt1)
+        self.widgets.append(bt2)
 
         # place monsters
         MonsterFactory(self).build_list(25)

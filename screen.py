@@ -383,17 +383,23 @@ class PlayingScreen(Screen):
         pg.draw.rect(self.game.screen, WHITE, self.game.textbox._ktext.rect.inflate(6, 6), 2)
         self.game.textbox.draw(self.game.screen)
 
-        # Question box?
-        if self.game.questionbox != None:
-            self.game.questionbox.draw(self.game.screen)
+        # Generic Modal Widgets?
+        for widget in self.game.widgets:
+            widget.draw(self.game.screen)
 
         pg.display.flip()
 
     def events(self):
 
         # catch all events here
-        if self.game.questionbox is not None:
-            self.game.questionbox.update(pg.event.get())
+        if len(self.game.widgets) > 0:
+            # Note that all these widgets are considered modal...
+            for event in pg.event.get():
+                if event.type == pg.QUIT:
+                    self.game.quit()
+                for widget in self.game.widgets:
+                    widget.get_event(event)
+
         else:
             for event in pg.event.get():
                 if event.type == pg.QUIT:
@@ -402,10 +408,12 @@ class PlayingScreen(Screen):
                     old_w = self.game.screen.get_rect().width
                     old_h = self.game.screen.get_rect().height
 
-                    self.screen = pg.display.set_mode((event.w, event.h),
+                    self.game.screen = pg.display.set_mode((event.w, event.h),
                                                       pg.RESIZABLE)
                     self.game.player.invalidate_fog_of_war = True
                     self.game.textbox.resize(old_w, old_h, event.w, event.h)
+
+
 
                 if event.type == pg.KEYDOWN:
                     if event.key == pg.K_ESCAPE:
@@ -522,4 +530,8 @@ class PlayingScreen(Screen):
         for group in self.game.all_groups:
             group.update()
         self.game.camera.update(self.game.player)
+
+        # Generic Widgets?
+        for widget in self.game.widgets:
+            widget.update()
 
