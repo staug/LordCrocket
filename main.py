@@ -6,7 +6,7 @@ import pygame as pg
 
 import constants as c
 import random as rd
-from entities import MonsterFactory, EquipmentHelper, ItemHelper, DoorHelper, StairHelper, OpenableObjectHelper
+from entities import MonsterFactory, ItemFactory, EquipmentHelper, ItemHelper, DoorHelper, StairHelper, OpenableObjectHelper
 from player import PlayerHelper
 from settings import *
 from tilemap import MapFactory, Camera, FieldOfView, Minimap
@@ -102,77 +102,16 @@ class Game:
         self.player = PlayerHelper(self, all_pos.pop())
         self.visible_player_array = self.fov.get_vision_matrix_for(self.player, flag_explored=True)
 
+        # place monsters and items
+        ItemFactory(self).build_list(50)
+        MonsterFactory(self).build_list(25)
+
         bt1 = Button((10, 10, 50, 20), None, font=pg.font.Font(None, 12), text="CLICK", id='A')
         bt1.command = lambda player=self.player, game=self: game.test(player=player, widget=bt1.id)
         bt2 = Button((10, 30, 50, 20), None, font=pg.font.Font(None, 12), text="CLICK2", id='B')
         bt2.command = lambda player=self.player, game=self: game.test(player=player, widget=bt2.id)
         self.widgets.append(bt1)
         self.widgets.append(bt2)
-
-        # place monsters
-        MonsterFactory(self).build_list(25)
-
-        all_pos = self.map.get_all_available_tiles(c.T_FLOOR, self.objects, without_objects=True)
-        for i in range(200):
-            ItemHelper(self, "Healing Potion"+str(i), all_pos.pop(), "POTION_R",
-                       use_function=lambda player=self.player: ItemHelper.cast_heal(player))
-
-            EquipmentHelper(self, "Sword", all_pos.pop(), "SWORD", slot=c.SLOT_HAND_RIGHT, modifiers={c.BONUS_STR: 2})
-            EquipmentHelper(self, "Helmet", all_pos.pop(), "HELMET", slot=c.SLOT_HEAD, modifiers={c.BONUS_STR: -1})
-        for i in range(200):
-            OpenableObjectHelper(self, all_pos.pop(), "CHEST_CLOSED", "CHEST_OPEN_GOLD", name="Gold {}".format(i),
-                                 use_function=OpenableObjectHelper.manipulate_treasure)
-            OpenableObjectHelper(self, all_pos.pop(), "CHEST_CLOSED", "CHEST_OPEN_TRAP", name="Trap {}".format(i),
-                             use_function=OpenableObjectHelper.manipulate_trap)
-            OpenableObjectHelper(self, all_pos.pop(), "CHEST_CLOSED", "CHEST_OPEN_EMPTY", name="Empty {}".format(i),
-                             use_function=OpenableObjectHelper.manipulate_empty)
-            OpenableObjectHelper(self, all_pos.pop(), "COFFIN_CLOSED", "COFFIN_OPEN", name="Vampire {}".format(i),
-                             use_function=OpenableObjectHelper.manipulate_vampire)
-            # EquipmentHelper(self, "Cape", all_pos.pop(), "CAPE", slot=c.SLOT_CAPE, modifiers={})
-            # EquipmentHelper(self, "Leg", all_pos.pop(), "LEG", slot=c.SLOT_LEG, modifiers={})
-            # EquipmentHelper(self, "Armor", all_pos.pop(), "ARMOR", slot=c.SLOT_TORSO, modifiers={})
-
-            # pos = self.map.get_random_available_tile(c.T_FLOOR)
-            # item_component = Item(use_function=lambda player=self.player: Item.cast_heal(player))
-            # item = GameObject(self, "HEALING POTION", pos[0], pos[1], self.items_img['Potion_R'], blocks=False,
-            #                       item=item_component)
-
-            # (x, y) = all_pos.pop()
-            # Entity(self, "Sword", x, y, 'SWORD', blocks=False,
-            #       equipment=EquipmentEntity(slot=EquipmentEntity.SLOT_HAND_RIGHT, hit_bonus=4))
-            # (x, y) = all_pos.pop()
-            # Entity(self, "Helmet of fire", x, y, 'HELMET', blocks=False,
-            #        equipment=EquipmentEntity(slot=EquipmentEntity.SLOT_HEAD, protection_bonus=2))
-            # (x, y) = all_pos.pop()
-            # Entity(self, "Cape of Truth", x, y, 'CAPE', blocks=False,
-            #        equipment=EquipmentEntity(slot=EquipmentEntity.SLOT_CAPE, protection_bonus=1))
-            # (x, y) = all_pos.pop()
-            # Entity(self, "Leg of fire", x, y, 'LEG', blocks=False,
-            #        equipment=EquipmentEntity(slot=EquipmentEntity.SLOT_LEG))
-            # (x, y) = all_pos.pop()
-            # Entity(self, "Armor", x, y, 'ARMOR', blocks=False,
-            #        equipment=EquipmentEntity(slot=EquipmentEntity.SLOT_TORSO))
-            # (x, y) = all_pos.pop()
-            # Entity(self, "Glove", x, y, 'GLOVE', blocks=False,
-            #        equipment=EquipmentEntity(slot=EquipmentEntity.SLOT_GLOVE))
-            # (x, y) = all_pos.pop()
-            # Entity(self, "Shoes", x, y, 'SHOES', blocks=False,
-            #        equipment=EquipmentEntity(slot=EquipmentEntity.SLOT_FOOT))
-            # (x, y) = all_pos.pop()
-            # Entity(self, "Shield", x, y, 'SHIELD', blocks=False,
-            #        equipment=EquipmentEntity(slot=EquipmentEntity.SLOT_HAND_LEFT, protection_bonus=2))
-            # (x, y) = all_pos.pop()
-            # Entity(self, "Bow", x, y, 'BOW', blocks=False,
-            #        equipment=EquipmentEntity(slot=EquipmentEntity.SLOT_BOW, hit_bonus=1))
-            # (x, y) = all_pos.pop()
-            # Entity(self, "Arrow", x, y, 'ARROW', blocks=False,
-            #        equipment=EquipmentEntity(slot=EquipmentEntity.SLOT_QUIVER, hit_bonus=1))
-            # (x, y) = all_pos.pop()
-            # Entity(self, "Ring", x, y, 'RING', blocks=False,
-            #        equipment=EquipmentEntity(slot=EquipmentEntity.SLOT_RING, vision_bonus=1))
-            # (x, y) = all_pos.pop()
-            # Entity(self, "Necklace", x, y, 'NECKLACE', blocks=False,
-            #        equipment=EquipmentEntity(slot=EquipmentEntity.SLOT_NECKLACE, vision_bonus=2))
 
     def place_doors_stairs_traps(self, level):
         """
@@ -203,20 +142,6 @@ class Game:
                             use_function=StairHelper.next_level)
 
         # Traps: TODO
-
-    def place_object(self, level):
-        """
-        Setup all objects (enemies and items so far)
-        :param level: the desired level
-        :return:
-        """
-        all_pos = self.map.get_all_available_tiles(c.T_FLOOR, self.objects, without_objects=True)
-        number_enemies = int(len(all_pos) / 50)
-        for i in range(number_enemies):
-            roll = rd.randint(0,100)
-            if level == 1:
-                if 0 < roll < 5:
-                    pass
 
     def go_next_level(self):
 
@@ -251,12 +176,9 @@ class Game:
         self.camera = Camera(self.map.tile_width * TILESIZE_SCREEN,
                              self.map.tile_height * TILESIZE_SCREEN)
         # place monsters
+        ItemFactory(self).build_list(50)
         MonsterFactory(self).build_list(30)
 
-        all_pos = self.map.get_all_available_tiles(c.T_FLOOR, self.objects, without_objects=True)
-        for i in range(200):
-            EquipmentHelper(self, "Cape", all_pos.pop(), "CAPE", slot=c.SLOT_CAPE, modifiers={c.BONUS_STR: 2})
-            EquipmentHelper(self, "Ring", all_pos.pop(), "RING", slot=c.SLOT_RING, modifiers={c.BONUS_STR: -1})
 
     def load(self, filename="savegame"):
         with open(filename, "rb") as f:

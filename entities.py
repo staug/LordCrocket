@@ -684,6 +684,103 @@ class MonsterFactory:
                           8, 11, vision=2, speed=20)
 
 
+class ItemFactory:
+    """
+    Used to generate a list of Items
+    """
+    def __init__(self, game, seed=None):
+
+        rd.seed(seed)
+        self.game = game
+
+        # chance of each monster
+        self.item_chances = {}
+        if IMG_STYLE == c.IM_STYLE_ORYX:
+            # Chests and other openable objects
+            self.item_chances["CHEST_GOLD"] = 40  # always shows up, even if all other items have 0 chance
+            self.item_chances["CHEST_EMPTY"] = 10
+            self.item_chances["CHEST_TRAP"] = 5
+            self.item_chances["COFFIN"] = self.from_dungeon_level([[10, 3], [15, 5]])
+            # Potions
+            self.item_chances["HEALING_POTION"] = 40
+            # Equipments
+            self.item_chances["BASIC_SWORD"] = 10
+            self.item_chances["BASIC_HELMET"] = 10
+            self.item_chances["BASIC_CAPE"] = self.from_dungeon_level([[10, 2], [15, 5]])
+            self.item_chances["BASIC_RING"] = self.from_dungeon_level([[15, 2], [20, 5]])
+
+        elif IMG_STYLE == c.IM_STYLE_DAWNLIKE:
+            pass
+
+    @staticmethod
+    def random_choice(chances_dict):
+        # choose one option from dictionary of chances, returning its key
+        chances = chances_dict.values()
+        strings = list(chances_dict.keys())
+        return strings[ItemFactory.random_choice_index(chances)]
+
+    @staticmethod
+    def random_choice_index(chances):  # choose one option from list of chances, returning its index
+        # the dice will land on some number between 1 and the sum of the chances
+        dice = rd.randint(1, sum(chances))
+
+        # go through all chances, keeping the sum so far
+        running_sum = 0
+        choice = 0
+        for w in chances:
+            running_sum += w
+
+            # see if the dice landed in the part that corresponds to this choice
+            if dice <= running_sum:
+                return choice
+            choice += 1
+
+    def from_dungeon_level(self, table):
+        # returns a value that depends on level. the table specifies what value occurs after each level, default is 0.
+        for (value, level) in reversed(table):
+            if self.game.level >= level:
+                return value
+        return 0
+
+    def build_list(self, number_item):
+        pos_list = self.game.map.get_all_available_tiles(c.T_FLOOR, self.game.objects, without_objects=True)
+        assert number_item < len(pos_list), \
+            "Number of item generated {} must be greater than available positions {}".format(number_item,
+                                                                                                len(pos_list))
+
+        print("Total number of item requested: {}".format(number_item))
+        for i in range(number_item):
+            item = ItemFactory.random_choice(self.item_chances)
+            ItemFactory.instantiate_item(self.game, item, pos_list.pop())
+
+    @staticmethod
+    def instantiate_item(game, item, pos):
+        if item == "CHEST_GOLD":
+            OpenableObjectHelper(game, pos, "CHEST_CLOSED", "CHEST_OPEN_GOLD", name="Chest",
+                                 use_function=OpenableObjectHelper.manipulate_treasure)
+        elif item == "CHEST_TRAP":
+            OpenableObjectHelper(game, pos, "CHEST_CLOSED", "CHEST_OPEN_TRAP", name="Chest",
+                                 use_function=OpenableObjectHelper.manipulate_trap)
+        elif item == "CHEST_EMPTY":
+            OpenableObjectHelper(game, pos, "CHEST_CLOSED", "CHEST_OPEN_EMPTY", name="Chest",
+                                 use_function=OpenableObjectHelper.manipulate_empty)
+        elif item == "COFFIN":
+            OpenableObjectHelper(game, pos, "COFFIN_CLOSED", "COFFIN_OPEN", name="Chest",
+                                 use_function=OpenableObjectHelper.manipulate_vampire)
+        # Potions
+        elif item == "HEALING_POTION":
+            ItemHelper(game, "Healing Potion", pos, "POTION_R",
+                       use_function=lambda player=game.player: ItemHelper.cast_heal(player))
+        # Equipments
+        elif item == "BASIC_SWORD":
+            EquipmentHelper(game, "Basic Sword", pos, "SWORD", slot=c.SLOT_HAND_RIGHT, modifiers={c.BONUS_STR: 2})
+        elif item == "BASIC_HELMET":
+            EquipmentHelper(game, "Basic Helmet", pos, "HELMET", slot=c.SLOT_HEAD, modifiers={c.BONUS_STR: -1})
+        elif item == "BASIC_CAPE":
+            EquipmentHelper(game, "Cape", pos, "CAPE", slot=c.SLOT_CAPE, modifiers={c.BONUS_STR: 2})
+        elif item == "BASIC_RING":
+            EquipmentHelper(game, "Ring", pos, "RING", slot=c.SLOT_RING, modifiers={c.BONUS_STR: -1})
+
 class NPCHelper(Entity):
 
     def __init__(self, game, name, pos, image_ref):
