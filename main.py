@@ -40,11 +40,6 @@ class Game:
         elif IMG_STYLE == "ORYX":
             self.all_images = build_listing_oryx(image_folder)
 
-    def test(self, *args, **kwargs):
-        print("Test {} {}".format(args, kwargs))
-        for widget in self.widgets[:]:
-            if widget.id == kwargs['widget']:
-                self.widgets.remove(widget)
 
     def new(self):
 
@@ -58,18 +53,9 @@ class Game:
         self.level = 1
 
         # Loading fonts and initialize text system
+        # TODO: the textbox is just a widget of the playing part
         self.textbox = TextBox(self)
         self.textbox.text = "Welcome to the dungeon - {}".format(GAME_VER)
-
-        self.widgets = []  # Any widget to be drawn on top...
-
-
-        self.screens = {
-            c.GAME_STATE_INVENTORY: InventoryScreen(self, c.GAME_STATE_PLAYING),
-            c.GAME_STATE_MAP: MapScreen(self, c.GAME_STATE_PLAYING),
-            c.GAME_STATE_CHARACTER: CharacterScreen(self, c.GAME_STATE_PLAYING),
-            c.GAME_STATE_PLAYING: PlayingScreen(self, None)
-        }
 
         # initializing map structure
         self.map = MapFactory("Map of the dead - Level {}".format(self.level), self.all_images).map
@@ -106,12 +92,14 @@ class Game:
         ItemFactory(self).build_list(50)
         MonsterFactory(self).build_list(25)
 
-        bt1 = Button((10, 10, 50, 20), None, font=pg.font.Font(None, 12), text="CLICK", id='A')
-        bt1.command = lambda player=self.player, game=self: game.test(player=player, widget=bt1.id)
-        bt2 = Button((10, 30, 50, 20), None, font=pg.font.Font(None, 12), text="CLICK2", id='B')
-        bt2.command = lambda player=self.player, game=self: game.test(player=player, widget=bt2.id)
-        self.widgets.append(bt1)
-        self.widgets.append(bt2)
+        # And we end with the screens...
+        self.screens = {
+            c.GAME_STATE_INVENTORY: InventoryScreen(self, c.GAME_STATE_PLAYING),
+            c.GAME_STATE_MAP: MapScreen(self, c.GAME_STATE_PLAYING),
+            c.GAME_STATE_CHARACTER: CharacterScreen(self, c.GAME_STATE_PLAYING),
+            c.GAME_STATE_PLAYING: PlayingScreen(self, None)
+        }
+
 
     def place_doors_stairs_traps(self, level):
         """

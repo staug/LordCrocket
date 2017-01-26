@@ -6,6 +6,7 @@ from settings import *
 from os import path
 from ktextsurfacewriter import KTextSurfaceWriter
 from entities import ThrowableHelper, NPCHelper
+from utilities_ui import Button
 
 
 class Screen:
@@ -13,6 +14,14 @@ class Screen:
     def __init__(self, game, default_back_state):
         self.game = game
         self.default_back_state = default_back_state
+        self.widgets = []
+
+
+    def test(self, *args, **kwargs):
+        print("Test {} {}".format(args, kwargs))
+        for widget in self.widgets[:]:
+            if widget.id == kwargs['widget']:
+                self.widgets.remove(widget)
 
     def events(self):
         print("NOT IMPLEMENTED")
@@ -305,6 +314,13 @@ class PlayingScreen(Screen):
         Screen.__init__(self, game, default_back_state)
         self.fog_of_war_mask = None
 
+        bt1 = Button((10, 10, 50, 20), None, text="CLICK", id='A')
+        bt1.command = lambda player=self.game.player, screen=self: screen.test(player=player, widget=bt1.id)
+        bt2 = Button((10, 30, 50, 20), None, text="THIS IS A LONNG TEXT", id='B')
+        bt2.command = lambda player=self.game.player, screen=self: screen.test(player=player, widget=bt2.id)
+        self.widgets.append(bt1)
+        self.widgets.append(bt2)
+
     def draw_health_bar(self, surf, x, y):
         BAR_HEIGHT = 20
         fighter = self.game.player.fighter
@@ -384,7 +400,7 @@ class PlayingScreen(Screen):
         self.game.textbox.draw(self.game.screen)
 
         # Generic Modal Widgets?
-        for widget in self.game.widgets:
+        for widget in self.widgets:
             widget.draw(self.game.screen)
 
         pg.display.flip()
@@ -392,12 +408,12 @@ class PlayingScreen(Screen):
     def events(self):
 
         # catch all events here
-        if len(self.game.widgets) > 0:
+        if len(self.widgets) > 0:
             # Note that all these widgets are considered modal...
             for event in pg.event.get():
                 if event.type == pg.QUIT:
                     self.game.quit()
-                for widget in self.game.widgets:
+                for widget in self.widgets:
                     widget.get_event(event)
 
         else:
@@ -532,6 +548,6 @@ class PlayingScreen(Screen):
         self.game.camera.update(self.game.player)
 
         # Generic Widgets?
-        for widget in self.game.widgets:
+        for widget in self.widgets:
             widget.update()
 

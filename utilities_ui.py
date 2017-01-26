@@ -60,7 +60,7 @@ class Button(object):
             "id": None,
             "color": pg.Color('red'),
             "text": None,
-            "font": None,  # pg.font.Font(None,16),
+            "font":  pg.font.Font(path.join(path.join(path.dirname(__file__), st.FONT_FOLDER), st.FONT_NAME), 10),
             "call_on_release": True,
             "hover_color": None,
             "clicked_color": None,
@@ -74,6 +74,7 @@ class Button(object):
             'disabled': False,
             'disabled_color': pg.Color('grey'),
             'radius': 3,
+            'image': None,
         }
         for kwarg in kwargs:
             if kwarg in settings:
@@ -156,7 +157,12 @@ class Button(object):
             rad = self.radius
         else:
             rad = 0
-        self.round_rect(surface, self.rect, border, rad, 1, color)
+
+        if self.image:
+            surface.blit(self.image, self.rect)
+        else:
+            self.round_rect(surface, self.rect, border, rad, 1, color)
+
         if self.text:
             text_rect = text.get_rect(center=self.rect.center)
             surface.blit(text, text_rect)
