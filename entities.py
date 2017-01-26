@@ -651,7 +651,7 @@ class MonsterFactory:
             "Number of monster generated {} must be greater than available positions {}".format(number_monster,
                                                                                                 len(pos_list))
 
-        print("Total number of mosnter requested: {}".format(number_monster))
+        print("Total number of monsters requested: {}".format(number_monster))
         for i in range(number_monster):
             monster = MonsterFactory.random_choice(self.monster_chances)
             MonsterFactory.instantiate_monster(self.game, monster, pos_list.pop())
@@ -743,7 +743,10 @@ class ItemFactory:
         return 0
 
     def build_list(self, number_item):
-        pos_list = self.game.map.get_all_available_tiles(c.T_FLOOR, self.game.objects, without_objects=True)
+        pos_list = self.game.map.get_all_available_isolated_tiles(c.T_FLOOR, self.game.objects,
+                                                                  without_objects=True,
+                                                                  surrounded=7,
+                                                                  max=number_item+1)
         assert number_item < len(pos_list), \
             "Number of item generated {} must be greater than available positions {}".format(number_item,
                                                                                                 len(pos_list))

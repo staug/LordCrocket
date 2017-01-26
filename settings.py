@@ -1,6 +1,6 @@
 # GAME
 GAME_TITLE = "Lord Crocket"
-GAME_VER = "0.16"
+GAME_VER = "0.17"
 #IMG_STYLE = "DAWNLIKE"
 IMG_STYLE = "ORYX"
 

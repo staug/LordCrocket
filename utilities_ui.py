@@ -889,7 +889,6 @@ def load_wall_structure_oryx(image_src_list, folder, image_name, width=24, heigh
                   14: (22, 0), 15: (21, 0),
                   16: (26, 0), 17: (27, 0)}
     for line in (12, 4, 6, 18, 2, 7, 14, 13, 5):
-        print("line: {}".format(line))
         top_y = line * height + height
         dict_image = {}
         for key in ref_tuples:

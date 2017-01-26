@@ -291,7 +291,7 @@ class Map:
         random.shuffle(listing)
         return listing
 
-    def get_all_available_isolated_tiles(self, tile_type, game_objects, without_objects=False, surrounded=7):
+    def get_all_available_isolated_tiles(self, tile_type, game_objects, without_objects=False, surrounded=7, max=None):
         """
         Return all tile matching the characteristics: given tile type, surrounded by 8 cells of same type
         Used to get a spawning position...
@@ -313,8 +313,12 @@ class Map:
                 elif 0 <= x + dx < self.tile_width and 0 <= y+dy < self.tile_height:
                     if self.tiles[x+dx][y+dy].tile_type == tile_type:
                         v += 1
+                        if v >= surrounded:
+                            break
             if v >= surrounded:
                 result.append(pos)
+                if max and len(result) >= max:
+                    return result
         return result
 
     def get_room_at(self, x, y):
