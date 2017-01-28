@@ -249,7 +249,7 @@ class MapScreen(Screen):
         # Erase All
         self.game.screen.fill(BGCOLOR)
 
-        map_image = self.game.minimap.build_background(zoom_factor=4)
+        map_image = self.game.minimap.build_background(minimap=False, zoom_factor=4)
         self.game.screen.blit(map_image, (int((self.game.screen.get_width() - map_image.get_width()) / 2),
                                           int((self.game.screen.get_height() - map_image.get_height()) / 2)))
 
@@ -318,8 +318,8 @@ class PlayingScreen(Screen):
         bt1.command = lambda player=self.game.player, screen=self: screen.test(player=player, widget=bt1.id)
         bt2 = Button((10, 30, 50, 20), None, text="THIS IS A LONNG TEXT", id='B')
         bt2.command = lambda player=self.game.player, screen=self: screen.test(player=player, widget=bt2.id)
-        self.widgets.append(bt1)
-        self.widgets.append(bt2)
+        #self.widgets.append(bt1)
+        #self.widgets.append(bt2)
 
     def draw_health_bar(self, surf, x, y):
         # TODO: Health bar should be a widget
@@ -363,7 +363,8 @@ class PlayingScreen(Screen):
                 self.game.screen.blit(sprite.image, self.game.camera.apply(sprite))
 
         # FOW
-        if self.game.player.invalidate_fog_of_war:
+        map_rebuild = False
+        if self.game.player.invalidate_fog_of_war or self.fog_of_war_mask is None:
 
             self.fog_of_war_mask = pg.Surface((self.game.screen.get_rect().width,
                                                self.game.screen.get_rect().height), pg.SRCALPHA, 32)
@@ -384,7 +385,8 @@ class PlayingScreen(Screen):
             self.game.player.invalidate_fog_of_war = False
 
             self.game.visible_player_array = self.game.fov.get_vision_matrix_for(self.game.player, flag_explored=True)
-            self.game.minimap.build_background(center_player=True, map_display_size_x=60, map_display_size_y=40)
+            map_rebuild = True
+
 
         self.game.screen.blit(self.fog_of_war_mask, (0, 0))
         # --- HUD SECTION ---
@@ -392,8 +394,12 @@ class PlayingScreen(Screen):
         self.draw_health_bar(self.game.screen, 10, 10)
         # Mini map
         if self.game.minimap_enable:
-            self.game.screen.blit(self.game.minimap.background,
-                                  (self.game.screen.get_width() - self.game.minimap.background.get_width() - 10, 10))
+            if map_rebuild:
+                self.game.minimap.build_background(minimap=True,
+                                                   center_player=True)
+                map_rebuild = False
+            self.game.screen.blit(self.game.minimap.background_mini_map,
+                                  (self.game.screen.get_width() - self.game.minimap.background_mini_map.get_width() - 10, 10))
 
         # Text -> First line is to remove background
         self.game.screen.fill(BGCOLOR, self.game.textbox._ktext.rect)

@@ -99,7 +99,7 @@ class MapFactory:
             while not map_correctly_initialized:
                 print(" *** GENERATING DUNGEON *** ")
                 map_type = ut.roll(4)
-                if map_type == 1:
+                if map_type == 1 or 2:
                     self.map = CaveMap(name, graphical_resources, dimension)
                 elif map_type == 2:
                     self.map = MazeMap(name, graphical_resources, dimension)
@@ -1041,30 +1041,32 @@ class Minimap:
 
     def __init__(self, game):
         self.game = game
-        self._background = None
+        self._background_minimap = None
+        self._background_map = None
 
-    def build_background(self, zoom_factor=2, center_player=False, map_display_size_x=80, map_display_size_y=60):
+    def build_background(self, minimap=True, zoom_factor=2, center_player=False, map_display_size_x=MINIMAP_WIDTH, map_display_size_y=MINIMAP_HEIGHT):
 
         x_min = y_min = 0
         x_max = self.game.map.tile_width
         y_max = self.game.map.tile_height
 
         if hasattr(self.game, "player") and center_player:
-            self._background = pg.Surface((map_display_size_x * zoom_factor, map_display_size_y * zoom_factor))
+            _background = pg.Surface((map_display_size_x * zoom_factor, map_display_size_y * zoom_factor))
             x_min = max(0, self.game.player.x - int(map_display_size_x / 2))
             x_max = min(self.game.player.x + int(map_display_size_x / 2), self.game.map.tile_width)
             y_min = max(0, self.game.player.y - int(map_display_size_y / 2))
             y_max = min(self.game.player.y + int(map_display_size_y / 2), self.game.map.tile_height)
         else:
-            self._background = pg.Surface((self.game.map.tile_width * zoom_factor,
-                                           self.game.map.tile_height * zoom_factor))
-        backpixels = pg.PixelArray(self._background)
+            _background = pg.Surface((self.game.map.tile_width * zoom_factor,
+                                      self.game.map.tile_height * zoom_factor))
+        backpixels = pg.PixelArray(_background)
         for x in range(x_min, x_max):
             for y in range(y_min, y_max):
                 if self.game.map.tiles[x][y].explored:
                     tile_type = self.game.map.tiles[x][y].tile_type
                     if tile_type == c.T_WALL:
-                        backpixels[(x-x_min)*zoom_factor:(x-x_min)*zoom_factor+1, (y-y_min)*zoom_factor:(y-y_min)*zoom_factor+1] = RED
+                        backpixels[(x - x_min) * zoom_factor:(x - x_min) * zoom_factor + 1,
+                        (y - y_min) * zoom_factor:(y - y_min) * zoom_factor + 1] = RED
                     elif tile_type == c.T_FLOOR:
                         backpixels[(x-x_min) * zoom_factor:(x-x_min) * zoom_factor + 1, (y-y_min) * zoom_factor:(y-y_min) * zoom_factor + 1] = WHITE
         # Now we add a big cross at the player position
@@ -1076,16 +1078,26 @@ class Minimap:
             backpixels[pos_x * zoom_factor:pos_x * zoom_factor + 1,
             (pos_y - 1) * zoom_factor:(pos_y + 1) * zoom_factor + 1] = GREEN
 
-        self._background = backpixels.make_surface()
-        return self._background
+        _background = backpixels.make_surface()
+        if minimap:
+            self._background_minimap = _background
+        else:
+            self._background_map = _background
+        return _background
 
     @property
-    def background(self):
-        if self._background is None:
-            return self.build_background()
+    def background_map(self):
+        if self._background_map is None:
+            return self.build_background(False)
         else:
-            return self._background
+            return self._background_map
 
+    @property
+    def background_mini_map(self):
+        if self._background_minimap is None:
+            return self.build_background(True, center_player=True)
+        else:
+            return self._background_minimap
 
 class FieldOfView:
     RAYS = 360  # Should be 360!
