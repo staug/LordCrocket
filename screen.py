@@ -92,7 +92,6 @@ class InventoryScreen(Screen):
         listing = self.game.player.get_unequipped_objects()
         (button1, button2, button3) = buttons
         if button1:
-            print(listing[index_y * self.objects_per_line + index_x].name)
             self.selected_item = listing[index_y * self.objects_per_line + index_x]
         else:
             listing[index_y * self.objects_per_line + index_x].equipment.equip()
@@ -102,7 +101,6 @@ class InventoryScreen(Screen):
         listing = self.game.player.get_non_equipment_objects()
         (button1, button2, button3) = buttons
         if button1:
-            print(listing[index_y * self.objects_per_line + index_x].name)
             self.selected_item = listing[index_y * self.objects_per_line + index_x]
         else:
             listing[index_y * self.objects_per_line + index_x].item.use()
@@ -115,11 +113,12 @@ class InventoryScreen(Screen):
                  c.SLOT_BOW,
                  c.SLOT_GLOVE, c.SLOT_LEG, c.SLOT_QUIVER, "NOTHING",
                  "NOTHING", c.SLOT_FOOT, "NOTHING", "NOTHING"]
-        game_object = self.game.player.get_equipped_object_at(slots[index_y * 4 + index_x])
+        game_object = None
+        if index_y * 4 + index_x < len(slots):
+            game_object = self.game.player.get_equipped_object_at(slots[index_y * 4 + index_x])
         if game_object is not None:
             (button1, button2, button3) = buttons
             if button1:
-                print(game_object.name)
                 self.selected_item = game_object
             else:
                 game_object.equipment.dequip()

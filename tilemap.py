@@ -99,12 +99,12 @@ class MapFactory:
             while not map_correctly_initialized:
                 print(" *** GENERATING DUNGEON *** ")
                 map_type = ut.roll(4)
-                if map_type == 1 or 2:
+                if map_type == 1:
                     self.map = CaveMap(name, graphical_resources, dimension)
                 elif map_type == 2:
-                    self.map = MazeMap(name, graphical_resources, dimension)
-                elif map_type == 3:
                     self.map = RoomAndMazeMap(name, graphical_resources, dimension)
+                elif map_type == 3:
+                    self.map = MazeMap(name, graphical_resources, dimension)
                 else:
                     self.map = RoomMap(name, graphical_resources, dimension)
                 all_size = int(dimension[0] * dimension[1])
@@ -510,6 +510,19 @@ class MazeMap(Map):
                         if count <= 1:
                             self.tiles[x][y].tile_type = c.T_WALL
 
+    def get_all_available_isolated_tiles(self, tile_type, game_objects, without_objects=False, surrounded=7, max=None):
+        """
+        Redefined here as in a maze there are no isolated tiles...
+        :param tile_type: the type of tile that we look for
+        :param without_objects: set to True to remove objects overlap
+        :param game_objects: the list of current game objects
+        :param surrounded: the number of tiles of same type that the tile should have around
+        :return: a list of tile positions (tuple)
+        """
+        return self.get_all_available_tiles(tile_type, game_objects, without_objects=without_objects)
+
+
+
     def _flood_maze(self, to_explore=0):
         # 2. We pick a random cell, and flag it explored. Demarrage sur un impair!
         found = False
@@ -749,7 +762,7 @@ class RoomAndMazeMap(Map, _RoomExtension):
         dungeon_ok = False
 
         while not dungeon_ok:
-            print("DUNGEON MAZE: Initialization")
+            print("DUNGEON ROOM AND MAZE: Initialization")
             dungeon_ok = True
 
             # We use algorithm at http://journal.stuffwithstuff.com/2014/12/21/rooms-and-mazes/
@@ -932,6 +945,8 @@ class CaveMap(Map):
         assert dimension[0] % 2 == 1 and dimension[1] % 2 == 1, "Maze dimensions must be odd"
 
         Map.__init__(self, name, graphical_resource, dimension)    # dimensions doivent être impair!
+
+        print(" CAVE: Initialization")
 
         self.tiles = [[Tile(c.T_FLOOR)
                        for y in range(self.tile_height)]
