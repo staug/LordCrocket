@@ -1309,7 +1309,12 @@ def build_listing_oryx(img_root):
     ratio_item = 16 / st.TILESIZE_SCREEN
     
     images["REMAINS"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 1, 7, width=16, height=16, adapt_ratio=ratio_item)
-    images["POTION_R"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 3, 1, width=16, height=16, adapt_ratio=ratio_item)
+    images["POTION_R_S"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 3, 1, width=16,
+                                      height=16, adapt_ratio=ratio_item)
+    images["POTION_R_N"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 9, 1, width=16,
+                                      height=16, adapt_ratio=ratio_item)
+    images["POTION_R_L"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 15, 1, width=16,
+                                      height=16, adapt_ratio=ratio_item)
 
     # EQUIPMENT
     images["SWORD"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 13, 10, width=16, height=16, adapt_ratio=ratio_item)

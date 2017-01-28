@@ -32,6 +32,7 @@ class Entity(Sprite):
                  name,
                  pos,
                  image_ref,
+                 long_desc=None,
                  groups=None,
                  blocking_tile_list=None,
                  blocking_view_list=None,
@@ -47,6 +48,7 @@ class Entity(Sprite):
         self.game = game
         self.name = name
         (self.x, self.y) = pos
+        self.long_desc = long_desc
 
         self.groups = groups
         self.image_ref = image_ref
@@ -343,7 +345,7 @@ class ItemHelper(Entity):
     """
     Class used to create an Item
     """
-    def __init__(self, game, name, pos, image_ref, use_function):
+    def __init__(self, game, name, pos, image_ref, use_function, long_desc=None):
         """
         Initialization method
         :param game: reference to the game variable
@@ -353,7 +355,8 @@ class ItemHelper(Entity):
         :param use_function: the function to be used.
         Sample: use_function=lambda player=self.player: Item.cast_heal(player)
         """
-        Entity.__init__(self, game, name, pos, image_ref, blocks=False, item=ItemEntity(use_function=use_function))
+        Entity.__init__(self, game, name, pos, image_ref, blocks=False,
+                        item=ItemEntity(use_function=use_function), long_desc=long_desc)
         self.set_in_spritegroup(-1)
 
     @staticmethod
@@ -452,7 +455,7 @@ class OpenableObjectHelper(Entity):
     It is generally blocking while closed.
     """
     def __init__(self, game, pos, image_ref_closed, image_ref_opened, closed=True, name=None,
-                 use_function=None, keep_blocking=False):
+                 use_function=None, keep_blocking=False, long_desc=None):
         """
         Initialization method
         :param game: reference to the game variable
@@ -479,7 +482,7 @@ class OpenableObjectHelper(Entity):
         if closed:
             image = image_ref_closed
 
-        Entity.__init__(self, game, name, pos, image, blocks=True,
+        Entity.__init__(self, game, name, pos, image, blocks=True, long_desc=long_desc,
                         actionable=ActionableEntity(function=use_function))
         self.set_in_spritegroup(-1)
 
@@ -543,7 +546,7 @@ class EquipmentHelper(Entity):
     Class used to create an Equipment
     """
 
-    def __init__(self, game, name, pos, image_ref, slot, modifiers):
+    def __init__(self, game, name, pos, image_ref, slot, modifiers, long_desc=None):
         """
         Initialization method
         :param game: reference to the game variable
@@ -555,7 +558,8 @@ class EquipmentHelper(Entity):
         Sample: {"AC": 2}
         """
         Entity.__init__(self, game, name, pos, image_ref, blocks=False,
-                        equipment=EquipmentEntity(slot=slot, modifiers=modifiers))
+                        equipment=EquipmentEntity(slot=slot, modifiers=modifiers),
+                        long_desc=long_desc)
         self.set_in_spritegroup(-1)
 
 
@@ -566,7 +570,7 @@ class MonsterHelper(Entity):
     def __init__(self, game, name, pos, image_ref,
                  armor, hit_dice, attacks, morale, saving_throw, death_function=None, special=None,
                  blocking_tile_list=None, blocking_view_list=None, vision=5,
-                 speed=1):
+                 speed=1, long_desc=None):
         """
         Initialization method
         :param game: reference to the game variable
@@ -587,6 +591,7 @@ class MonsterHelper(Entity):
         ai = AIEntity(speed=speed)
         Entity.__init__(self, game, name, pos, image_ref, vision=vision, blocks=True,
                         blocking_tile_list=blocking_tile_list, blocking_view_list=blocking_view_list,
+                        long_desc=long_desc,
                         ai=ai,
                         fighter=MonsterFighter(armor_class=armor, hit_dice=hit_dice, attacks=attacks, morale=morale,
                                                saving_throw=saving_throw, specials=special,
@@ -702,7 +707,9 @@ class ItemFactory:
             self.item_chances["CHEST_TRAP"] = 5
             self.item_chances["COFFIN"] = self.from_dungeon_level([[10, 3], [15, 5]])
             # Potions
-            self.item_chances["HEALING_POTION"] = 40
+            self.item_chances["HEALING_POTION_S"] = 20
+            self.item_chances["HEALING_POTION_N"] = self.from_dungeon_level([[15, 1], [20, 2], [10, 3]])
+            self.item_chances["HEALING_POTION_L"] = self.from_dungeon_level([[10, 2], [20, 3], [25, 5]])
             # Equipments
             self.item_chances["BASIC_SWORD"] = 10
             self.item_chances["BASIC_HELMET"] = 10
@@ -771,9 +778,21 @@ class ItemFactory:
             OpenableObjectHelper(game, pos, "COFFIN_CLOSED", "COFFIN_OPEN", name="Chest",
                                  use_function=OpenableObjectHelper.manipulate_vampire)
         # Potions
-        elif item == "HEALING_POTION":
-            ItemHelper(game, "Healing Potion", pos, "POTION_R",
-                       use_function=lambda player=game.player: ItemHelper.cast_heal(player))
+        elif item == "HEALING_POTION_S":
+            ItemHelper(game, "Small Healing Potion", pos, "POTION_R_S",
+                       use_function=lambda player=game.player, value=rd.randint(3, 8):
+                       ItemHelper.cast_heal(player, heal_amount=value),
+                       long_desc="A red glow is a promise of a small healing")
+        elif item == "HEALING_POTION_N":
+            ItemHelper(game, "Healing Potion", pos, "POTION_R_N",
+                       use_function=lambda player=game.player, value=rd.randint(5, 11):
+                       ItemHelper.cast_heal(player, heal_amount=value),
+                       long_desc="Better for your health in large than in small")
+        elif item == "HEALING_POTION_L":
+            ItemHelper(game, "Large Healing Potion", pos, "POTION_R_L",
+                       use_function=lambda player=game.player, value=rd.randint(6, 14):
+                       ItemHelper.cast_heal(player, heal_amount=value),
+                       long_desc="The best money can buy, don't waste it")
         # Equipments
         elif item == "BASIC_SWORD":
             EquipmentHelper(game, "Basic Sword", pos, "SWORD", slot=c.SLOT_HAND_RIGHT, modifiers={c.BONUS_STR: 2})

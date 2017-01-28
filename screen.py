@@ -125,6 +125,8 @@ class InventoryScreen(Screen):
 
     def render_object_text(self):
         lines = [self.selected_item.name]
+        if hasattr(self.selected_item, "long_desc") and self.selected_item.long_desc:
+            lines.append(self.selected_item.long_desc)
         if hasattr(self.selected_item, "equipment"):
             if hasattr(self.selected_item.equipment, "modifiers") and self.selected_item.equipment.modifiers:
                 lines.append("Modifiers:")
