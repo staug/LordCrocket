@@ -4,7 +4,6 @@ import dill as pick
 
 from settings import *
 from os import path
-from ktextsurfacewriter import KTextSurfaceWriter
 from entities import ThrowableHelper, NPCHelper
 from utilities_ui import Button
 
@@ -306,21 +305,48 @@ class CharacterScreen(Screen):
         game_folder = path.dirname(__file__)
         font_folder = path.join(game_folder, FONT_FOLDER)
         self.font = pg.font.Font(path.join(font_folder, FONT_NAME), 12)
-        self.writer_part = KTextSurfaceWriter(self.game.screen.get_rect(), font=self.font)
 
     def build_player_text(self):
-        return ("{}\n\n"
-                "STR={}\nDEX={}\nMIND={}\nCHA={}\n\n"
-                "HP={}/{}\nBP={}/{}\nAC={}\nvision={}".format(self.game.player.name, self.game.player.strength,
-                                                              self.game.player.dexterity, self.game.player.mind,
-                                                              self.game.player.charisma,
-                                                              self.game.player.fighter.hit_points,
-                                                              self.game.player.base_hit_points,
-                                                              self.game.player.fighter.body_points,
-                                                              self.game.player.base_body_points,
-                                                              self.game.player.fighter.armor_class,
-                                                              self.game.player.vision
-                                                              ))
+        lines = []
+        player = self.game.player
+
+        strength_modifier = player.strength - player.base_strength
+        if strength_modifier >= 0:
+            strength_modifier = "+{}".format(strength_modifier)
+        dexterity_modifier = player.dexterity - player.base_dexterity
+        if dexterity_modifier >= 0:
+            dexterity_modifier = "+{}".format(dexterity_modifier)
+        mind_modifier = player.mind - player.base_mind
+        if mind_modifier >= 0:
+            mind_modifier = "+{}".format(mind_modifier)
+        charisma_modifier = player.charisma - player.base_charisma
+        if charisma_modifier >= 0:
+            charisma_modifier = "+{}".format(charisma_modifier)
+        vision_modifier = player.vision - player.base_vision
+        if vision_modifier >= 0:
+            vision_modifier = "+{}".format(vision_modifier)
+
+        lines.append(player.name)
+        lines.append("")
+        lines.append("")
+        lines.append("Characteristics")
+        lines.append("")
+        lines.append("Strength:    {} ({})    Dexterity: {} ({})".format(player.strength, strength_modifier,
+                                                                         player.dexterity, dexterity_modifier))
+        lines.append("Mind:        {} ({})    Charisma:  {} ({})".format(player.mind, mind_modifier,
+                                                                         player.charisma, charisma_modifier))
+        lines.append("Vision:      {} ({})".format(player.vision, vision_modifier))
+        lines.append("")
+        lines.append("Fighter statistics")
+        lines.append("Hit Points:  {}     Base:      {}".format(player.fighter.hit_points, player.base_hit_points))
+        lines.append("Body Points: {}     Base:      {}".format(player.fighter.body_points, player.base_body_points))
+        lines.append("Armor Class: {}".format(player.fighter.armor_class))
+        lines.append("")
+        lines.append("Speed:       {}".format(player.speed))
+        lines.append("Wealth:      {}".format(player.wealth))
+        lines.append("Level:       {}     Experience {}".format(player.level, player.experience))
+
+        return lines
 
     def events(self):
 
@@ -335,8 +361,19 @@ class CharacterScreen(Screen):
     def draw(self):
         # Erase All
         self.game.screen.fill(BGCOLOR)
-        self.writer_part.text = self.build_player_text()
-        self.writer_part.draw(self.game.screen)
+        lines = self.build_player_text()
+
+        big_line = lines[0]
+        for line in lines:
+            if len(line) > len(big_line):
+                big_line = line
+        width, height = self.font.size(big_line)
+
+        final_surface = pg.Surface((int(width), int(height * len(lines))))
+        for index, line in enumerate(lines):
+            final_surface.blit(self.font.render(line, True, WHITE), (0, index * height))
+
+        self.game.screen.blit(final_surface, (32, 32))
 
         pg.display.flip()
 
@@ -557,11 +594,9 @@ class PlayingScreen(Screen):
                             (rev_x, rev_y) = self.game.camera.reverse((x, y))
                             (x, y) = (int(rev_x / TILESIZE_SCREEN), int(rev_y / TILESIZE_SCREEN))
                             if self.game.map.tiles[x][y].explored and self.game.map.tiles[x][y].tile_type != c.T_VOID:
-                                self.game.textbox.add = "Position {} {}".format(x, y)
                                 room = self.game.map.get_room_at(x, y)
                                 if room is not None:
                                     self.game.textbox.add = room.name
-                                self.game.textbox.add = "Objects:"
                                 for entity in self.game.objects:
                                     if entity.x == x and entity.y == y:
                                         self.game.textbox.add = entity.name

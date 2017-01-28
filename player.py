@@ -34,7 +34,6 @@ class PlayerHelper(Entity):
         self.experience = 0
         self.level = 1
 
-        self.base_speed = 10
 
         Entity.__init__(self, game, "Player", pos, "PLAYER", vision=4,
                         fighter=PlayerFighter(hit_points=self.base_hit_points, body_points=self.base_body_points,
