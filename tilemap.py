@@ -1043,21 +1043,34 @@ class Minimap:
         self.game = game
         self._background = None
 
-    def build_background(self, zoom_factor=2):
-        self._background = pg.Surface((self.game.map.tile_width * zoom_factor, self.game.map.tile_height * zoom_factor))
+    def build_background(self, zoom_factor=2, center_player=False, map_display_size_x=80, map_display_size_y=60):
+
+        x_min = y_min = 0
+        x_max = self.game.map.tile_width
+        y_max = self.game.map.tile_height
+
+        if hasattr(self.game, "player") and center_player:
+            self._background = pg.Surface((map_display_size_x * zoom_factor, map_display_size_y * zoom_factor))
+            x_min = max(0, self.game.player.x - int(map_display_size_x / 2))
+            x_max = min(self.game.player.x + int(map_display_size_x / 2), self.game.map.tile_width)
+            y_min = max(0, self.game.player.y - int(map_display_size_y / 2))
+            y_max = min(self.game.player.y + int(map_display_size_y / 2), self.game.map.tile_height)
+        else:
+            self._background = pg.Surface((self.game.map.tile_width * zoom_factor,
+                                           self.game.map.tile_height * zoom_factor))
         backpixels = pg.PixelArray(self._background)
-        for x in range(self.game.map.tile_width):
-            for y in range(self.game.map.tile_height):
+        for x in range(x_min, x_max):
+            for y in range(y_min, y_max):
                 if self.game.map.tiles[x][y].explored:
                     tile_type = self.game.map.tiles[x][y].tile_type
                     if tile_type == c.T_WALL:
-                        backpixels[x*zoom_factor:x*zoom_factor+1, y*zoom_factor:y*zoom_factor+1] = RED
+                        backpixels[(x-x_min)*zoom_factor:(x-x_min)*zoom_factor+1, (y-y_min)*zoom_factor:(y-y_min)*zoom_factor+1] = RED
                     elif tile_type == c.T_FLOOR:
-                        backpixels[x * zoom_factor:x * zoom_factor + 1, y * zoom_factor:y * zoom_factor + 1] = WHITE
+                        backpixels[(x-x_min) * zoom_factor:(x-x_min) * zoom_factor + 1, (y-y_min) * zoom_factor:(y-y_min) * zoom_factor + 1] = WHITE
         # Now we add a big cross at the player position
         if hasattr(self.game, "player"):
-            pos_x = self.game.player.x
-            pos_y = self.game.player.y
+            pos_x = self.game.player.x - x_min
+            pos_y = self.game.player.y - y_min
             backpixels[(pos_x - 1) * zoom_factor:(pos_x + 1) * zoom_factor + 1,
             pos_y * zoom_factor:pos_y * zoom_factor + 1] = GREEN
             backpixels[pos_x * zoom_factor:pos_x * zoom_factor + 1,

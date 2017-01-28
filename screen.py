@@ -322,6 +322,7 @@ class PlayingScreen(Screen):
         self.widgets.append(bt2)
 
     def draw_health_bar(self, surf, x, y):
+        # TODO: Health bar should be a widget
         BAR_HEIGHT = 20
         fighter = self.game.player.fighter
         if fighter is not None:
@@ -383,7 +384,7 @@ class PlayingScreen(Screen):
             self.game.player.invalidate_fog_of_war = False
 
             self.game.visible_player_array = self.game.fov.get_vision_matrix_for(self.game.player, flag_explored=True)
-            self.game.minimap.build_background()
+            self.game.minimap.build_background(center_player=True, map_display_size_x=60, map_display_size_y=40)
 
         self.game.screen.blit(self.fog_of_war_mask, (0, 0))
         # --- HUD SECTION ---
@@ -452,6 +453,7 @@ class PlayingScreen(Screen):
                         self.game.player.move(dx=1, dy=1)
                     if event.key == pg.K_m:
                         self.game.minimap_enable = not self.game.minimap_enable
+                        print("Minimap state: {}".format(self.game.minimap_enable))
                     if event.key == pg.K_p:
                         self.game.game_state = c.GAME_STATE_MAP
                     if event.key == pg.K_f:
