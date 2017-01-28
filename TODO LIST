@@ -31,14 +31,14 @@ MAP SCREEN
 * Map mode: map is centered
 
 INVENTORY SCREEN
-* Inventory text and display
+* [DONE] Inventory text and display
 * Inventory: display x items max, and then move to the next ones...
 
 SPEED SYSTEM
 * [DONE] Different speed for each action
 * [DONE] Use a ticker property to record last action update.
 
-MOSNTER
+MONSTER
 * More characteristics to hero and monster - http://www.roguebasin.com/index.php?title=A_Better_Monster_AI
 * Better AI and more personality to monster
 * Monster drops gold and xp!
@@ -48,7 +48,7 @@ ITEM
 * Eahc item has a weight
 * Each item has durability index
 * Each item, monster... has a long description
-* Create a chest as an actionable item
+* [DONE] Create a chest as an actionable item
 
 Spells and potions
 * Increase and decrease visibility radius

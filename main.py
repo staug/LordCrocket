@@ -89,7 +89,7 @@ class Game:
         self.visible_player_array = self.fov.get_vision_matrix_for(self.player, flag_explored=True)
 
         # place monsters and items
-        ItemFactory(self).build_list(50)
+        ItemFactory(self).build_list(220)
         MonsterFactory(self).build_list(25)
 
         # And we end with the screens...

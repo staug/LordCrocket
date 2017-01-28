@@ -41,6 +41,8 @@ class InventoryScreen(Screen):
         self.original_pos = (32, 32)
         self.tile_size = 48
         self.objects_per_line = 5
+        self.selected_item = None
+        self.font = pg.font.Font(path.join(path.join(path.dirname(__file__), FONT_FOLDER), FONT_NAME), 10)
 
     def events(self):
         # catch all events here
@@ -91,16 +93,20 @@ class InventoryScreen(Screen):
         (button1, button2, button3) = buttons
         if button1:
             print(listing[index_y * self.objects_per_line + index_x].name)
+            self.selected_item = listing[index_y * self.objects_per_line + index_x]
         else:
             listing[index_y * self.objects_per_line + index_x].equipment.equip()
+            self.selected_item = None
 
     def handle_usable_event(self, buttons, index_x, index_y):
         listing = self.game.player.get_non_equipment_objects()
         (button1, button2, button3) = buttons
         if button1:
             print(listing[index_y * self.objects_per_line + index_x].name)
+            self.selected_item = listing[index_y * self.objects_per_line + index_x]
         else:
             listing[index_y * self.objects_per_line + index_x].item.use()
+            self.selected_item = None
 
     def handle_equipped_event(self, buttons, index_x, index_y):
         slots = [c.SLOT_RING, c.SLOT_HEAD, c.SLOT_CAPE,
@@ -114,8 +120,31 @@ class InventoryScreen(Screen):
             (button1, button2, button3) = buttons
             if button1:
                 print(game_object.name)
+                self.selected_item = game_object
             else:
                 game_object.equipment.dequip()
+                self.selected_item = None
+
+    def render_object_text(self):
+        lines = [self.selected_item.name]
+        if hasattr(self.selected_item, "equipment"):
+            if hasattr(self.selected_item.equipment, "modifiers") and self.selected_item.equipment.modifiers:
+                lines.append("Modifiers:")
+                for key in self.selected_item.equipment.modifiers:
+                    lines.append("    {}: {}".format(key, self.selected_item.equipment.modifiers[key]))
+        if hasattr(self.selected_item.equipment, "slot") and self.selected_item.equipment.slot:
+            lines.append("Slot: {}".format(self.selected_item.equipment.slot))
+
+        big_line = lines[0]
+        for line in lines:
+            if len(line) > len(big_line):
+                big_line = line
+        width, height = self.font.size(big_line)
+
+        final_surface = pg.Surface((int(width), int(height * len(lines))))
+        for index, line in enumerate(lines):
+            final_surface.blit(self.font.render(line, True, WHITE), (0, index * height))
+        return final_surface
 
     def draw(self):
         # Erase All
@@ -124,6 +153,14 @@ class InventoryScreen(Screen):
         tile_size = self.tile_size
         orig_x = self.original_pos[0]
         top_x, top_y = orig_x, self.original_pos[1]
+
+        if self.selected_item:
+            text_surf = self.render_object_text()
+            text_surf_rect = text_surf.get_rect()
+            text_surf_rect.x = orig_x + tile_size * 6
+            text_surf_rect.y = top_y
+            self.game.screen.blit(text_surf, text_surf_rect)
+
 
         # First part: Ring - Head - Cape - Necklace
         ring = self.game.player.get_equipped_object_at(c.SLOT_RING)
