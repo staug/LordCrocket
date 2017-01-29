@@ -40,4 +40,5 @@ IMG_ORYX_SUB = 'oryx'
 IMG_PIXEL_SUB = 'pixel'
 
 FONT_FOLDER = 'font'
-FONT_NAME = 'unispace.ttf'
+#FONT_NAME = 'unispace.ttf'
+FONT_NAME = 'ProFontWindows.ttf'

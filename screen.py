@@ -15,7 +15,6 @@ class Screen:
         self.default_back_state = default_back_state
         self.widgets = []
 
-
     def test(self, *args, **kwargs):
         print("Test {} {}".format(args, kwargs))
         for widget in self.widgets[:]:
@@ -66,25 +65,29 @@ class InventoryScreen(Screen):
                 has_usable = len(self.game.player.get_non_equipment_objects()) > 0
 
                 start_index_y_equipable = 6
-                end_index_y_equipable = start_index_y_equipable + int(len(self.game.player.get_unequipped_objects()) / self.objects_per_line)
+                end_index_y_equipable = start_index_y_equipable + int(len(self.game.player.get_unequipped_objects()) /
+                                                                      self.objects_per_line)
 
                 start_index_y_usable = end_index_y_equipable + 3
                 if not has_equipable:
                     start_index_y_usable = 6
-                end_index_y_usable = start_index_y_usable + int(len(self.game.player.get_non_equipment_objects()) / self.objects_per_line)
+                end_index_y_usable = start_index_y_usable + int(len(self.game.player.get_non_equipment_objects()) /
+                                                                self.objects_per_line)
 
                 if 0 <= index_x < 4 and 0 <= index_y < 5:
                     self.handle_equipped_event((button1, button2, button3), index_x, index_y)
                 elif has_equipable \
                         and 0 <= index_x < self.objects_per_line \
                         and start_index_y_equipable <= index_y <= end_index_y_equipable \
-                        and len(self.game.player.get_unequipped_objects()) > (index_y-start_index_y_equipable)*self.objects_per_line+index_x:
+                        and len(self.game.player.get_unequipped_objects()) > \
+                                                (index_y-start_index_y_equipable) * self.objects_per_line + index_x:
                     self.handle_equipable_event((button1, button2, button3), index_x, index_y - start_index_y_equipable)
                 # Usable, but not equipment
                 elif has_usable \
                         and 0 <= index_x < self.objects_per_line \
                         and start_index_y_usable <= index_y <= end_index_y_usable \
-                        and len(self.game.player.get_non_equipment_objects()) > (index_y - start_index_y_usable) * self.objects_per_line + index_x:
+                        and len(self.game.player.get_non_equipment_objects()) > \
+                                                (index_y - start_index_y_usable) * self.objects_per_line + index_x:
                     self.handle_usable_event((button1, button2, button3), index_x, index_y - start_index_y_usable)
 
     def handle_equipable_event(self, buttons, index_x, index_y):
@@ -160,7 +163,6 @@ class InventoryScreen(Screen):
             text_surf_rect.x = orig_x + tile_size * 6
             text_surf_rect.y = top_y
             self.game.screen.blit(text_surf, text_surf_rect)
-
 
         # First part: Ring - Head - Cape - Necklace
         ring = self.game.player.get_equipped_object_at(c.SLOT_RING)
@@ -333,20 +335,26 @@ class CharacterScreen(Screen):
         lines.append("")
         lines.append("Characteristics")
         lines.append("")
-        lines.append("Strength:    {} ({})    Dexterity: {} ({})".format(player.strength, strength_modifier,
-                                                                         player.dexterity, dexterity_modifier))
-        lines.append("Mind:        {} ({})    Charisma:  {} ({})".format(player.mind, mind_modifier,
-                                                                         player.charisma, charisma_modifier))
-        lines.append("Vision:      {} ({})".format(player.vision, vision_modifier))
+        lines.append("Strength:    {:3d} ({:3})    Dexterity: {:3d} ({:3})".format(player.strength,
+                                                                                   strength_modifier,
+                                                                                   player.dexterity,
+                                                                                   dexterity_modifier))
+        lines.append("Mind:        {:3d} ({:3})    Charisma:  {:3d} ({:3})".format(player.mind,
+                                                                                   mind_modifier,
+                                                                                   player.charisma,
+                                                                                   charisma_modifier))
+        lines.append("Vision:      {:3d} ({:3})".format(player.vision, vision_modifier))
         lines.append("")
         lines.append("Fighter statistics")
-        lines.append("Hit Points:  {}     Base:      {}".format(player.fighter.hit_points, player.base_hit_points))
-        lines.append("Body Points: {}     Base:      {}".format(player.fighter.body_points, player.base_body_points))
-        lines.append("Armor Class: {}".format(player.fighter.armor_class))
+        lines.append("Hit Points:  {:3d}          Base:      {:3d}".format(player.fighter.hit_points,
+                                                                           player.base_hit_points))
+        lines.append("Body Points: {:3d}          Base:      {:3d}".format(player.fighter.body_points,
+                                                                           player.base_body_points))
+        lines.append("Armor Class: {:3d}".format(player.fighter.armor_class))
         lines.append("")
-        lines.append("Speed:       {}".format(player.speed))
-        lines.append("Wealth:      {}".format(player.wealth))
-        lines.append("Level:       {}     Experience {}".format(player.level, player.experience))
+        lines.append("Speed:       {:3d}".format(player.speed))
+        lines.append("Wealth:    {:6d}".format(player.wealth))
+        lines.append("Level:       {:3d}          Experience: {}".format(player.level, player.experience))
 
         return lines
 
@@ -462,7 +470,6 @@ class PlayingScreen(Screen):
             self.game.visible_player_array = self.game.fov.get_vision_matrix_for(self.game.player, flag_explored=True)
             map_rebuild = True
 
-
         self.game.screen.blit(self.fog_of_war_mask, (0, 0))
         # --- HUD SECTION ---
         # Player health
@@ -474,7 +481,8 @@ class PlayingScreen(Screen):
                                                    center_player=True)
                 map_rebuild = False
             self.game.screen.blit(self.game.minimap.background_mini_map,
-                                  (self.game.screen.get_width() - self.game.minimap.background_mini_map.get_width() - 10, 10))
+                                  (self.game.screen.get_width() -
+                                   self.game.minimap.background_mini_map.get_width() - 10, 10))
 
         # Text -> First line is to remove background
         self.game.screen.fill(BGCOLOR, self.game.textbox._ktext.rect)
@@ -507,11 +515,9 @@ class PlayingScreen(Screen):
                     old_h = self.game.screen.get_rect().height
 
                     self.game.screen = pg.display.set_mode((event.w, event.h),
-                                                      pg.RESIZABLE)
+                                                           pg.RESIZABLE)
                     self.game.player.invalidate_fog_of_war = True
                     self.game.textbox.resize(old_w, old_h, event.w, event.h)
-
-
 
                 if event.type == pg.KEYDOWN:
                     if event.key == pg.K_ESCAPE:
@@ -542,12 +548,13 @@ class PlayingScreen(Screen):
                     if event.key == pg.K_i:
                         self.game.game_state = c.GAME_STATE_INVENTORY
                     if event.key == pg.K_g:
-                        for object in self.game.objects:
-                            if (object.x, object.y) == (self.game.player.x, self.game.player.y) and object.item:
-                                object.item.pick_up()
+                        for item in self.game.objects:
+                            if (item.x, item.y) == (self.game.player.x, self.game.player.y) and item.item:
+                                item.item.pick_up()
 
                     if event.key == pg.K_y:
-                        ThrowableHelper(self.game, self.game.player.pos, "FIREBALL", (1, 0), ThrowableHelper.light_damage,
+                        ThrowableHelper(self.game, self.game.player.pos, "FIREBALL", (1, 0),
+                                        ThrowableHelper.light_damage,
                                         stopped_by=[c.T_WALL, c.T_VOID])
 
                     if event.key == pg.K_n:
