@@ -136,3 +136,87 @@ def roll(dice, repeat=1):
     for i in range(repeat):
         res += rd.randint(1, dice)
     return res
+
+
+
+NAMES = ["Abaet","Acamen","Adeen","Aghon","Ahburn","Airen","Aldaren","Alkirk","Amitel","Anumil","Asen","Atgur","Auden","Aysen","Abarden","Achard","Aerden","Agnar","Ahdun","Airis","Alderman","Allso","Anfar","Asden","Aslan","Atlin","Ault","Aboloft","Ackmard","Afflon","Ahalfar","Aidan","Albright","Aldren","Amerdan","Anumi","Asdern","Atar","Auchfor","Ayrie",
+"Bacohl","Balati","Basden","Bedic","Beson","Bewul","Biston","Boaldelr","Breanon","Bredock","Bristan","Busma","Badeek","Baradeer","Bayde","Beeron","Besur","Biedgar","Bithon","Bolrock","Bredere","Breen","Buchmeid","Buthomar","Baduk","Barkydle","Beck","Bein","Besurlde","Bildon","Boal","Brakdern","Bredin","Brighton","Bue","Bydern",
+"Caelholdt","Camchak","Casden","Celorn","Cerdern","Cevelt","Chidak","Ciroc","Connell","Cosdeer","Cydare","Cyton","Cainon","Camilde","Cayold","Celthric","Cespar","Chamon","Cibrock","Codern","Cordale","Cuparun","Cylmar","Calden","Cardon","Celbahr","Cemark","Cether","Chesmarn","Cipyar","Colthan","Cos","Cusmirk","Cythnar",
+"Daburn","Dakamon","Dalmarn","Darkkon","Darmor","Dask","Derik","Dessfar","Doceon","Dorn","Drakone","Dritz","Dryn","Duran","Dyfar","Daermod","Dakkone","Dapvhir","Darko","Darpick","Deathmar","Derrin","Dinfar","Dochrohan","Dosoman","Drandon","Drophar","Duba","Durmark","Dyten","Dak","Dalburn","Darkboon","Darkspur","Dasbeck","Defearon","Desil","Dismer","Dokoran","Drakoe","Drit","Dryden","Dukran","Dusaro",
+"Eard","Efar","Ekgamut","Elson","Endor","Enro","Eritai","Etar","Ethen","Eythil","Eckard","Egmardern","Eli","Elthin","Enidin","Erikarn","Escariet","Etburn","Etmere","Efamar","Eiridan","Elik","Enbane","Enoon","Erim","Espardo","Etdar","Etran",
+"Faoturk","Fenrirr","Ficadon","Firedorn","Folmard","Fydar","Faowind","Fetmar","Fickfylo","Firiro","Fraderk","Fyn","Fearlock","Feturn","Fildon","Floran","Fronar",
+"Gafolern","Galiron","Gemardt","Gerirr","Gibolock","Gom","Gothikar","Gryn","Guthale","Gyin","Gai","Gametris","Gemedern","Geth","Gibolt","Gosford","Gresforn","Gundir","Gybol","Galain","Gauthus","Gemedes","Gib","Gith","Gothar","Grimie","Gustov","Gybrush",
+"Halmar","Hectar","Hermenze","Hildale","Hydale","Harrenhal","Hecton","Hermuck","Hildar","Hyten","Hasten","Heramon","Hezak","Hileict",
+"Iarmod","Ieserk","Illilorn","Ipedorn","Isen","Jackson","Janus","Jesco","Jex","Jin","Jun","Kafar","Keran","Kethren","Kiden","Kildarien","Kip","Kolmorn","Lackus","Lafornon","Ledale","Lephidiles","Letor","Liphanes","Ludokrin","Lurd","Macon","Marderdeen","Markdoon","Mathar","Mellamo","Meridan","Mes'ard","Mezo","Mickal","Miphates","Modric","Mufar","Mythik","Nadeer","Naphates","Nikpal","Niro","Nuthor","Nythil","O’tho","Occhi","Ohethlic","Omarn","Othelen","Padan","Peitar","Pendus","Phairdon","Phoenix","Picumar","Ponith","Prothalon","Qeisan","Quid","Qysan","Radag'mal","Rayth","Reth","Rhithin","Rikar","Ritic","Rogoth","Rydan","Ryodan","Rythern","Sabal","Samon","Scoth","Sed","Senthyril","Seryth","Setlo","Shane","Shillen","Sil'forrin","Soderman","Stenwulf","Suth","Syth","Talberon","Temilfist","Tespar","Thiltran","Tibolt","Tithan","Tolle","Tothale","Tuk","Tyden","Uerthe","Undin","Vaccon","Valynard","Vespar","Vider","Vildar","Virde","Voudim","Wak’dern","Wekmar","William","Wiltmar","Wrathran","Wyder","Xander","Xex","Y’reth","Yesirn","Zak","Zeke","Zidar","Zilocke","Zotar"
+"Idon","Ikar","Illium","Irefist","Isil","Jalil","Jayco","Jespar","Jib","Juktar","Justal","Kaldar","Kesad","Kib","Kilbas","Kimdar","Kirder","Kyrad","Lacspor","Lahorn","Leit","Lerin","Lidorn","Loban","Luphildern","Zakarn","Madarlon","Mardin","Marklin","Medarin","Meowol","Merkesh","Mesophan","Michael","Migorn","Mi'talrythin","Modum","Mujarin","Mythil","Nalfar","Neowyld","Nikrolin","Noford","Nuwolf","Zerin","Ocarin","Odaren","Okar","Orin","Oxbaren","Palid","Pelphides","Perder","Phemedes","Picon","Pildoor","Poran","Puthor","Qidan","Quiss","Zigmal","Randar","Reaper","Rethik","Rhysling","Rismak","Rogeir","Rophan","Ryfar","Rysdan","Zio","Sadareen","Samot","Scythe","Sedar","Serin","Sesmidat","Shade","Shard","Silco","Silpal","Sothale","Steven","Sutlin","Sythril","Telpur","Tempist","Tessino","Tholan","Ticharol","Tobale","Tolsar","Tousba","Tuscanar","Zutar","Ugmar","Updar","Vacone","Vectomon","Vethelot","Vigoth","Vinald","Voltain","Vythethi","Walkar","Werymn","Willican","Wishane","Wraythe","Wyeth","Xavier","Xithyl","Yabaro","Yssik",
+"Ironmark","Ithric","Jamik","Jaython","Jethil","Jibar","Julthor","Ieli","Kellan","Kesmon","Kibidon","Kilburn","Kinorn","Kodof","Ilgenar","Laderic","Laracal","Lephar","Lesphares","Lin","Lox","Lupin","Zecane","Mafar","Markard","Mashasen","Medin","Merdon","Mesah","Mesoton","Mick","Milo","Mitar","Mudon","Mylo","Ingel","Namorn","Nidale","Niktohal","Nothar","Nydale","Zessfar","Occelot","Odeir","Omaniron","Ospar","Xuio","Papur","Pender","Perol","Phexides","Pictal","Pixdale","Poscidion","Pyder","Quiad","Qupar","Zile","Raysdan","Resboron","Rhithik","Riandur","Riss","Rogist","Rulrindale","Ryfar","Rythen","Zoru","Safilix","Sasic","Secor","Senick","Sermak","Seth","Shadowbane","Shardo","Sildo","Sithik","Staph","Suktor","Syr","Yssith","Temil","Teslanar","Tethran","Tibers","Tilner","Tol’Solie","Toma","Towerlock","Tusdar","Zyten","Uhrd","Uther","Valkeri","Veldahar","Victor","Vilan","Vinkolt","Volux","Yepal","Wanar","Weshin","Wilte","Witfar","Wuthmon","Wyvorn","Xenil"]
+
+
+###############################################################################
+# Markov Name model
+# A random name generator, by Peter Corbett
+# http://www.pick.ucam.org/~ptc24/mchain.html
+# This script is hereby entered into the public domain
+###############################################################################
+class Mdict:
+    def __init__(self):
+        self.d = {}
+
+    def __getitem__(self, key):
+        if key in self.d:
+            return self.d[key]
+        else:
+            raise KeyError(key)
+
+    def add_key(self, prefix, suffix):
+        if prefix in self.d:
+            self.d[prefix].append(suffix)
+        else:
+            self.d[prefix] = [suffix]
+
+    def get_suffix(self, prefix):
+        l = self[prefix]
+        return rd.choice(l)
+
+
+class MName:
+    """
+    A name from a Markov chain
+    """
+
+    def __init__(self, chainlen=3):
+        """
+        Building the dictionary
+        """
+        assert 1 < chainlen < 10, "Chain length must be between 1 and 10, inclusive"
+        self.mcd = Mdict()
+        oldnames = []
+        self.chainlen = chainlen
+
+        for l in NAMES:
+            l = l.strip()
+            oldnames.append(l)
+            s = " " * chainlen + l
+            for n in range(0, len(l)):
+                self.mcd.add_key(s[n:n + chainlen], s[n + chainlen])
+            self.mcd.add_key(s[len(l):len(l) + chainlen], "\n")
+
+    def getName(self):
+        """
+        New name from the Markov chain
+        """
+        prefix = " " * self.chainlen
+        name = ""
+        suffix = ""
+        while True:
+            suffix = self.mcd.get_suffix(prefix)
+            if suffix == "\n" or len(name) > 9:
+                break
+            else:
+                name = name + suffix
+                prefix = prefix[1:] + suffix
+        return name.capitalize()
+
+    @staticmethod
+    def name():
+        return MName().getName()

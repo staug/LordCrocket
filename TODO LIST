@@ -1,9 +1,9 @@
 GRAPHICS
 * Work with three possible tilesets: dawnlike, oryx and pixel
-* The type of graphic must be selectable
+* [Done] The type of graphic must be selectable
 
 DUNGEON
-* Make Dungeon beautiful
+* [Done] Make Dungeon beautiful
 * [DONE] Split dungeon in subclasses
 
 PLAYER
@@ -25,7 +25,7 @@ MESSAGING BETWEEN ALL
 * This will be used in quests
 
 CHARACTER_SCREEN:
-* Make it beyond the ugly feel that is present
+* [Partially DONE] Make it beyond the ugly feel that is present
 
 MAP SCREEN
 * Map mode: map is centered
@@ -47,7 +47,7 @@ MONSTER
 ITEM
 * Eahc item has a weight
 * Each item has durability index
-* Each item, monster... has a long description
+* [Placeholder done] Each item, monster... has a long description
 * [DONE] Create a chest as an actionable item
 
 Spells and potions
@@ -58,7 +58,7 @@ BUGS
 * In save, make sure the floor is always the same...
 * Textbox: if a line is multi line, then the number of messages displayed in the textbox is incorrect
 * Textbox: if teh window has been resized, the textbox may be used to display text out of surface!
-* Potion heals only hit opints, not body points
+* [Done] Potion heals only hit opints, not body points
 
 Notes:
 Gold from monster

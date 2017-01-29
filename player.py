@@ -3,6 +3,7 @@ from fighter import PlayerFighter
 import utilities as ut
 import random as rd
 import constants as c
+from utilities import MName
 
 
 class PlayerHelper(Entity):
@@ -35,7 +36,7 @@ class PlayerHelper(Entity):
         self.level = 1
 
 
-        Entity.__init__(self, game, "Player", pos, "PLAYER", vision=4,
+        Entity.__init__(self, game, MName.name(), pos, "PLAYER", vision=4,
                         fighter=PlayerFighter(hit_points=self.base_hit_points, body_points=self.base_body_points,
                                               physical_combat_bonus=1, magical_combat_bonus=0))
         self.inventory_max = 100
