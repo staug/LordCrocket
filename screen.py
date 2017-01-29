@@ -309,6 +309,9 @@ class CharacterScreen(Screen):
         game_folder = path.dirname(__file__)
         font_folder = path.join(game_folder, FONT_FOLDER)
         self.font = pg.font.Font(path.join(font_folder, FONT_NAME), 12)
+        self._surface = None
+        self._lines = None
+        self.last_update = pg.time.get_ticks()
 
     def build_player_text(self):
         lines = []
@@ -353,7 +356,7 @@ class CharacterScreen(Screen):
         lines.append("Armor Class: {:3d}".format(player.fighter.armor_class))
         lines.append("")
         lines.append("Speed:       {:3d}".format(player.speed))
-        lines.append("Wealth:    {:6d}".format(player.wealth))
+        lines.append("Wealth:   {:6d}".format(player.wealth))
         lines.append("Level:       {:3d}          Experience: {}".format(player.level, player.experience))
 
         return lines
@@ -368,27 +371,35 @@ class CharacterScreen(Screen):
                 if event.key == pg.K_ESCAPE:
                     self.game.game_state = self.default_back_state
 
-    def draw(self):
-        # Erase All
-        self.game.screen.fill(BGCOLOR)
-        lines = self.build_player_text()
+    def build_surface(self):
+        self._lines = self.build_player_text()
 
-        big_line = lines[0]
-        for line in lines:
+        big_line = self._lines[0]
+        for line in self._lines:
             if len(line) > len(big_line):
                 big_line = line
         width, height = self.font.size(big_line)
 
-        final_surface = pg.Surface((int(width), int(height * len(lines))))
-        for index, line in enumerate(lines):
+        final_surface = pg.Surface((int(width), int(height * len(self._lines))))
+        for index, line in enumerate(self._lines):
             final_surface.blit(self.font.render(line, True, WHITE), (0, index * height))
+        self._surface = final_surface
 
-        self.game.screen.blit(final_surface, (32, 32))
+    def draw(self):
+        # Erase All
+        self.game.screen.fill(BGCOLOR)
+        if not self._surface:
+            self.build_surface()
+        self.game.screen.blit(self._surface, (32, 32))
 
         pg.display.flip()
 
     def update(self):
-        pass
+        now = pg.time.get_ticks()
+        delta = 1000
+        if now - self.last_update > delta:
+            self.last_update = now
+            self.build_surface()
 
 
 class PlayingScreen(Screen):
