@@ -9,7 +9,7 @@ IM_STYLE_PIXEL = "PIXEL"
 # Utilities - class Publisher
 P_ALL = "ALL"
 P_CAT_LOG = "LOG"
-P_CAT_FIGHT = "FIGHT"
+P_CAT_INFO = "INFO"
 
 # Game - Game States
 GAME_STATE_PLAYING = 'Playing'
@@ -62,3 +62,10 @@ ACS_HIT = "hit"  # In that case, register attack type ("attack_type"), amount of
 ACS_VARIOUS = "various"  # Misc actions, like flee the combat or other
 
 AC_SPELL = "cast"
+# -> Sub for item
+AC_ITEM = "ITEM"
+AC_ITEM_GRAB = "GRAB"
+AC_ITEM_DUMP = "DUMP"
+AC_ITEM_EQUIP = "EQUIP"
+AC_ITEM_UNEQUIP = "UNEQUIP"
+AC_ITEM_USE = "USE"

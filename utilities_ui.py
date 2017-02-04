@@ -398,29 +398,45 @@ class TextBox:
         self._ktext.draw(surface)
 
     def notify(self, message):
-        print("Textbox receives that: {}".format(message))
         # Now interpret the text
         if message["MAIN_CATEGORY"] == c.AC_FIGHT:
             if message["SUB_CATEGORY"] == c.ACS_HIT:
                 if message["result"] == "success":
-                    self.add = "{} hit {} with {}, dealing {} damages...".format(message["attacker_name"],
-                                                                               message["defender_name"],
+                    self.add = "{} hit {} with {}, dealing {} damages...".format(message["attacker"].name,
+                                                                               message["defender"].name,
                                                                                message["attack_type"],
                                                                                message["damage"])
                 else:
-                    self.add = "{} tried hitting {} with {} but {}".format(message["attacker_name"],
-                                                                               message["defender_name"],
+                    self.add = "{} tried hitting {} with {} but {}".format(message["attacker"].name,
+                                                                               message["defender"].name,
                                                                                message["attack_type"],
                                                                          rd.choice(("failed miserably",
                                                                                    "it was blocked",
                                                                                    "this was a pitiful attempt")))
             elif message["SUB_CATEGORY"] == c.ACS_KILL:
-                self.add = "After a short fight, {} killed {} in {} " \
-                           "- LordCrocket awards {} experience point and {} gold.".format(message["attacker_name"],
-                                                                                        message["defender_name"],
-                                                                                        message["room"],
+                self.add = "After a short fight, {} killed {} " \
+                           "- LordCrocket awards {} experience point and {} gold.".format(message["attacker"].name,
+                                                                                        message["defender"].name,
                                                                                         message["xp"],
                                                                                         message["gold"])
+            else:
+                print("UNKNOWN MESSAGE: {}".format(message))
+        elif message["MAIN_CATEGORY"] == c.AC_ITEM:
+            if message["SUB_CATEGORY"] == c.AC_ITEM_GRAB:
+                if message["result"] == "success":
+                    if message["item"].long_desc is not None:
+                        self.add = "You grabbed up a {}, {}".format(message["item"].name,
+                                                                    message["item"].long_desc.lower())
+                    else:
+                        self.add = "You grabbed up a {}".format(message["item"].name)
+                else:
+                    self.add = "Grabbing up {} was too difficult for you".format(message["item"].name)
+            elif message["SUB_CATEGORY"] == c.AC_ITEM_DUMP:
+                self.add = "You carelessly dropped a {}".format(message["item"].name)
+            else:
+                print("UNKNOWN MESSAGE: {}".format(message))
+        else:
+            print("UNKNOWN MESSAGE: {}".format(message))
 
     def resize(self, old_screen_width, old_screen_height, new_screen_width, new_screen_height):
         new_rect_width = int(self._ktext.rect.width * new_screen_width / old_screen_width)

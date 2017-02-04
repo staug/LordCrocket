@@ -1,3 +1,5 @@
+import constants as c
+
 class ItemEntity:
     """
     Warning: this should never be instantiated directly, but more via the ItemHelper class
@@ -12,14 +14,19 @@ class ItemEntity:
 
     def pick_up(self):
         # add to the player's inventory and remove from the map
+        result = "success"
         if len(self.owner.game.player.inventory) >= 60:
-            self.owner.game.textbox.add = 'Your inventory is full, cannot pick up {}.'.format(self.owner.name)
+            result = "failure"
         else:
             self.owner.game.player.inventory.append(self.owner)
             self.owner.game.objects.remove(self.owner)
             for group in self.owner.game.all_groups:
                 group.remove(self.owner)
-            self.owner.game.textbox.add = 'You picked up a {}!'.format(self.owner.name)
+        self.owner.game.bus.publish(self.owner, {"item": self.owner,
+                                                 "result":result},
+                                    main_category=c.AC_ITEM,
+                                    sub_category=c.AC_ITEM_GRAB)
+
 
         # special case: automatically equip, if the corresponding equipment slot is unused
         equipment = self.owner.equipment
@@ -37,7 +44,9 @@ class ItemEntity:
         self.owner.game.player_min1_sprite_group.append(self.owner)
         self.owner.x = self.owner.game.player.x
         self.owner.y = self.owner.game.player.y
-        self.owner.game.textbox.add = 'You dropped a {}!'.format(self.owner.name)
+        self.owner.game.bus.publish(self.owner, {"item": self.owner},
+                                    main_category=c.AC_ITEM,
+                                    sub_category=c.AC_ITEM_DUMP)
 
     def use(self):
         # special case: if the object has the Equipment component, the "use" action is to equip/dequip

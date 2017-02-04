@@ -1,6 +1,6 @@
 import utilities as ut
 import constants as c
-
+import random as rd
 
 class FighterEntity:
     """
@@ -82,30 +82,29 @@ class MonsterFighter(FighterEntity):
             if attack_roll > other_fighter.armor_class:
                 # Hit
                 damage = ut.roll(attack[1][1], repeat=attack[1][0]) + attack[1][2]
-                self.owner.game.bus.publish(self.owner, {"attacker_name":self.owner.name,
-                                                         "defender_name":other_fighter.owner.name,
-                                                         "pos":self.owner.pos,
+                self.owner.game.bus.publish(self.owner, {"attacker":self.owner,
+                                                         "defender":other_fighter.owner,
                                                          "result": "success",
                                                          "attack_type": attack[0], "damage": damage},
                                             main_category=c.AC_FIGHT, sub_category=c.ACS_HIT)
-                self.owner.game.textbox.add = "{} attacks {} with {}, for {} damages".format(
-                    self.owner.name.capitalize(), other_fighter.owner.name.capitalize(), attack[0], damage)
-                other_fighter.take_damage(damage)
             else:
-                self.owner.game.textbox.add = "{} attacks {} with {} but it was blocked!".format(
-                    self.owner.name.capitalize(), other_fighter.owner.name.capitalize(), attack[0])
-                self.owner.game.bus.publish(self.owner, {"attacker_name":self.owner.name,
-                                                         "defender_name":other_fighter.owner.name,
-                                                         "pos":self.owner.pos,
-                                                         "result": "failer",
+                self.owner.game.bus.publish(self.owner, {"attacker":self.owner,
+                                                         "defender":other_fighter.owner,
+                                                         "result": "failure",
                                                          "attack_type": attack[0]},
                                             main_category=c.AC_FIGHT, sub_category=c.ACS_HIT)
 
     def monster_death(self):
-        print("GENERIC DEATH FUNCTION")
         # Attribute the xp
         self.owner.game.player.experience += self.experience
-        self.owner.game.textbox.add = self.owner.name.capitalize() + ' is dead!'
+        gold = rd.randint(1,10)
+        self.owner.game.player.wealth += gold
+        self.owner.game.bus.publish(self.owner, {"attacker": self.owner.game.player,
+                                                 "defender": self.owner,
+                                                 "xp": self.experience,
+                                                 "gold": gold
+                                                 },
+                                    main_category=c.AC_FIGHT, sub_category=c.ACS_KILL)
         # transform it into a nasty corpse! it doesn't block, can't be
         # attacked and doesn't move
         self.owner.change(blocks=False, fighter=None, ai=None, image_ref="REMAINS",
@@ -150,12 +149,19 @@ class PlayerFighter(FighterEntity):
         if attack_roll > other_fighter.armor_class:
             # Hit: damage weapon (should be from inventory) + srtength bonus + class bonus
             damage = ut.roll(6) + self.owner.get_stat_bonus("strength")
-            self.owner.game.textbox.add = "{} attacks {} with {}, for {} damages".format(
-                self.owner.name.capitalize(), other_fighter.owner.name.capitalize(), "weapon", damage)
             other_fighter.take_damage(damage)
+            self.owner.game.bus.publish(self.owner, {"attacker": self.owner,
+                                                     "defender": other_fighter.owner,
+                                                     "result": "success",
+                                                     "attack_type": "weapon",
+                                                     "damage": damage},
+                                        main_category=c.AC_FIGHT, sub_category=c.ACS_HIT)
         else:
-            self.owner.game.textbox.add = "{} attacks {} with {} but it was blocked!".format(
-                self.owner.name.capitalize(), other_fighter.owner.name.capitalize(), "weapon")
+            self.owner.game.bus.publish(self.owner, {"attacker": self.owner,
+                                                     "defender": other_fighter.owner,
+                                                     "result": "failure",
+                                                     "attack_type": "weapon"},
+                                        main_category=c.AC_FIGHT, sub_category=c.ACS_HIT)
 
     # @property
     # def vision(self):
