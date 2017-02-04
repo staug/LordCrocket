@@ -39,9 +39,7 @@ class FighterEntity:
         # check for death. if there's a death function, call it
         if self.hit_points <= 0 and self.body_points <= 0:
             function = self.death_function
-            print("{} is dead".format(self.owner.name))
             if function is not None:
-                print("Calling death function")
                 function()
 
 
@@ -84,13 +82,14 @@ class MonsterFighter(FighterEntity):
                 damage = ut.roll(attack[1][1], repeat=attack[1][0]) + attack[1][2]
                 self.owner.game.bus.publish(self.owner, {"attacker":self.owner,
                                                          "defender":other_fighter.owner,
-                                                         "result": "success",
+                                                         "result": c.SUCCESS,
                                                          "attack_type": attack[0], "damage": damage},
                                             main_category=c.AC_FIGHT, sub_category=c.ACS_HIT)
+                other_fighter.take_damage(damage)
             else:
                 self.owner.game.bus.publish(self.owner, {"attacker":self.owner,
                                                          "defender":other_fighter.owner,
-                                                         "result": "failure",
+                                                         "result": c.FAILURE,
                                                          "attack_type": attack[0]},
                                             main_category=c.AC_FIGHT, sub_category=c.ACS_HIT)
 
@@ -149,17 +148,17 @@ class PlayerFighter(FighterEntity):
         if attack_roll > other_fighter.armor_class:
             # Hit: damage weapon (should be from inventory) + srtength bonus + class bonus
             damage = ut.roll(6) + self.owner.get_stat_bonus("strength")
-            other_fighter.take_damage(damage)
             self.owner.game.bus.publish(self.owner, {"attacker": self.owner,
                                                      "defender": other_fighter.owner,
-                                                     "result": "success",
+                                                     "result": c.SUCCESS,
                                                      "attack_type": "weapon",
                                                      "damage": damage},
                                         main_category=c.AC_FIGHT, sub_category=c.ACS_HIT)
+            other_fighter.take_damage(damage)
         else:
             self.owner.game.bus.publish(self.owner, {"attacker": self.owner,
                                                      "defender": other_fighter.owner,
-                                                     "result": "failure",
+                                                     "result": c.FAILURE,
                                                      "attack_type": "weapon"},
                                         main_category=c.AC_FIGHT, sub_category=c.ACS_HIT)
 

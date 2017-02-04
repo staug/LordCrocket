@@ -52,6 +52,9 @@ DEX_NAME = "dexterity"
 MIND_NAME = "mind"
 CHAR_NAME = "charisma"
 
+FAILURE = "failure"
+SUCCESS = "success"
+
 # Action type
 AC_MOVE = "move"
 AC_FIGHT = "fight"  # A fight message will always have the name of the attacked ("attacker_name"),

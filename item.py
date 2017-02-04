@@ -55,7 +55,9 @@ class ItemEntity:
             return
 
         if self.use_function is None:
-            self.owner.game.textbox.add = "The {} cannot be used.".format(self.owner.name)
+            self.owner.game.bus.publish(self.owner, {"item": self.owner, "result": c.FAILURE},
+                                        main_category=c.AC_ITEM,
+                                        sub_category=c.AC_ITEM_USE)
         else:
             if self.use_function() != ItemEntity.FUNCTION_CANCELLED:
                 self.owner.game.player.inventory.remove(self.owner)  # destroy after use, unless it was cancelled
@@ -86,14 +88,18 @@ class EquipmentEntity:
 
         # equip object and show a message about it
         self.is_equipped = True
-        self.owner.game.textbox.add = 'Equipped ' + self.owner.name + ' on ' + self.slot + '.'
+        self.owner.game.bus.publish(self.owner, {"item": self.owner, "slot": self.slot},
+                                    main_category=c.AC_ITEM,
+                                    sub_category=c.AC_ITEM_EQUIP)
 
     def dequip(self):
         # dequip object and show a message about it
         if not self.is_equipped:
             return
         self.is_equipped = False
-        self.owner.game.textbox.add = 'Dequipped ' + self.owner.name + ' from ' + self.slot + '.'
+        self.owner.game.bus.publish(self.owner, {"item": self.owner, "slot": self.slot},
+                                    main_category=c.AC_ITEM,
+                                    sub_category=c.AC_ITEM_UNEQUIP)
 
 
 

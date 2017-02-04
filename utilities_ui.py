@@ -401,13 +401,13 @@ class TextBox:
         # Now interpret the text
         if message["MAIN_CATEGORY"] == c.AC_FIGHT:
             if message["SUB_CATEGORY"] == c.ACS_HIT:
-                if message["result"] == "success":
+                if message["result"] == c.SUCCESS:
                     self.add = "{} hit {} with {}, dealing {} damages...".format(message["attacker"].name,
                                                                                message["defender"].name,
                                                                                message["attack_type"],
                                                                                message["damage"])
                 else:
-                    self.add = "{} tried hitting {} with {} but {}".format(message["attacker"].name,
+                    self.add = "{} tried hitting {} with {} but {}.".format(message["attacker"].name,
                                                                                message["defender"].name,
                                                                                message["attack_type"],
                                                                          rd.choice(("failed miserably",
@@ -423,7 +423,7 @@ class TextBox:
                 print("UNKNOWN MESSAGE: {}".format(message))
         elif message["MAIN_CATEGORY"] == c.AC_ITEM:
             if message["SUB_CATEGORY"] == c.AC_ITEM_GRAB:
-                if message["result"] == "success":
+                if message["result"] == c.SUCCESS:
                     if message["item"].long_desc is not None:
                         self.add = "You grabbed up a {}, {}".format(message["item"].name,
                                                                     message["item"].long_desc.lower())
@@ -433,6 +433,15 @@ class TextBox:
                     self.add = "Grabbing up {} was too difficult for you".format(message["item"].name)
             elif message["SUB_CATEGORY"] == c.AC_ITEM_DUMP:
                 self.add = "You carelessly dropped a {}".format(message["item"].name)
+            elif message["SUB_CATEGORY"] == c.AC_ITEM_USE:
+                if message["result"] == c.FAILURE:
+                    self.add = "Unfortunately the {} cannot be used".format(message["item"].name)
+            elif message["SUB_CATEGORY"] == c.AC_ITEM_EQUIP:
+                self.add = "You successfully equipped a {} on {}".format(message["item"].name,
+                                                                         message["slot"])
+            elif message["SUB_CATEGORY"] == c.AC_ITEM_UNEQUIP:
+                self.add = "You removed a {} from {}".format(message["item"].name,
+                                                                         message["slot"])
             else:
                 print("UNKNOWN MESSAGE: {}".format(message))
         else:
