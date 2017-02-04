@@ -11,7 +11,7 @@ from player import PlayerHelper
 from settings import *
 from tilemap import MapFactory, Camera, FieldOfView, Minimap
 from utilities import Ticker, Publisher
-from utilities_ui import TextBox, build_listing_dawnlike, build_listing_oryx
+from utilities_ui import TextBox, build_listing_dawnlike, build_listing_oryx, build_listing_icons
 from screen import CharacterScreen, PlayingScreen, InventoryScreen, MapScreen
 
 
@@ -39,6 +39,8 @@ class Game:
             self.all_images = build_listing_dawnlike(image_folder)
         elif IMG_STYLE == "ORYX":
             self.all_images = build_listing_oryx(image_folder)
+
+        build_listing_icons(image_folder, self.all_images)
 
 
     def new(self):
@@ -89,7 +91,7 @@ class Game:
         self.visible_player_array = self.fov.get_vision_matrix_for(self.player, flag_explored=True)
 
         # place monsters and items
-        ItemFactory(self).build_list(220)
+        ItemFactory(self).build_list(220) # 220
         MonsterFactory(self).build_list(25)
 
         # And we end with the screens...
@@ -99,7 +101,6 @@ class Game:
             c.GAME_STATE_CHARACTER: CharacterScreen(self, c.GAME_STATE_PLAYING),
             c.GAME_STATE_PLAYING: PlayingScreen(self, None)
         }
-
 
     def place_doors_stairs_traps(self, level):
         """

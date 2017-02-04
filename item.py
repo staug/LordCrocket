@@ -41,7 +41,7 @@ class ItemEntity:
         # add to the map and remove from the player's inventory. also, place it at the player's coordinates
         self.owner.game.objects.append(self.owner)
         self.owner.game.player.inventory.remove(self.owner)
-        self.owner.game.player_min1_sprite_group.append(self.owner)
+        self.owner.set_in_spritegroup(-1)
         self.owner.x = self.owner.game.player.x
         self.owner.y = self.owner.game.player.y
         self.owner.game.bus.publish(self.owner, {"item": self.owner},
@@ -61,6 +61,10 @@ class ItemEntity:
         else:
             if self.use_function() != ItemEntity.FUNCTION_CANCELLED:
                 self.owner.game.player.inventory.remove(self.owner)  # destroy after use, unless it was cancelled
+
+    def identify(self):
+        # TODO pass
+        print("NOT IMPLEMENTED YET")
 
 
 class EquipmentEntity:

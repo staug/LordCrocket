@@ -46,31 +46,33 @@ class Button(object):
             self.hover_text = None
             self.clicked_text = None
         '''
-        self.rect = pg.Rect(rect)
         self.command = command
         self.clicked = False
         self.hovered = False
         self.hover_text = None
         self.clicked_text = None
         self.process_kwargs(kwargs)
+        self.rect = pg.Rect(rect)
+        if self.image:
+            self.rect.width = self.image.get_rect().width
+            self.rect.height = self.image.get_rect().height
         self.render_text()
 
     def process_kwargs(self, kwargs):
         settings = {
             "id": None,
-            "color": pg.Color('red'),
+            "color": pg.Color('black'),
             "text": None,
             "font":  pg.font.Font(path.join(path.join(path.dirname(__file__), st.FONT_FOLDER), st.FONT_NAME), 10),
-            "call_on_release": True,
-            "hover_color": None,
+            "hover_color": pg.Color('white'),
             "clicked_color": None,
             "font_color": pg.Color("white"),
-            "hover_font_color": None,
+            "hover_font_color": pg.Color("red"),
             "clicked_font_color": None,
             "click_sound": None,
             "hover_sound": None,
             'border_color': pg.Color('black'),
-            'border_hover_color': pg.Color('yellow'),
+            'border_hover_color': pg.Color('white'),
             'disabled': False,
             'disabled_color': pg.Color('grey'),
             'radius': 3,
@@ -102,21 +104,12 @@ class Button(object):
         '''
         if event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
             self.on_click(event)
-        elif event.type == pg.MOUSEBUTTONUP and event.button == 1:
-            self.on_release(event)
 
     def on_click(self, event):
         if self.rect.collidepoint(event.pos):
-            self.clicked = True
-            if not self.call_on_release:
-                self.function()
-
-    def on_release(self, event):
-        if self.clicked and self.call_on_release:
-            # if user is still within button rect upon mouse release
-            if self.rect.collidepoint(pg.mouse.get_pos()):
-                self.command()
-        self.clicked = False
+            self.command()
+            return True
+        return False
 
     def check_hover(self):
         if self.rect.collidepoint(pg.mouse.get_pos()):
@@ -135,19 +128,7 @@ class Button(object):
         text = self.text
         border = self.border_color
         self.check_hover()
-        if not self.disabled:
-            if self.clicked and self.clicked_color:
-                color = self.clicked_color
-                if self.clicked_font_color:
-                    text = self.clicked_text
-            elif self.hovered and self.hover_color:
-                color = self.hover_color
-                if self.hover_font_color:
-                    text = self.hover_text
-            if self.hovered and not self.clicked:
-                border = self.border_hover_color
-        else:
-            color = self.disabled_color
+
 
         # if not self.rounded:
         #    surface.fill(border,self.rect)
@@ -159,8 +140,23 @@ class Button(object):
             rad = 0
 
         if self.image:
+            if self.hovered:
+                surface.fill(self.border_hover_color, self.rect.inflate(4, 4))
             surface.blit(self.image, self.rect)
         else:
+            if not self.disabled:
+                if self.clicked and self.clicked_color:
+                    color = self.clicked_color
+                    if self.clicked_font_color:
+                        text = self.clicked_text
+                elif self.hovered and self.hover_color:
+                    color = self.hover_color
+                    if self.hover_font_color:
+                        text = self.hover_text
+                if self.hovered:
+                    border = self.border_hover_color
+            else:
+                color = self.disabled_color
             self.round_rect(surface, self.rect, border, rad, 1, color)
 
         if self.text:
@@ -795,7 +791,9 @@ def load_image(image_src_list, folder, image_name, tile_x, tile_y, width=st.TILE
     :return:
     """
     image_src = get_image(image_src_list, folder, image_name)
-    if width == height == st.TILESIZE_SCREEN * adapt_ratio:
+    if adapt_ratio is None:
+        return image_src.subsurface(pg.Rect(width * tile_x, height * tile_y, width, height))
+    elif width == height == st.TILESIZE_SCREEN * adapt_ratio:
         return image_src.subsurface(pg.Rect(width * tile_x, height * tile_y, width, height))
     else:
         return pg.transform.scale(image_src.subsurface(pg.Rect(width * tile_x, height * tile_y, width, height)),
@@ -1007,6 +1005,14 @@ def load_creature_oryx(image_src_list, folder, image_name, ref_pos, width=st.TIL
               "N": west}
     return result
 
+def load_fx_oryx(image_src_list, folder, image_name, ref_pos, width=st.TILESIZE_FILE, height=st.TILESIZE_FILE, adapt_ratio=1):
+    x, y = ref_pos
+    result = {"S": (load_image(image_src_list, folder, image_name, x + 3, y, width=24, height=24, adapt_ratio=adapt_ratio),load_image(image_src_list, folder, image_name, x + 3, y, width=24, height=24, adapt_ratio=adapt_ratio)),
+              "W": (load_image(image_src_list, folder, image_name, x + 2, y, width=24, height=24, adapt_ratio=adapt_ratio),load_image(image_src_list, folder, image_name, x + 2, y, width=24, height=24, adapt_ratio=adapt_ratio)),
+              "E": (load_image(image_src_list, folder, image_name, x, y, width=24, height=24, adapt_ratio=adapt_ratio),load_image(image_src_list, folder, image_name, x, y, width=24, height=24, adapt_ratio=adapt_ratio)),
+              "N": (load_image(image_src_list, folder, image_name, x + 1, y, width=24, height=24, adapt_ratio=adapt_ratio),load_image(image_src_list, folder, image_name, x + 1, y, width=24, height=24, adapt_ratio=adapt_ratio))}
+    return result
+
 def get_image(image_src_list, folder, image_name):
     key = str(folder) + image_name
     if key not in image_src_list:
@@ -1102,6 +1108,17 @@ def build_listing_dawnlike(image_root_folder):
     # "FIREBALL": load_image(IMG_FOLDER, level_image_src, 42, 27),
     # "SPECIAL_EFFECT": [load_image(IMG_FOLDER, level_image_src, x, 21) for x in range(4)]
     return images
+
+
+def build_listing_icons(img_root, image_dict):
+    img_root = path.join(img_root, st.IMG_ICONS)
+    image_dict["ICON_EQUIP"] = load_image({}, img_root, "equip.png", 0, 0, width=32, height=32, adapt_ratio=None)
+    image_dict["ICON_UNEQUIP"] = load_image({}, img_root, "unequip.png", 0, 0, width=32, height=32, adapt_ratio=None)
+    image_dict["ICON_USE"] = load_image({}, img_root, "use.png", 0, 0, width=32, height=32, adapt_ratio=None)
+    image_dict["ICON_DROP"] = load_image({}, img_root, "drop.png", 0, 0, width=32, height=32, adapt_ratio=None)
+    image_dict["ICON_MORE"] = load_image({}, img_root, "more.png", 0, 0, width=32, height=32, adapt_ratio=None)
+    image_dict["ICON_IDENTIFY"] = load_image({}, img_root, "identify.png", 0, 0, width=32, height=32, adapt_ratio=None)
+
 
 def build_listing_oryx(img_root):
     
@@ -1342,6 +1359,9 @@ def build_listing_oryx(img_root):
                                       height=16, adapt_ratio=ratio_item)
     images["POTION_R_L"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 15, 1, width=16,
                                       height=16, adapt_ratio=ratio_item)
+
+    # FX
+    images["FIREBALL"] = load_fx_oryx(image_src_list, img_root, "oryx_16bit_fantasy_fx_trans.png", (1, 12), width=24, height=24)
 
     # EQUIPMENT
     images["SWORD"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 13, 10, width=16, height=16, adapt_ratio=ratio_item)
