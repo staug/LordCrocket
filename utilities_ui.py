@@ -402,12 +402,12 @@ class TextBox:
         if message["MAIN_CATEGORY"] == c.AC_FIGHT:
             if message["SUB_CATEGORY"] == c.ACS_HIT:
                 if message["result"] == c.SUCCESS:
-                    self.add = "{} hit {} with {}, dealing {} damages...".format(message["attacker"].name,
+                    self.add = "{} hit {} with {}, dealing {} damages".format(message["attacker"].name,
                                                                                message["defender"].name,
                                                                                message["attack_type"],
                                                                                message["damage"])
                 else:
-                    self.add = "{} tried hitting {} with {} but {}.".format(message["attacker"].name,
+                    self.add = "{} tried hitting {} with {} but {}".format(message["attacker"].name,
                                                                                message["defender"].name,
                                                                                message["attack_type"],
                                                                          rd.choice(("failed miserably",
@@ -415,10 +415,12 @@ class TextBox:
                                                                                    "this was a pitiful attempt")))
             elif message["SUB_CATEGORY"] == c.ACS_KILL:
                 self.add = "After a short fight, {} killed {} " \
-                           "- LordCrocket awards {} experience point and {} gold.".format(message["attacker"].name,
+                           "- LordCrocket awards {} experience point and {} gold".format(message["attacker"].name,
                                                                                         message["defender"].name,
                                                                                         message["xp"],
                                                                                         message["gold"])
+            elif message["SUB_CATEGORY"] == c.ACS_VARIOUS:
+                self.add = message["message"]
             else:
                 print("UNKNOWN MESSAGE: {}".format(message))
         elif message["MAIN_CATEGORY"] == c.AC_ITEM:

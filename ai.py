@@ -1,5 +1,6 @@
 from math import sqrt
-
+import constants as c
+import random as rd
 
 class AI:
 
@@ -27,17 +28,27 @@ class AIEntity(AI):
     def __init__(self, speed=1):
         AI.__init__(self)
         self.speed = speed  # the speed represents
+        self.already_viewed_player = False
 
     def take_turn(self):
         # print( "The {} take turn".format(self.owner.name))
         if self.owner.view(self.owner.game.player):
-            pass
-            # self.owner.game.textbox.add = "The {} growls".format(self.owner.name)
+            if not self.already_viewed_player:
+                message = rd.choice(("{} views {}".format(self.owner.name, self.owner.game.player.name),
+                                     "{} growls when he sees {}".format(self.owner.name, self.owner.game.player.name),
+                                     "{} looks at {}".format(self.owner.name, self.owner.game.player.name))
+                                    )
+                self.owner.game.bus.publish(self.owner,
+                                            {"message": message},
+                                            main_category=c.AC_FIGHT,
+                                            sub_category=c.ACS_VARIOUS)
+            self.already_viewed_player = True
 
-        if self.owner.distance_to(self.owner.game.player) >= 2:
-            self.move_towards(self.owner.game.player.pos)
-        elif self.owner.fighter and self.owner.game.player.fighter.body_points > 0:
-            self.owner.fighter.attack(self.owner.game.player.fighter)
+            # We only move or fight if the monster is in the vision field
+            if self.owner.distance_to(self.owner.game.player) >= 2:
+                self.move_towards(self.owner.game.player.pos)
+            elif self.owner.fighter and self.owner.game.player.fighter.body_points > 0:
+                self.owner.fighter.attack(self.owner.game.player.fighter)
 
         if self.owner.fighter and self.owner.fighter.hit_points > 0:
             self.owner.game.ticker.schedule_turn(self.speed, self)

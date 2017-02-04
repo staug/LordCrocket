@@ -57,8 +57,7 @@ SUCCESS = "success"
 
 # Action type
 AC_MOVE = "move"
-AC_FIGHT = "fight"  # A fight message will always have the name of the attacked ("attacker_name"),
-# defender ("defender_name"), position ("pos"), room ("room")
+AC_FIGHT = "fight"  # A fight message will always have the name of the attacked ("attacker") and defender ("defender")
 # -> Sub:
 ACS_KILL = "kill"  # In that case, register xp gained ("xp") and gold ("gold")
 ACS_HIT = "hit"  # In that case, register attack type ("attack_type"), amount of damage ("damage"), result ("result")
