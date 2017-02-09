@@ -49,6 +49,7 @@ ITEM
 * Each item has durability index
 * [Placeholder done] Each item, monster... has a long description
 * [DONE] Create a chest as an actionable item
+* Doors: need a dex or strength test to pass, otherwise needs to battle them with a chance of breaking weapon
 
 Spells and potions
 * Increase and decrease visibility radius

@@ -41,6 +41,7 @@ IMG_DAWNLIKE_SUB = 'dawnlike'
 IMG_ORYX_SUB = 'oryx'
 IMG_PIXEL_SUB = 'pixel'
 IMG_ICONS = 'icons'
+SOUND_FOLDER = 'sound'
 
 FONT_FOLDER = 'font'
 # FONT_NAME = 'unispace.ttf'

@@ -1,5 +1,5 @@
 import sys
-from os import path
+from os import path, listdir
 
 import dill as pick
 import pygame as pg
@@ -20,6 +20,7 @@ class Game:
     def __init__(self):
         pg.display.init()
         pg.font.init()
+        pg.mixer.init()
 
         self.screen = pg.display.set_mode((GAME_WIDTH, GAME_HEIGHT), pg.RESIZABLE)
         pg.display.set_caption(GAME_TITLE + "-" + GAME_VER)
@@ -28,6 +29,7 @@ class Game:
         self.playing = True
 
         self.load_data()
+        self.load_music()
 
     def load_data(self):
 
@@ -42,6 +44,16 @@ class Game:
 
         build_listing_icons(image_folder, self.all_images)
 
+    def load_music(self):
+        game_folder = path.dirname(__file__)
+        sound_folder = path.join(game_folder, SOUND_FOLDER)
+        self.soundfiles = [path.join(SOUND_FOLDER, f) for f in listdir(sound_folder)
+                           if path.isfile(path.join(sound_folder, f))]
+        pg.mixer.music.set_endevent(pg.USEREVENT + 1)
+        pg.mixer.music.load(self.soundfiles[0])
+        pg.mixer.music.play()
+        pg.mixer.music.pause()
+        self.music_playing = False
 
     def new(self):
 

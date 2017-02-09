@@ -589,6 +589,11 @@ class PlayingScreen(Screen):
 
         else:
             for event in pg.event.get():
+                if event.type == pg.USEREVENT + 1:
+                    self.game.soundfiles = self.game.soundfiles[1:] + [self.game.soundfiles[0]] # move current song to the back of the list
+                    pg.mixer.music.load(self.game.soundfiles[0])
+                    print("Now playing: {}".format(self.game.soundfiles[0]))
+                    pg.mixer.music.play()
                 if event.type == pg.QUIT:
                     self.game.quit()
                 if event.type == pg.VIDEORESIZE:
@@ -646,6 +651,12 @@ class PlayingScreen(Screen):
                         (x, y) = self.game.player.pos
                         x += 1
                         NPCHelper(self.game, "Companion", (x, y), "DOG")
+                    if event.key == pg.K_r:
+                        if self.game.music_playing:
+                            pg.mixer.music.pause()
+                        else:
+                            pg.mixer.music.unpause()
+                        self.game.music_playing = not self.game.music_playing
 
                     if event.key == pg.K_s:
                         print("SAVING and EXIT")
