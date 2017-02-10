@@ -20,7 +20,6 @@ class Game:
     def __init__(self):
         pg.display.init()
         pg.font.init()
-        pg.mixer.init()
 
         self.screen = pg.display.set_mode((GAME_WIDTH, GAME_HEIGHT), pg.RESIZABLE)
         pg.display.set_caption(GAME_TITLE + "-" + GAME_VER)
@@ -29,7 +28,7 @@ class Game:
         self.playing = True
 
         self.load_data()
-        self.load_music()
+        #self.load_music()
 
     def load_data(self):
 
@@ -45,6 +44,7 @@ class Game:
         build_listing_icons(image_folder, self.all_images)
 
     def load_music(self):
+        pg.mixer.init()
         game_folder = path.dirname(__file__)
         sound_folder = path.join(game_folder, SOUND_FOLDER)
         self.soundfiles = [path.join(SOUND_FOLDER, f) for f in listdir(sound_folder)
@@ -72,7 +72,7 @@ class Game:
         self.textbox.text = "Welcome to the dungeon - {}".format(GAME_VER)
 
         # initializing map structure
-        self.map = MapFactory("Map of the dead - Level {}".format(self.level), self.all_images).map
+        self.map = MapFactory("LordCroket Caves - Level {}".format(self.level), self.all_images).map
         self.minimap = Minimap(self)
 
         # Field of view
@@ -226,10 +226,12 @@ class Game:
 
     def run(self):
         # game loop - set self.playing = False to end the game
+        clock = pg.time.Clock()
         while self.playing:
             self.screens[self.game_state].events()
             self.screens[self.game_state].update()
             self.screens[self.game_state].draw()
+            clock.tick(40) #  the program will never run at more than 40 frames per second
 
     def quit(self):
         pg.quit()
@@ -239,7 +241,16 @@ class Game:
         pass
 
     def show_go_screen(self):
-        pass
+        clock = pg.time.Clock()
+        font = pg.font.SysFont(None, 48)
+        string = "You died horribly..."
+        self.screen.fill(BGCOLOR)
+        for i in range(len(string)):
+            text = font.render(string[i], True, WHITE)
+            self.screen.blit(text, (100 + (font.size(string[:i])[0]), 300))
+            pg.display.update()
+            clock.tick(2)
+        self.quit()
 
 if __name__ == '__main__':
     # create the game object

@@ -139,8 +139,8 @@ class PlayerFighter(FighterEntity):
 
     def player_death(self):
         # the game ended!
+        self.owner.game.playing = False
         print('You died')
-        self.owner.game.quit()
 
     def attack(self, other_fighter, attack_type="Melee"):
         # attack_rolls = 1D20 + attack bonus
