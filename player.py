@@ -45,6 +45,8 @@ class PlayerHelper(Entity):
 
         self.invalidate_fog_of_war = True
 
+        quest = KillQuest(game.bus, "BAT", 2, "Kill at least 2 bats")
+
     @property
     def strength(self):
         return self.base_strength + self.get_bonus(c.BONUS_STR)
@@ -198,3 +200,49 @@ class PlayerHelper(Entity):
             if not item.equipment or item.equipment is None:
                 non_equipment.append(item)
         return non_equipment
+
+
+class Quest:
+    def __init__(self, message_bus, long_text):
+        self.message_bus = message_bus
+        self.state = c.QUEST_SUBSCRIBED
+        self.long_text = long_text
+
+    def cancel(self):
+        self.state = c.QUEST_CANCELLED
+
+
+class KillQuest(Quest):
+
+    def __init__(self, message_bus, enemy_type, limit_for_success, long_text):
+        Quest.__init__(self, message_bus, long_text)
+
+        self.enemy_type = enemy_type
+        self.current_kill = 0
+        self.limit_for_success = limit_for_success
+
+        self.message_bus.register(self,
+                 main_category=c.AC_FIGHT,
+                 sub_category=c.ACS_KILL,
+                 function_to_call=self.new_kill)
+
+
+    def new_kill(self, message):
+        print("KILLLLLL")
+        if self.state == c.QUEST_SUBSCRIBED:
+            monster = message['defender']
+            if monster.image_ref == self.enemy_type:
+                self.current_kill += 1
+                print("CORRETC MONSTER")
+            else:
+                print("WRONG ENEMY TYPE")
+            self.update()
+
+    def update(self):
+        if self.state == c.QUEST_SUBSCRIBED:
+            if self.current_kill >= self.limit_for_success:
+                print("FINISHED")
+                self.state = c.QUEST_FINISHED
+                self.message_bus.unregister_all(self)
+
+

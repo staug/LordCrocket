@@ -1,6 +1,9 @@
 # This file holds all the constants for all the game.
 # Contrary to settings, these are things that should not be changed.
 
+MINIMUM_DISTANCE = 1.4142135623730951 # Square root of 2. If the distance is greater than that,
+# then 2 entities are at greater distance than 1 tile away in any direction
+
 # Image Styles
 IM_STYLE_DAWNLIKE = "DAWNLIKE"
 IM_STYLE_ORYX = "ORYX"
@@ -71,3 +74,8 @@ AC_ITEM_DUMP = "DUMP"
 AC_ITEM_EQUIP = "EQUIP"
 AC_ITEM_UNEQUIP = "UNEQUIP"
 AC_ITEM_USE = "USE"
+
+# QUESTS STATES
+QUEST_SUBSCRIBED = "quest_subscribed"
+QUEST_CANCELLED = "quest_cancelled"
+QUEST_FINISHED = "quest_finished"
