@@ -28,7 +28,7 @@ class Game:
         self.playing = True
 
         self.load_data()
-        #self.load_music()
+
 
     def load_data(self):
 
@@ -44,6 +44,10 @@ class Game:
         build_listing_icons(image_folder, self.all_images)
 
     def load_music(self):
+        """
+        Load the music from the folder. Called when the music is turned on only...
+        :return:
+        """
         pg.mixer.init()
         game_folder = path.dirname(__file__)
         sound_folder = path.join(game_folder, SOUND_FOLDER)

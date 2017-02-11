@@ -1,11 +1,3 @@
-GRAPHICS
-* Work with three possible tilesets: dawnlike, oryx and pixel
-* [Done] The type of graphic must be selectable
-
-DUNGEON
-* [Done] Make Dungeon beautiful
-* [DONE] Split dungeon in subclasses
-
 PLAYER
 * Player in exploration mode (higher vision) and in combat mode (def penalty if not in combat mode?)
 
@@ -16,39 +8,18 @@ GENERAL GAME
 * CLean up UI
 * Redesign the text box
 * Redesign the question box, make a generic pattern (type, sentence, list of choice, list of call backs with variable parameters)
-* [Done] Stairs between maps
-* [DONE] Move all constants (tile tyep, equipment...) to constant file, and simplify all imports
-
-MESSAGING BETWEEN ALL
-* [DONE] Implement a subscribe pattern
-* The logger should be used to display terminal events
-* This will be used in quests
-
-CHARACTER_SCREEN:
-* [Partially DONE] Make it beyond the ugly feel that is present
-
-MAP SCREEN
-* Map mode: map is centered
 
 INVENTORY SCREEN
-* [DONE] Inventory text and display
 * Inventory: display x items max, and then move to the next ones...
-
-SPEED SYSTEM
-* [DONE] Different speed for each action
-* [DONE] Use a ticker property to record last action update.
 
 MONSTER
 * More characteristics to hero and monster - http://www.roguebasin.com/index.php?title=A_Better_Monster_AI
 * Better AI and more personality to monster
 * Monster drops gold and xp!
-* [DONE] Remains of monster should be a new class... and create a method to change appearance of entity
 
 ITEM
-* Eahc item has a weight
+* Each item has a weight
 * Each item has durability index
-* [Placeholder done] Each item, monster... has a long description
-* [DONE] Create a chest as an actionable item
 * Doors: need a dex or strength test to pass, otherwise needs to battle them with a chance of breaking weapon
 
 Spells and potions
@@ -62,5 +33,14 @@ BUGS
 * [Done] Potion heals only hit opints, not body points
 
 Notes:
-Gold from monster
 Heal from exploration
+
+Short list:
+* Monster type and legend
+* Add at least three monster types
+* Player heal
+* [DONE] Fix sound
+* Events: each screen should handle some events in the same way
+* Quests system
+* Player level up
+* SPlit the entities files in multiple reusable ones

@@ -652,6 +652,10 @@ class PlayingScreen(Screen):
                         x += 1
                         NPCHelper(self.game, "Companion", (x, y), "DOG")
                     if event.key == pg.K_r:
+                        # First, make sure that the music system is unabled
+                        if not hasattr(self.game, "soundfiles"):
+                            self.game.load_music()
+
                         if self.game.music_playing:
                             pg.mixer.music.pause()
                         else:
