@@ -482,6 +482,8 @@ class PlayingScreen(Screen):
         bt1.command = lambda player=self.game.player, screen=self: screen.test(player=player, widget=bt1.id)
         bt2 = Button((10, 30, 50, 20), None, text="THIS IS A LONNG TEXT", id='B')
         bt2.command = lambda player=self.game.player, screen=self: screen.test(player=player, widget=bt2.id)
+
+        self.widgets.append(game.textbox)
         #self.widgets.append(bt1)
         #self.widgets.append(bt2)
 
@@ -566,9 +568,9 @@ class PlayingScreen(Screen):
                                    self.game.minimap.background_mini_map.get_width() - 10, 10))
 
         # Text -> First line is to remove background
-        self.game.screen.fill(BGCOLOR, self.game.textbox._ktext.rect)
-        pg.draw.rect(self.game.screen, WHITE, self.game.textbox._ktext.rect.inflate(6, 6), 2)
-        self.game.textbox.draw(self.game.screen)
+        #self.game.screen.fill(BGCOLOR, self.game.textbox._ktext.rect)
+        #pg.draw.rect(self.game.screen, WHITE, self.game.textbox._ktext.rect.inflate(6, 6), 2)
+        #self.game.textbox.draw(self.game.screen)
 
         # Generic Modal Widgets?
         for widget in self.widgets:
@@ -579,16 +581,14 @@ class PlayingScreen(Screen):
     def events(self):
 
         # catch all events here
-        if len(self.widgets) > 0:
-            # Note that all these widgets are considered modal...
-            for event in pg.event.get():
-                if event.type == pg.QUIT:
-                    self.game.quit()
-                for widget in self.widgets:
-                    widget.get_event(event)
 
-        else:
             for event in pg.event.get():
+                handled = False
+                for widget in self.widgets:
+                    if not handled:
+                        handled = widget.get_event(event)
+                if handled:
+                    return
                 if event.type == pg.USEREVENT + 1:
                     self.game.soundfiles = self.game.soundfiles[1:] + [self.game.soundfiles[0]] # move current song to the back of the list
                     pg.mixer.music.load(self.game.soundfiles[0])

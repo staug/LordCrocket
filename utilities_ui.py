@@ -1,7 +1,6 @@
 import pygame as pg
 import settings as st
 from os import path
-from ktextsurfacewriter import KTextSurfaceWriter
 import constants as c
 import random as rd
 import string
@@ -337,47 +336,109 @@ class InputBox(object):
             surface.fill(self.font_color, (curse.right + 1, curse.y, 2, curse.h))
 
 
-class TextBox:
+class LogBox:
     """
-    Handle a Textbox on the screen.
+    Handle a Textbox on the screen, that is used to display all the messages.
+    The messages have different colors depending on the type of actions.
+    The messages should only be received via the bus.
     Use the add property to add message, and a text property to set a text.
     """
     def __init__(self,
-                 game,
-                 rect=pg.Rect(0, st.GAME_WIDTH-st.TEXT_PART_HEIGHT, st.TEXT_PART_WIDTH, st.TEXT_PART_HEIGHT),
-                 font_name=st.FONT_NAME,
-                 font_size=10,
-                 limit_message=8):
+                 bus,
+                 position,
+                 limit_lines=8,
+                 border=2,
+                 border_color=st.WHITE):
 
-        game_folder = path.dirname(__file__)
-        font_folder = path.join(game_folder, st.FONT_FOLDER)
-        font = pg.font.Font(path.join(font_folder, font_name), font_size)
+        self.font = pg.font.Font(path.join(path.join(path.dirname(__file__), st.FONT_FOLDER), st.FONT_NAME), 10)
+        self.border = border
+        self.border_color = border_color
 
-        self.game = game
-        self.game.bus.register(self)
-        self._ktext = KTextSurfaceWriter(rect, font=font, color=st.WHITE)
-        self._text = ""
-        self.message = []
-        self.limit_message = limit_message
+        font_width, font_height = self.font.size("A")
+        self.rect = pg.Rect(position[0] + border,
+                            position[1] + border,
+                            max(100 * font_width, st.TEXT_PART_WIDTH - 20),
+                            limit_lines * self.font.get_height())
+        bus.register(self)
+        self.messages = []
+        self.limit_lines = limit_lines
         self.delta = 0
-
         self.drag_drop_text_box = False
+        self.force_render = True
+        self._render_texts = None
         self.old_mouse_x, self.old_mouse_y = 0, 0
 
-    def _set_text(self, text):
-        self.message = [text]
-        self.delta = 0
-        self._ktext.text = text
-    text = property(lambda self: self._text, _set_text, doc="""The text to be displayed""")
+    @classmethod
+    def wordTooLong(cls, word, font, max_length, justify_chars=0):
+        """test if a single word is too long to the displayed with the given font.
+        @word: the word to check
+        @font: the pygame.Font to use
+        @max_length: the max length of the word
+        @justify_chars: an integer that add a number of spaces at the worrd total length.
+        @return: True if the word will be longer
+        """
+        # BBB: someday this function could became part of some text (non graphical) utility?
+        return font.size((" "*justify_chars)+word)[0]>max_length
 
-    def _add_text(self, text):
-        self.message.append("[{}] {}".format(self.game.ticker.ticks, text))
-        self.delta = 0
-        message = ""
-        for mes in self.message[-self.limit_message:]:
-            message += mes + "\n"
-        self._ktext.text = message
-    add = property(lambda self: self._text, _add_text, doc="""The text to be added""")
+    @classmethod
+    def normalizeTextLength(cls, text_too_long, font, max_length, justify_chars=0):
+        """This function take a text too long and split it in a list of smaller text lines.
+        The final text max length must be less/equals than max_length parameter, using the font passed.
+
+        @return: a list of text lines.
+        """
+        # BBB: someday this function could became part of some text (non graphical) utility?
+        words = [x for x in text_too_long.split(" ")]
+        words_removed = []
+        tooLong = True
+        txt1 = txt2 = ""
+        while tooLong:
+            word = words.pop()
+            # Simple: cut the word and go on
+            while cls.wordTooLong(word, font, max_length, justify_chars=justify_chars):
+                word = word[:-1].strip()
+
+            words_removed.append(word)
+            txt1 = " ".join(words)
+            if font.size(txt1)[0] <= max_length:
+                tooLong = False
+        words_removed.reverse()
+        txt2 = (" " * justify_chars) + " ".join(words_removed)
+        if font.size(txt2)[0] <= max_length:
+            return [txt1, txt2]
+        else:
+            return [txt1] + cls.normalizeTextLength(txt2, font, max_length, justify_chars=justify_chars)
+
+    def draw(self, surface):
+        if self.force_render:
+            self._render_texts = self.render()
+
+        pg.draw.rect(surface, self.border_color, self.rect.inflate(self.border, self.border))
+        surface.fill(st.BGCOLOR, rect=self.rect)
+        i = 0
+        for render_surf in self._render_texts:
+            surface.blit(render_surf, (self.rect.left, self.rect.top + i * self.font.get_height()))
+            i += 1
+
+    def render(self):
+        i = 0
+        color = {c.AC_FIGHT: st.RED, c.AC_ITEM: st.YELLOW}
+        ren = []
+        for line, category in self.prepare_message_list():
+            ren.append(self.font.render(line, 1, color[category], st.BGCOLOR))
+            i += 1
+        return ren
+
+    def get_event(self, event):
+        return False
+
+    def update(self):
+        pass
+
+    def _setText(self, text):
+        print("TTTEXXXTTT NOT PROPERLY SET {}".format(text))
+    add = property(lambda self: self._text, _setText, doc="""The text to be displayed""")
+
 
     def scroll(self, deltav):
         self.delta += deltav
@@ -390,56 +451,78 @@ class TextBox:
             message += mes + "\n"
         self._ktext.text = message
 
-    def draw(self, surface):
-        self._ktext.draw(surface)
+
+    def record_message(self, text, category):
+        self.messages.append([text, category])
+        self.force_render = True
+
+    def prepare_message_list(self):
+        message_for_display = []
+        rw = self.rect.width
+        for message_info in self.messages[-self.limit_lines + self.delta:len(self.messages) + self.delta]:
+            text, category = message_info
+            lw, lh = self.font.size(text)
+            if lw>rw:
+                text_list = self.normalizeTextLength(text,
+                                     self.font,
+                                     self.rect.width,
+                                     justify_chars=0)
+                for line in text_list:
+                    message_for_display.append([line, category])
+            else:
+                message_for_display.append(message_info)
+        return message_for_display[-self.limit_lines + self.delta:len(message_for_display) + self.delta]
 
     def notify(self, message):
         # Now interpret the text
         if message["MAIN_CATEGORY"] == c.AC_FIGHT:
             if message["SUB_CATEGORY"] == c.ACS_HIT:
                 if message["result"] == c.SUCCESS:
-                    self.add = "{} hit {} with {}, dealing {} damages".format(message["attacker"].name,
+                    self.record_message("{} hit {} with {}, dealing {} damages".format(message["attacker"].name,
                                                                                message["defender"].name,
                                                                                message["attack_type"],
-                                                                               message["damage"])
+                                                                               message["damage"]),
+                                        c.AC_FIGHT)
                 else:
-                    self.add = "{} tried hitting {} with {} but {}".format(message["attacker"].name,
+                    self.record_message("{} tried hitting {} with {} but {}".format(message["attacker"].name,
                                                                                message["defender"].name,
                                                                                message["attack_type"],
                                                                          rd.choice(("failed miserably",
                                                                                    "it was blocked",
-                                                                                   "this was a pitiful attempt")))
+                                                                                   "this was a pitiful attempt"))),
+                                        c.AC_FIGHT)
             elif message["SUB_CATEGORY"] == c.ACS_KILL:
-                self.add = "After a short fight, {} killed {} " \
+                self.record_message("After a short fight, {} killed {} " \
                            "- LordCrocket awards {} experience point and {} gold".format(message["attacker"].name,
                                                                                         message["defender"].name,
                                                                                         message["xp"],
-                                                                                        message["gold"])
+                                                                                        message["gold"]),
+                                    c.AC_FIGHT)
             elif message["SUB_CATEGORY"] == c.ACS_VARIOUS:
-                self.add = message["message"]
+                self.record_message(message["message"], c.AC_FIGHT)
             else:
                 print("UNKNOWN MESSAGE: {}".format(message))
         elif message["MAIN_CATEGORY"] == c.AC_ITEM:
             if message["SUB_CATEGORY"] == c.AC_ITEM_GRAB:
                 if message["result"] == c.SUCCESS:
                     if message["item"].long_desc is not None:
-                        self.add = "You grabbed up a {}, {}".format(message["item"].name,
-                                                                    message["item"].long_desc.lower())
+                        self.record_message("You grabbed up a {}, {}".format(message["item"].name,
+                                                                    message["item"].long_desc.lower()), c.AC_ITEM)
                     else:
-                        self.add = "You grabbed up a {}".format(message["item"].name)
+                        self.record_message( "You grabbed up a {}".format(message["item"].name), c.AC_ITEM)
                 else:
-                    self.add = "Grabbing up {} was too difficult for you".format(message["item"].name)
+                    self.record_message("Grabbing up {} was too difficult for you".format(message["item"].name), c.AC_ITEM)
             elif message["SUB_CATEGORY"] == c.AC_ITEM_DUMP:
-                self.add = "You carelessly dropped a {}".format(message["item"].name)
+                self.record_message("You carelessly dropped a {}".format(message["item"].name), c.AC_ITEM)
             elif message["SUB_CATEGORY"] == c.AC_ITEM_USE:
                 if message["result"] == c.FAILURE:
-                    self.add = "Unfortunately the {} cannot be used".format(message["item"].name)
+                    self.record_message("Unfortunately the {} cannot be used".format(message["item"].name), c.AC_ITEM)
             elif message["SUB_CATEGORY"] == c.AC_ITEM_EQUIP:
-                self.add = "You successfully equipped a {} on {}".format(message["item"].name,
-                                                                         message["slot"])
+                self.record_message("You successfully equipped a {} on {}".format(message["item"].name,
+                                                                         message["slot"]), c.AC_ITEM)
             elif message["SUB_CATEGORY"] == c.AC_ITEM_UNEQUIP:
-                self.add = "You removed a {} from {}".format(message["item"].name,
-                                                                         message["slot"])
+                self.record_message("You removed a {} from {}".format(message["item"].name,
+                                                                         message["slot"]), c.AC_ITEM)
             else:
                 print("UNKNOWN MESSAGE: {}".format(message))
         else:

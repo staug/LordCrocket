@@ -11,7 +11,7 @@ from player import PlayerHelper
 from settings import *
 from tilemap import MapFactory, Camera, FieldOfView, Minimap
 from utilities import Ticker, Publisher
-from utilities_ui import TextBox, build_listing_dawnlike, build_listing_oryx, build_listing_icons
+from utilities_ui import LogBox, build_listing_dawnlike, build_listing_oryx, build_listing_icons
 from screen import CharacterScreen, PlayingScreen, InventoryScreen, MapScreen
 
 
@@ -72,8 +72,7 @@ class Game:
 
         # Loading fonts and initialize text system
         # TODO: the textbox is just a widget of the playing part
-        self.textbox = TextBox(self)
-        self.textbox.text = "Welcome to the dungeon - {}".format(GAME_VER)
+        self.textbox = LogBox(self.bus, (0, GAME_HEIGHT - TEXT_PART_HEIGHT))
 
         # initializing map structure
         self.map = MapFactory("LordCroket Caves - Level {}".format(self.level), self.all_images).map
