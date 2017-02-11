@@ -359,6 +359,7 @@ class LogBox:
                             position[1] + border,
                             max(100 * font_width, st.TEXT_PART_WIDTH - 20),
                             limit_lines * self.font.get_height())
+        self.rect.centerx = int(st.GAME_WIDTH / 2)
         bus.register(self)
         self.messages = []
         self.limit_lines = limit_lines
@@ -411,7 +412,13 @@ class LogBox:
 
     def draw(self, surface):
         if self.force_render:
-            self._render_texts = self.render()
+            self._render_texts = []
+            i = 0
+            color = {c.AC_FIGHT: st.RED, c.AC_ITEM: st.YELLOW}
+            msg_list = self._prepare_message_list()
+            for line, category in msg_list:
+                self._render_texts.append(self.font.render(line, 1, color[category], st.BGCOLOR))
+                i += 1
 
         pg.draw.rect(surface, self.border_color, self.rect.inflate(self.border, self.border))
         surface.fill(st.BGCOLOR, rect=self.rect)
@@ -420,46 +427,10 @@ class LogBox:
             surface.blit(render_surf, (self.rect.left, self.rect.top + i * self.font.get_height()))
             i += 1
 
-    def render(self):
-        i = 0
-        color = {c.AC_FIGHT: st.RED, c.AC_ITEM: st.YELLOW}
-        ren = []
-        for line, category in self.prepare_message_list():
-            ren.append(self.font.render(line, 1, color[category], st.BGCOLOR))
-            i += 1
-        return ren
-
-    def get_event(self, event):
-        return False
-
-    def update(self):
-        pass
-
-    def _setText(self, text):
-        print("TTTEXXXTTT NOT PROPERLY SET {}".format(text))
-    add = property(lambda self: self._text, _setText, doc="""The text to be displayed""")
-
-
-    def scroll(self, deltav):
-        self.delta += deltav
-        if self.delta > 0:
-            self.delta = 0
-        if self.delta < -len(self.message) + self.limit_message:
-            self.delta = -len(self.message) + self.limit_message
-        message = ""
-        for mes in self.message[-self.limit_message + self.delta:len(self.message) + self.delta]:
-            message += mes + "\n"
-        self._ktext.text = message
-
-
-    def record_message(self, text, category):
-        self.messages.append([text, category])
-        self.force_render = True
-
-    def prepare_message_list(self):
+    def _prepare_message_list(self):
         message_for_display = []
         rw = self.rect.width
-        for message_info in self.messages[-self.limit_lines + self.delta:len(self.messages) + self.delta]:
+        for message_info in self.messages:
             text, category = message_info
             lw, lh = self.font.size(text)
             if lw>rw:
@@ -471,69 +442,100 @@ class LogBox:
                     message_for_display.append([line, category])
             else:
                 message_for_display.append(message_info)
-        return message_for_display[-self.limit_lines + self.delta:len(message_for_display) + self.delta]
+
+        if self.delta < -len(message_for_display) + self.limit_lines:
+            self.delta = -len(message_for_display) + self.limit_lines
+        return message_for_display[- self.limit_lines + self.delta:len(message_for_display) + self.delta]
+
+    def get_event(self, event):
+        if event.type == pg.MOUSEBUTTONUP and self.rect.collidepoint(event.pos):
+            (x, y) = pg.mouse.get_pos()
+            pos_in_chat = y - self.rect.y
+            if pos_in_chat > self.rect.height / 2:
+                self.delta += 1
+                if self.delta > 0:
+                    self.delta = 0
+            else:
+                self.delta -= 1 # the delta will be adapted in the prepare message method
+            self.force_render = True
+            return True # Event consumed...
+        return False
+
+    def update(self):
+        pass
+
+    def _setText(self, text):
+        print("TTTEXXXTTT NOT PROPERLY SET {}".format(text))
+    add = property(lambda self: self._text, _setText, doc="""The text to be displayed""")
+
+
+    def _record_message(self, text, category):
+        self.messages.append([text, category])
+        self.force_render = True
+        self.delta = 0
 
     def notify(self, message):
         # Now interpret the text
         if message["MAIN_CATEGORY"] == c.AC_FIGHT:
             if message["SUB_CATEGORY"] == c.ACS_HIT:
                 if message["result"] == c.SUCCESS:
-                    self.record_message("{} hit {} with {}, dealing {} damages".format(message["attacker"].name,
-                                                                               message["defender"].name,
-                                                                               message["attack_type"],
-                                                                               message["damage"]),
-                                        c.AC_FIGHT)
+                    self._record_message("{} hit {} with {}, dealing {} damages".format(message["attacker"].name,
+                                                                                        message["defender"].name,
+                                                                                        message["attack_type"],
+                                                                                        message["damage"]),
+                                         c.AC_FIGHT)
                 else:
-                    self.record_message("{} tried hitting {} with {} but {}".format(message["attacker"].name,
-                                                                               message["defender"].name,
-                                                                               message["attack_type"],
-                                                                         rd.choice(("failed miserably",
+                    self._record_message("{} tried hitting {} with {} but {}".format(message["attacker"].name,
+                                                                                     message["defender"].name,
+                                                                                     message["attack_type"],
+                                                                                     rd.choice(("failed miserably",
                                                                                    "it was blocked",
                                                                                    "this was a pitiful attempt"))),
-                                        c.AC_FIGHT)
+                                         c.AC_FIGHT)
             elif message["SUB_CATEGORY"] == c.ACS_KILL:
-                self.record_message("After a short fight, {} killed {} " \
+                self._record_message("After a short fight, {} killed {} " \
                            "- LordCrocket awards {} experience point and {} gold".format(message["attacker"].name,
                                                                                         message["defender"].name,
                                                                                         message["xp"],
                                                                                         message["gold"]),
-                                    c.AC_FIGHT)
+                                     c.AC_FIGHT)
             elif message["SUB_CATEGORY"] == c.ACS_VARIOUS:
-                self.record_message(message["message"], c.AC_FIGHT)
+                self._record_message(message["message"], c.AC_FIGHT)
             else:
                 print("UNKNOWN MESSAGE: {}".format(message))
         elif message["MAIN_CATEGORY"] == c.AC_ITEM:
             if message["SUB_CATEGORY"] == c.AC_ITEM_GRAB:
                 if message["result"] == c.SUCCESS:
                     if message["item"].long_desc is not None:
-                        self.record_message("You grabbed up a {}, {}".format(message["item"].name,
-                                                                    message["item"].long_desc.lower()), c.AC_ITEM)
+                        self._record_message("You grabbed up a {}, {}".format(message["item"].name,
+                                                                              message["item"].long_desc.lower()), c.AC_ITEM)
                     else:
-                        self.record_message( "You grabbed up a {}".format(message["item"].name), c.AC_ITEM)
+                        self._record_message("You grabbed up a {}".format(message["item"].name), c.AC_ITEM)
                 else:
-                    self.record_message("Grabbing up {} was too difficult for you".format(message["item"].name), c.AC_ITEM)
+                    self._record_message("Grabbing up {} was too difficult for you".format(message["item"].name), c.AC_ITEM)
             elif message["SUB_CATEGORY"] == c.AC_ITEM_DUMP:
-                self.record_message("You carelessly dropped a {}".format(message["item"].name), c.AC_ITEM)
+                self._record_message("You carelessly dropped a {}".format(message["item"].name), c.AC_ITEM)
             elif message["SUB_CATEGORY"] == c.AC_ITEM_USE:
                 if message["result"] == c.FAILURE:
-                    self.record_message("Unfortunately the {} cannot be used".format(message["item"].name), c.AC_ITEM)
+                    self._record_message("Unfortunately the {} cannot be used".format(message["item"].name), c.AC_ITEM)
             elif message["SUB_CATEGORY"] == c.AC_ITEM_EQUIP:
-                self.record_message("You successfully equipped a {} on {}".format(message["item"].name,
-                                                                         message["slot"]), c.AC_ITEM)
+                self._record_message("You successfully equipped a {} on {}".format(message["item"].name,
+                                                                                   message["slot"]), c.AC_ITEM)
             elif message["SUB_CATEGORY"] == c.AC_ITEM_UNEQUIP:
-                self.record_message("You removed a {} from {}".format(message["item"].name,
-                                                                         message["slot"]), c.AC_ITEM)
+                self._record_message("You removed a {} from {}".format(message["item"].name,
+                                                                       message["slot"]), c.AC_ITEM)
             else:
                 print("UNKNOWN MESSAGE: {}".format(message))
         else:
             print("UNKNOWN MESSAGE: {}".format(message))
 
-    def resize(self, old_screen_width, old_screen_height, new_screen_width, new_screen_height):
-        new_rect_width = int(self._ktext.rect.width * new_screen_width / old_screen_width)
-        new_rect_height = int(self._ktext.rect.height * new_screen_height / old_screen_height)
+    def resize(self, old_width, old_height, new_width, new_height):
+        self.rect.y += new_height - old_height
+        self.rect.width += new_width - old_width
+        self.rect.centerx = int(new_width / 2)
 
-        self._ktext.rect.width = new_rect_width
-        self._ktext.rect.height = new_rect_height
+        self.delta = 0
+        self.force_render = True
 
 
 class ModalBox:

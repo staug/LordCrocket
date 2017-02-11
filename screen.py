@@ -597,13 +597,11 @@ class PlayingScreen(Screen):
                 if event.type == pg.QUIT:
                     self.game.quit()
                 if event.type == pg.VIDEORESIZE:
-                    old_w = self.game.screen.get_rect().width
-                    old_h = self.game.screen.get_rect().height
-
+                    old_rect = self.game.screen.get_rect()
                     self.game.screen = pg.display.set_mode((event.w, event.h),
                                                            pg.RESIZABLE)
                     self.game.player.invalidate_fog_of_war = True
-                    self.game.textbox.resize(old_w, old_h, event.w, event.h)
+                    self.game.textbox.resize(old_rect.width, old_rect.height, event.w, event.h)
 
                 if event.type == pg.KEYDOWN:
                     if event.key == pg.K_ESCAPE:
@@ -687,41 +685,17 @@ class PlayingScreen(Screen):
                 if event.type == pg.MOUSEBUTTONDOWN:
                     (button1, button2, button3) = pg.mouse.get_pressed()
                     (x, y) = pg.mouse.get_pos()
+                    if button1:
+                        (rev_x, rev_y) = self.game.camera.reverse((x, y))
+                        (x, y) = (int(rev_x / TILESIZE_SCREEN), int(rev_y / TILESIZE_SCREEN))
+                        if self.game.map.tiles[x][y].explored and self.game.map.tiles[x][y].tile_type != c.T_VOID:
+                            room = self.game.map.get_room_at(x, y)
+                            if room is not None:
+                                self.game.textbox.add = room.name
+                            for entity in self.game.objects:
+                                if entity.x == x and entity.y == y:
+                                    self.game.textbox.add = entity.name
 
-                    # Test intersection with text box
-                    if self.game.textbox._ktext.rect.collidepoint(x, y):
-                        self.game.textbox.drag_drop_text_box = True
-                        self.game.textbox.old_x = x
-                        self.game.textbox.old_y = y
-
-                    else:
-                        if button1:
-                            (rev_x, rev_y) = self.game.camera.reverse((x, y))
-                            (x, y) = (int(rev_x / TILESIZE_SCREEN), int(rev_y / TILESIZE_SCREEN))
-                            if self.game.map.tiles[x][y].explored and self.game.map.tiles[x][y].tile_type != c.T_VOID:
-                                room = self.game.map.get_room_at(x, y)
-                                if room is not None:
-                                    self.game.textbox.add = room.name
-                                for entity in self.game.objects:
-                                    if entity.x == x and entity.y == y:
-                                        self.game.textbox.add = entity.name
-
-                if event.type == pg.MOUSEBUTTONUP and self.game.textbox.drag_drop_text_box:
-                    (x, y) = pg.mouse.get_pos()
-                    self.game.textbox.drag_drop_text_box = False
-                    if abs(x - self.game.textbox.old_x) > 30 or abs(y - self.game.textbox.old_y) > 30:
-                        self.game.textbox._ktext.rect = \
-                            self.game.textbox._ktext.rect.move(x - self.game.textbox.old_x, y - self.game.textbox.old_y)
-                        self.game.textbox._ktext.rect.x = max(0, self.game.textbox._ktext.rect.x)
-                        self.game.textbox._ktext.rect.y = max(0, self.game.textbox._ktext.rect.y)
-                        self.game.textbox._ktext.rect.right = min(self.game.textbox._ktext.rect.right, GAME_WIDTH)
-                        self.game.textbox._ktext.rect.bottom = min(self.game.textbox._ktext.rect.bottom, GAME_HEIGHT)
-                    else:
-                        pos_in_chat = y - self.game.textbox._ktext.rect.y
-                        if pos_in_chat > self.game.textbox._ktext.rect.height / 2:
-                            self.game.textbox.scroll(1)
-                        else:
-                            self.game.textbox.scroll(-1)
 
     def update(self):
         # Update actions
