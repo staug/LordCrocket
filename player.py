@@ -231,9 +231,9 @@ class KillQuest(Quest):
         print("KILLLLLL")
         if self.state == c.QUEST_SUBSCRIBED:
             monster = message['defender']
-            if monster.image_ref == self.enemy_type:
+            if monster.monster_type == self.enemy_type:
                 self.current_kill += 1
-                print("CORRETC MONSTER")
+                print("CORRECT MONSTER")
             else:
                 print("WRONG ENEMY TYPE")
             self.update()

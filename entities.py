@@ -567,10 +567,16 @@ class MonsterHelper(Entity):
     """
     Class used to create a Monster
     """
+
+    long_description = {
+        "BAT": "a pair of wings, and more to damage you; come in various colors",
+        "DOG": "supposed to be your best friend, but in another life"
+    }
+
     def __init__(self, game, name, pos, image_ref,
                  armor, hit_dice, attacks, morale, saving_throw, death_function=None, special=None,
                  blocking_tile_list=None, blocking_view_list=None, vision=5,
-                 speed=1, long_desc=None):
+                 speed=1, long_desc=None, monster_type=None):
         """
         Initialization method
         :param game: reference to the game variable
@@ -596,6 +602,20 @@ class MonsterHelper(Entity):
                         fighter=MonsterFighter(armor_class=armor, hit_dice=hit_dice, attacks=attacks, morale=morale,
                                                saving_throw=saving_throw, specials=special,
                                                death_function=death_function))
+        self.monster_type = monster_type # the monster type is used during quest
+        self._long_desc = long_desc # the long desc is used for special boss.
+        # For other, a generic is given according to the type
+
+    @property
+    def long_desc(self):
+        if self._long_desc:
+            return self._long_desc
+        else:
+            if self.monster_type in MonsterHelper.long_description:
+                return MonsterHelper.long_description[self.monster_type]
+            else:
+                return "nobody has encountered this type of creature yet"
+
 
 class MonsterFactory:
     """
@@ -666,27 +686,27 @@ class MonsterFactory:
         if monster == "GIANT_ANT":
             MonsterHelper(game, "Giant Ant", pos, 'GIANT_ANT', 16, (3, 8, 0),
                           [("bite", (1, 6, 3))],
-                          12, 16, vision=2, speed=8)
+                          12, 16, vision=2, speed=8, monster_type=monster)
         elif monster == "BABOON":
             MonsterHelper(game, "Baboon", pos, 'BABOON', 12, (1, 8, 0),
                           [("bite", (1, 4, 1))],
-                          6, 18, vision=3, speed=7)
+                          6, 18, vision=3, speed=7, monster_type=monster)
         elif monster == "BADGER":
             MonsterHelper(game, "Badger", pos, 'BADGER', 15, (1, 8, 0),
                           [("bite", (1, 3, 1)), ("claws", (1, 2, 1))],
-                          7, 18, vision=2, speed=10)
+                          7, 18, vision=2, speed=10, monster_type=monster)
         elif monster == "BAT":
             MonsterHelper(game, "Bat", pos, 'BAT', 10, (1, 4, 0),
                           [("bite", (1, 2, 1))],
-                          6, 19, vision=3, speed=6)
+                          6, 19, vision=3, speed=6, monster_type=monster)
         elif monster == "DOG":
             MonsterHelper(game, "Dog", pos, 'DOG', 11, (1, 8, 0),
                           [("bite", (1, 4, 1))],
-                          7, 18, vision=4, speed=9)
+                          7, 18, vision=4, speed=9, monster_type=monster)
         elif monster == "VAMPIRE_SLAVE":
             MonsterHelper(game, "Vampire Underling", pos, 'VAMPIRE', 17, (9, 8, 0),
                           [("bite", (1, 6, 9))],
-                          8, 11, vision=2, speed=20)
+                          8, 11, vision=2, speed=20, monster_type=monster)
 
 
 class ItemFactory:
