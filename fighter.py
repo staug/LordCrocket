@@ -63,7 +63,7 @@ class MonsterFighter(FighterEntity):
         # The following are not used:
         self.morale = morale
         self.saving_throw = saving_throw
-        self.special = specials
+        self.specials = specials
 
     @property
     def experience(self):
@@ -92,6 +92,10 @@ class MonsterFighter(FighterEntity):
                                                          "result": c.FAILURE,
                                                          "attack_type": attack[0]},
                                             main_category=c.AC_FIGHT, sub_category=c.ACS_HIT)
+        # specials
+        if self.specials is not None:
+            for special_function in self.specials:
+                special_function()
 
     def monster_death(self):
         # Attribute the xp

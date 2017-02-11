@@ -568,15 +568,24 @@ class MonsterHelper(Entity):
     Class used to create a Monster
     """
 
-    long_description = {
-        "BAT": "a pair of wings, and more to damage you; come in various colors",
-        "DOG": "supposed to be your best friend, but in another life"
-    }
-
-    def __init__(self, game, name, pos, image_ref,
-                 armor, hit_dice, attacks, morale, saving_throw, death_function=None, special=None,
-                 blocking_tile_list=None, blocking_view_list=None, vision=5,
-                 speed=1, long_desc=None, monster_type=None):
+    def __init__(self,
+                 game,
+                 name,
+                 pos,
+                 image_ref,
+                 armor=None,
+                 hit_dice=None,
+                 attacks=None,
+                 morale=None,
+                 saving_throw=None,
+                 death_function=None,
+                 special=None,
+                 blocking_tile_list=None,
+                 blocking_view_list=None,
+                 vision=5,
+                 speed=1,
+                 long_desc=None,
+                 monster_type=None):
         """
         Initialization method
         :param game: reference to the game variable
@@ -594,6 +603,12 @@ class MonsterHelper(Entity):
         :param death_function:
         :param special:
         """
+        assert armor is not None, "Armor not defined for " + name
+        assert hit_dice is not None, "Hit dice not defined for " + name
+        assert attacks is not None, "Attacks not defined for " + name
+        assert morale is not None, "Morale not defined for " + name
+        assert saving_throw is not None, "Saving throw not defined for " + name
+
         ai = AIEntity(speed=speed)
         Entity.__init__(self, game, name, pos, image_ref, vision=vision, blocks=True,
                         blocking_tile_list=blocking_tile_list, blocking_view_list=blocking_view_list,
@@ -603,24 +618,26 @@ class MonsterHelper(Entity):
                                                saving_throw=saving_throw, specials=special,
                                                death_function=death_function))
         self.monster_type = monster_type # the monster type is used during quest
-        self._long_desc = long_desc # the long desc is used for special boss.
+        # the long desc is used for special boss.
         # For other, a generic is given according to the type
-
-    @property
-    def long_desc(self):
-        if self._long_desc:
-            return self._long_desc
-        else:
-            if self.monster_type in MonsterHelper.long_description:
-                return MonsterHelper.long_description[self.monster_type]
+        if self.long_desc is None:
+            if self.monster_type in MonsterFactory.long_description:
+                self.long_desc = MonsterFactory.long_description[self.monster_type]
             else:
-                return "nobody has encountered this type of creature yet"
+                self.long_desc = "nobody has encountered this type of creature yet"
 
 
 class MonsterFactory:
     """
     Used to generate a list of Monster
     """
+    long_description = {
+        "BAT": "a pair of wings, and more to damage you; come in various colors",
+        "DOG": "supposed to be your best friend, but in another life",
+        "RAT": "skweek skweek in the night"
+    }
+
+
     def __init__(self, game, seed=None):
 
         rd.seed(seed)
@@ -629,16 +646,16 @@ class MonsterFactory:
         # chance of each monster
         self.monster_chances = {}
         if IMG_STYLE == c.IM_STYLE_ORYX:
-            self.monster_chances["BAT"] = 55
-            self.monster_chances["DOG"] = 8
+            self.monster_chances["BAT"] = 10
+            self.monster_chances["GREY_RAT"] = 10
+            self.monster_chances["BROWN_RAT"] = 10
+            self.monster_chances["DOG"] = self.from_dungeon_level([[10, 3], [15, 5]])
+            self.monster_chances["SKELETON"] = 10
+            self.monster_chances["SKELETON_WARRIOR"] = 8
         elif IMG_STYLE == c.IM_STYLE_DAWNLIKE:
             self.monster_chances["GIANT_ANT"] = self.from_dungeon_level([[60, 3], [15, 5]])
             self.monster_chances["BABOON"] = 20  # always shows up, even if all other monsters have 0 chance
             self.monster_chances["BADGER"] = 10  # blaireau
-        # self.monster_chances["DOG_WAR"] = self.from_dungeon_level([[15, 2], [25, 6]])
-        # self.monster_chances["RAT_GIANT"] = 9
-        # self.monster_chances["HAWK"] = 10
-        # self.monster_chances["CHEETAH"] = self.from_dungeon_level([[25, 3], [40, 6]])
 
     @staticmethod
     def random_choice(chances_dict):
@@ -684,30 +701,64 @@ class MonsterFactory:
     @staticmethod
     def instantiate_monster(game, monster, pos):
         if monster == "GIANT_ANT":
-            MonsterHelper(game, "Giant Ant", pos, 'GIANT_ANT', 16, (3, 8, 0),
-                          [("bite", (1, 6, 3))],
-                          12, 16, vision=2, speed=8, monster_type=monster)
+            MonsterHelper(game, "Giant Ant", pos, 'GIANT_ANT',
+                          armor=16,
+                          hit_dice=(3, 8, 0),
+                          attacks=[("bite", (1, 6, 3))],
+                          morale=12,
+                          saving_throw=16,
+                          vision=2,
+                          speed=8,
+                          monster_type=monster)
         elif monster == "BABOON":
-            MonsterHelper(game, "Baboon", pos, 'BABOON', 12, (1, 8, 0),
-                          [("bite", (1, 4, 1))],
-                          6, 18, vision=3, speed=7, monster_type=monster)
+            MonsterHelper(game, "Baboon", pos, 'BABOON',
+                          armor=12, hit_dice=(1, 8, 0),
+                          attacks=[("bite", (1, 4, 1))],
+                          morale=6, saving_throw=18,
+                          vision=3, speed=7, monster_type=monster)
         elif monster == "BADGER":
-            MonsterHelper(game, "Badger", pos, 'BADGER', 15, (1, 8, 0),
-                          [("bite", (1, 3, 1)), ("claws", (1, 2, 1))],
-                          7, 18, vision=2, speed=10, monster_type=monster)
+            MonsterHelper(game, "Badger", pos, 'BADGER', armor=15, hit_dice=(1, 8, 0),
+                          attacks=[("bite", (1, 3, 1)), ("claws", (1, 2, 1))],
+                          morale=7, saving_throw=18, vision=2, speed=10, monster_type=monster)
         elif monster == "BAT":
-            MonsterHelper(game, "Bat", pos, 'BAT', 10, (1, 4, 0),
-                          [("bite", (1, 2, 1))],
-                          6, 19, vision=3, speed=6, monster_type=monster)
+            MonsterHelper(game, "Bat", pos, 'BAT', armor=10, hit_dice=(1, 4, 0),
+                          attacks=[("bite", (1, 2, 1))],
+                          morale=6, saving_throw=19, vision=3, speed=6, monster_type=monster)
+        elif monster == "GREY_RAT":
+            MonsterHelper(game, "Giant poisounous rat", pos, 'GREY_RAT', armor=12, hit_dice=(1, 8, 0),
+                          attacks=[("bite", (1, 3, 1))],
+                          morale=8, saving_throw=18, vision=3, speed=8, monster_type=monster, special=[
+                    lambda player=game.player: MonsterSpecials.poison_player(player, 5)])
+        elif monster == "BROWN_RAT":
+            MonsterHelper(game, "Giant super poisonous rat", pos, 'BROWN_RAT', armor=12, hit_dice=(1, 8, 0),
+                          attacks=[("bite", (1, 3, 1))],
+                          morale=8, saving_throw=18, vision=3, speed=8, monster_type=monster, special=[
+                    lambda player=game.player: MonsterSpecials.poison_player(player, 20)])
         elif monster == "DOG":
-            MonsterHelper(game, "Dog", pos, 'DOG', 11, (1, 8, 0),
-                          [("bite", (1, 4, 1))],
-                          7, 18, vision=4, speed=9, monster_type=monster)
+            MonsterHelper(game, "Dog", pos, 'DOG', armor=11, hit_dice=(1, 8, 0),
+                          attacks=[("bite", (1, 4, 1))],
+                          morale=7, saving_throw=18, vision=5, speed=9, monster_type=monster)
+        elif monster == "SKELETON":
+            MonsterHelper(game, "Skeleton", pos, 'SKELETON', armor=12, hit_dice=(1, 8, 0),
+                          attacks=[rd.choice([("club", (1, 6, 1)), ("rapier", (1, 6, 1))])],
+                          morale=12, saving_throw=18, vision=4, speed=10, monster_type=monster)
+        elif monster == "SKELETON_WARRIOR":
+            MonsterHelper(game, "Skeleton guardian", pos, 'SKELETON_WARRIOR', armor=12, hit_dice=(1, 8, 0),
+                          attacks=[rd.choice([("longsword", (1, 8, 2)), ("scimitar", (1, 6, 3))])],
+                          morale=12, saving_throw=18, vision=4, speed=10, monster_type=monster)
         elif monster == "VAMPIRE_SLAVE":
-            MonsterHelper(game, "Vampire Underling", pos, 'VAMPIRE', 17, (9, 8, 0),
-                          [("bite", (1, 6, 9))],
-                          8, 11, vision=2, speed=20, monster_type=monster)
+            MonsterHelper(game, "Vampire Underling", pos, 'VAMPIRE', armor=17, hit_dice=(9, 8, 0),
+                          attacks=[("bite", (1, 6, 9))],
+                          morale=8, saving_throw=11, vision=2, speed=20, monster_type=monster)
 
+
+class MonsterSpecials:
+
+    @staticmethod
+    def poison_player(player, chance_percentage):
+        if rd.randint(1, 100) <= chance_percentage:
+            # TODO define the function
+            print("PLAYER IS POISONNNNNNNNED")
 
 class ItemFactory:
     """

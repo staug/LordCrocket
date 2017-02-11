@@ -36,9 +36,11 @@ Notes:
 Heal from exploration
 
 Short list:
-* Monster type and legend
-* Add at least three monster types
+* [DONE] Monster type and legend
+* [DONE] Add at least three monster types
+* [DONE] Monsters have special abilities that may deal extra damage
 * Player heal
+* Add more items to be picked up
 * [DONE] Fix sound
 * Events: each screen should handle some events in the same way
 * Quests system
