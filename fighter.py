@@ -84,14 +84,14 @@ class MonsterFighter(FighterEntity):
                                                          "defender":other_fighter.owner,
                                                          "result": c.SUCCESS,
                                                          "attack_type": attack[0], "damage": damage},
-                                            main_category=c.AC_FIGHT, sub_category=c.ACS_HIT)
+                                            main_category=c.P_CAT_FIGHT, sub_category=c.AC_FIGHT_HIT)
                 other_fighter.take_damage(damage)
             else:
                 self.owner.game.bus.publish(self.owner, {"attacker":self.owner,
                                                          "defender":other_fighter.owner,
                                                          "result": c.FAILURE,
                                                          "attack_type": attack[0]},
-                                            main_category=c.AC_FIGHT, sub_category=c.ACS_HIT)
+                                            main_category=c.P_CAT_FIGHT, sub_category=c.AC_FIGHT_HIT)
         # specials
         if self.specials is not None:
             for special_function in self.specials:
@@ -108,7 +108,7 @@ class MonsterFighter(FighterEntity):
                                                  "xp": self.experience,
                                                  "gold": gold
                                                  },
-                                    main_category=c.AC_FIGHT, sub_category=c.ACS_KILL)
+                                    main_category=c.P_CAT_FIGHT, sub_category=c.AC_FIGHT_KILL)
         # transform it into a nasty corpse! it doesn't block, can't be
         # attacked and doesn't move
         self.owner.change(blocks=False, fighter=None, ai=None, image_ref="REMAINS",
@@ -158,14 +158,14 @@ class PlayerFighter(FighterEntity):
                                                      "result": c.SUCCESS,
                                                      "attack_type": "weapon",
                                                      "damage": damage},
-                                        main_category=c.AC_FIGHT, sub_category=c.ACS_HIT)
+                                        main_category=c.P_CAT_FIGHT, sub_category=c.AC_FIGHT_HIT)
             other_fighter.take_damage(damage)
         else:
             self.owner.game.bus.publish(self.owner, {"attacker": self.owner,
                                                      "defender": other_fighter.owner,
                                                      "result": c.FAILURE,
                                                      "attack_type": "weapon"},
-                                        main_category=c.AC_FIGHT, sub_category=c.ACS_HIT)
+                                        main_category=c.P_CAT_FIGHT, sub_category=c.AC_FIGHT_HIT)
 
     # @property
     # def vision(self):

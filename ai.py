@@ -59,8 +59,8 @@ class AIEntity(AI):
                                     )
                 self.owner.game.bus.publish(self.owner,
                                             {"message": message},
-                                            main_category=c.AC_FIGHT,
-                                            sub_category=c.ACS_VARIOUS)
+                                            main_category=c.P_CAT_FIGHT,
+                                            sub_category=c.AC_FIGHT_VARIOUS)
                 self.already_viewed_player = True
             self.time_since_view = 0  # Reinit the counter since view...
 
@@ -92,8 +92,8 @@ class AIEntity(AI):
                                     )
                 self.owner.game.bus.publish(self.owner,
                                             {"message": message},
-                                            main_category=c.AC_FIGHT,
-                                            sub_category=c.ACS_VARIOUS)
+                                            main_category=c.P_CAT_FIGHT,
+                                            sub_category=c.AC_FIGHT_VARIOUS)
                 self.already_viewed_player = False
                 self.time_since_view += 1  # This will prevent from sending again the message
 

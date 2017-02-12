@@ -58,22 +58,28 @@ CHAR_NAME = "charisma"
 FAILURE = "failure"
 SUCCESS = "success"
 
-# Action type
-AC_MOVE = "move"
-AC_FIGHT = "fight"  # A fight message will always have the name of the attacked ("attacker") and defender ("defender")
-# -> Sub:
-ACS_KILL = "kill"  # In that case, register xp gained ("xp") and gold ("gold")
-ACS_HIT = "hit"  # In that case, register attack type ("attack_type"), amount of damage ("damage"), result ("result")
-ACS_VARIOUS = "various"  # Misc actions, like flee the combat or other
 
+# FIGHT CATEGORY
+P_CAT_FIGHT = "fight"  # A fight message will always have the name of the attacked ("attacker") and defender ("defender")
+# -> Sub:
+AC_FIGHT_KILL = "kill"  # In that case, register xp gained ("xp") and gold ("gold")
+AC_FIGHT_HIT = "hit"  # In that case, register attack type ("attack_type"), amount of damage ("damage"), result ("result")
+AC_FIGHT_VARIOUS = "various"  # Misc actions, like flee the combat or other
 AC_SPELL = "cast"
-# -> Sub for item
-AC_ITEM = "ITEM"
+
+# -> ITEM CATEGORY
+P_CAT_ITEM = "ITEM"
 AC_ITEM_GRAB = "GRAB"
 AC_ITEM_DUMP = "DUMP"
 AC_ITEM_EQUIP = "EQUIP"
 AC_ITEM_UNEQUIP = "UNEQUIP"
 AC_ITEM_USE = "USE"
+
+# -> Environment Category
+P_CAT_ENV = "environment"
+# Sub
+AC_ENV_MOVE = "move"  # Used for quest purpose, and also to heal
+AC_ENV_OPEN = "open"  # Door
 
 # QUESTS STATES
 QUEST_SUBSCRIBED = "quest_subscribed"

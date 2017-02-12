@@ -103,9 +103,9 @@ class PlayerHelper(Entity):
 
     def speed_cost_for(self, action):
         # Assume base 1 = move
-        if action == c.AC_MOVE:
+        if action == c.AC_ENV_MOVE:
             return self.speed
-        elif action == c.AC_FIGHT:
+        elif action == c.P_CAT_FIGHT:
             return int(self.speed * 0.8)
         elif action == c.AC_SPELL:
             return int(self.speed * 2)
@@ -128,7 +128,7 @@ class PlayerHelper(Entity):
         for entity in self.game.objects:
             if entity != self and entity.fighter and entity.x == self.x + dx and entity.y == self.y + dy:
                 self.fighter.attack(entity.fighter)
-                self.game.ticker.ticks_to_advance += self.speed_cost_for(c.AC_FIGHT)
+                self.game.ticker.ticks_to_advance += self.speed_cost_for(c.P_CAT_FIGHT)
                 return True
 
         # collision test: map data (floor, water, lava...)
@@ -145,7 +145,7 @@ class PlayerHelper(Entity):
 
             self.invalidate_fog_of_war = True
 
-            self.game.ticker.ticks_to_advance += self.speed_cost_for(c.AC_MOVE)
+            self.game.ticker.ticks_to_advance += self.speed_cost_for(c.AC_ENV_MOVE)
             return True
 
         return False
@@ -222,9 +222,9 @@ class KillQuest(Quest):
         self.limit_for_success = limit_for_success
 
         self.message_bus.register(self,
-                 main_category=c.AC_FIGHT,
-                 sub_category=c.ACS_KILL,
-                 function_to_call=self.new_kill)
+                                  main_category=c.P_CAT_FIGHT,
+                                  sub_category=c.AC_FIGHT_KILL,
+                                  function_to_call=self.new_kill)
 
 
     def new_kill(self, message):

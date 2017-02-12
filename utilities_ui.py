@@ -414,7 +414,7 @@ class LogBox:
         if self.force_render:
             self._render_texts = []
             i = 0
-            color = {c.AC_FIGHT: st.RED, c.AC_ITEM: st.YELLOW}
+            color = {c.P_CAT_FIGHT: st.RED, c.P_CAT_ITEM: st.YELLOW, c.P_CAT_ENV: st.WHITE}
             msg_list = self._prepare_message_list()
             for line, category in msg_list:
                 self._render_texts.append(self.font.render(line, 1, color[category], st.BGCOLOR))
@@ -476,14 +476,14 @@ class LogBox:
 
     def notify(self, message):
         # Now interpret the text
-        if message["MAIN_CATEGORY"] == c.AC_FIGHT:
-            if message["SUB_CATEGORY"] == c.ACS_HIT:
+        if message["MAIN_CATEGORY"] == c.P_CAT_FIGHT:
+            if message["SUB_CATEGORY"] == c.AC_FIGHT_HIT:
                 if message["result"] == c.SUCCESS:
                     self._record_message("{} hit {} with {}, dealing {} damages".format(message["attacker"].name,
                                                                                         message["defender"].name,
                                                                                         message["attack_type"],
                                                                                         message["damage"]),
-                                         c.AC_FIGHT)
+                                         c.P_CAT_FIGHT)
                 else:
                     self._record_message("{} tried hitting {} with {} but {}".format(message["attacker"].name,
                                                                                      message["defender"].name,
@@ -491,39 +491,54 @@ class LogBox:
                                                                                      rd.choice(("failed miserably",
                                                                                    "it was blocked",
                                                                                    "this was a pitiful attempt"))),
-                                         c.AC_FIGHT)
-            elif message["SUB_CATEGORY"] == c.ACS_KILL:
+                                         c.P_CAT_FIGHT)
+            elif message["SUB_CATEGORY"] == c.AC_FIGHT_KILL:
                 self._record_message("After a short fight, {} killed {} " \
                            "- LordCrocket awards {} experience point and {} gold".format(message["attacker"].name,
                                                                                         message["defender"].name,
                                                                                         message["xp"],
                                                                                         message["gold"]),
-                                     c.AC_FIGHT)
-            elif message["SUB_CATEGORY"] == c.ACS_VARIOUS:
-                self._record_message(message["message"], c.AC_FIGHT)
+                                     c.P_CAT_FIGHT)
+            elif message["SUB_CATEGORY"] == c.AC_FIGHT_VARIOUS:
+                self._record_message(message["message"], c.P_CAT_FIGHT)
             else:
                 print("UNKNOWN MESSAGE: {}".format(message))
-        elif message["MAIN_CATEGORY"] == c.AC_ITEM:
+        elif message["MAIN_CATEGORY"] == c.P_CAT_ITEM:
             if message["SUB_CATEGORY"] == c.AC_ITEM_GRAB:
                 if message["result"] == c.SUCCESS:
                     if message["item"].long_desc is not None:
                         self._record_message("You grabbed up a {}, {}".format(message["item"].name,
-                                                                              message["item"].long_desc.lower()), c.AC_ITEM)
+                                                                              message["item"].long_desc.lower()),
+                                             c.P_CAT_ITEM)
                     else:
-                        self._record_message("You grabbed up a {}".format(message["item"].name), c.AC_ITEM)
+                        self._record_message("You grabbed up a {}".format(message["item"].name), c.P_CAT_ITEM)
                 else:
-                    self._record_message("Grabbing up {} was too difficult for you".format(message["item"].name), c.AC_ITEM)
+                    self._record_message("Grabbing up {} was too difficult for you".format(message["item"].name),
+                                         c.P_CAT_ITEM)
             elif message["SUB_CATEGORY"] == c.AC_ITEM_DUMP:
-                self._record_message("You carelessly dropped a {}".format(message["item"].name), c.AC_ITEM)
+                self._record_message("You carelessly dropped a {}".format(message["item"].name), c.P_CAT_ITEM)
             elif message["SUB_CATEGORY"] == c.AC_ITEM_USE:
                 if message["result"] == c.FAILURE:
-                    self._record_message("Unfortunately the {} cannot be used".format(message["item"].name), c.AC_ITEM)
+                    self._record_message("Unfortunately the {} cannot be used".format(message["item"].name),
+                                         c.P_CAT_ITEM)
             elif message["SUB_CATEGORY"] == c.AC_ITEM_EQUIP:
                 self._record_message("You successfully equipped a {} on {}".format(message["item"].name,
-                                                                                   message["slot"]), c.AC_ITEM)
+                                                                                   message["slot"]), c.P_CAT_ITEM)
             elif message["SUB_CATEGORY"] == c.AC_ITEM_UNEQUIP:
                 self._record_message("You removed a {} from {}".format(message["item"].name,
-                                                                       message["slot"]), c.AC_ITEM)
+                                                                       message["slot"]), c.P_CAT_ITEM)
+            else:
+                print("UNKNOWN MESSAGE: {}".format(message))
+        elif message["MAIN_CATEGORY"] == c.P_CAT_ENV:
+            if message["SUB_CATEGORY"] == c.AC_ENV_OPEN:
+                if message["result"] == c.SUCCESS:
+                    self._record_message("{} has been opened by {}".format(message["object"].name,
+                                                                           message["operator"].name),
+                                     c.P_CAT_ENV)
+                else:
+                    self._record_message("{} tried opening {} but failed".format(message["operator"].name,
+                                                                                 message["object"].name),
+                                         c.P_CAT_ENV)
             else:
                 print("UNKNOWN MESSAGE: {}".format(message))
         else:

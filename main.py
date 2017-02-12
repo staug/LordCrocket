@@ -127,7 +127,7 @@ class Game:
         pos_list = self.map.doors_pos[:]
         for pos in pos_list:
             DoorHelper(self, pos, ("DOOR_H_CLOSED", "DOOR_H_OPEN", "DOOR_V_CLOSED", "DOOR_V_OPEN"),
-                       name="Door {}".format(pos),
+                       name="door".format(pos),
                        open_function=DoorHelper.open_door)
 
         # Place stairs - Here we may have multiple.
@@ -135,14 +135,14 @@ class Game:
         stairs_to_be_placed = 10 - level
         if len(stair_pos) > stairs_to_be_placed:
             for i in range(stairs_to_be_placed):
-                StairHelper(self, stair_pos.pop(), "STAIRS", name="Stairs {}".format(i),
+                StairHelper(self, stair_pos.pop(), "STAIRS", name="stairs".format(i),
                             use_function=StairHelper.next_level)
         else:
             # Most probably we have far too many corridors - Maze like dungeon...
             print("Not found convenient way to place stairs - using second method")
             all_pos = self.map.get_all_available_tiles(c.T_FLOOR, self.objects, without_objects=True)
             for i in range(stairs_to_be_placed):
-                StairHelper(self, all_pos.pop(), "STAIRS", name="Stairs {}".format(i),
+                StairHelper(self, all_pos.pop(), "STAIRS", name="stairs".format(i),
                             use_function=StairHelper.next_level)
 
         # Traps: TODO

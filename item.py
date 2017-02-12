@@ -24,7 +24,7 @@ class ItemEntity:
                 group.remove(self.owner)
         self.owner.game.bus.publish(self.owner, {"item": self.owner,
                                                  "result":result},
-                                    main_category=c.AC_ITEM,
+                                    main_category=c.P_CAT_ITEM,
                                     sub_category=c.AC_ITEM_GRAB)
 
 
@@ -45,7 +45,7 @@ class ItemEntity:
         self.owner.x = self.owner.game.player.x
         self.owner.y = self.owner.game.player.y
         self.owner.game.bus.publish(self.owner, {"item": self.owner},
-                                    main_category=c.AC_ITEM,
+                                    main_category=c.P_CAT_ITEM,
                                     sub_category=c.AC_ITEM_DUMP)
 
     def use(self):
@@ -56,7 +56,7 @@ class ItemEntity:
 
         if self.use_function is None:
             self.owner.game.bus.publish(self.owner, {"item": self.owner, "result": c.FAILURE},
-                                        main_category=c.AC_ITEM,
+                                        main_category=c.P_CAT_ITEM,
                                         sub_category=c.AC_ITEM_USE)
         else:
             if self.use_function() != ItemEntity.FUNCTION_CANCELLED:
@@ -93,7 +93,7 @@ class EquipmentEntity:
         # equip object and show a message about it
         self.is_equipped = True
         self.owner.game.bus.publish(self.owner, {"item": self.owner, "slot": self.slot},
-                                    main_category=c.AC_ITEM,
+                                    main_category=c.P_CAT_ITEM,
                                     sub_category=c.AC_ITEM_EQUIP)
 
     def dequip(self):
@@ -102,7 +102,7 @@ class EquipmentEntity:
             return
         self.is_equipped = False
         self.owner.game.bus.publish(self.owner, {"item": self.owner, "slot": self.slot},
-                                    main_category=c.AC_ITEM,
+                                    main_category=c.P_CAT_ITEM,
                                     sub_category=c.AC_ITEM_UNEQUIP)
 
 
