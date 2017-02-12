@@ -31,7 +31,6 @@ class Screen:
         print("NOT IMPLEMENTED")
 
 
-
 class InventoryScreen(Screen):
 
     def __init__(self, game, default_back_state):
@@ -39,8 +38,8 @@ class InventoryScreen(Screen):
         self.original_pos = (32, 32)
         self.tile_size = TILESIZE_INVENTORY
         self.objects_per_line = 5
-        self.item_list_value = 0 # Used if more item are available than 2 lines
-        self.equipment_list_value = 0 # Used if more equipment are available than 2 lines
+        self.item_list_value = 0  # Used if more item are available than 2 lines
+        self.equipment_list_value = 0  # Used if more equipment are available than 2 lines
 
         self.selected_item = None
         self.font = pg.font.Font(path.join(path.join(path.dirname(__file__), FONT_FOLDER), FONT_NAME), 10)
@@ -49,20 +48,20 @@ class InventoryScreen(Screen):
         width = game.all_images["ICON_EQUIP"].get_rect().width
         height = game.all_images["ICON_EQUIP"].get_rect().height
         button_equip = Button((x_icon, 1 * self.tile_size, width, height),
-                            lambda screen=self: screen.button_equip(),
-                            text="Equip", id='button_equip', image=game.all_images["ICON_EQUIP"])
+                              lambda screen=self: screen.button_equip(),
+                              text="Equip", id='button_equip', image=game.all_images["ICON_EQUIP"])
         button_unequip = Button((x_icon, 3 * self.tile_size, 0, 0),
-                              lambda screen=self: screen.button_unequip(),
-                              text="Unequip", id='button_unequip', image=game.all_images["ICON_UNEQUIP"])
+                                lambda screen=self: screen.button_unequip(),
+                                text="Remove", id='button_unequip', image=game.all_images["ICON_UNEQUIP"])
         button_use = Button((x_icon, 5 * self.tile_size, 0, 0),
-                                lambda screen=self: screen.button_use(),
-                                text="Use", id='button_use', image=game.all_images["ICON_USE"])
+                            lambda screen=self: screen.button_use(),
+                            text="Use", id='button_use', image=game.all_images["ICON_USE"])
         button_drop = Button((x_icon, 7 * self.tile_size, 0, 0),
-                                lambda screen=self: screen.button_drop(),
-                                text="Drop", id='button_drop', image=game.all_images["ICON_DROP"])
-        button_identify = Button((x_icon, 9 * self.tile_size, 0, 0),
                              lambda screen=self: screen.button_drop(),
-                             text="Identify", id='button_drop', image=game.all_images["ICON_IDENTIFY"])
+                             text="Drop", id='button_drop', image=game.all_images["ICON_DROP"])
+        button_identify = Button((x_icon, 9 * self.tile_size, 0, 0),
+                                 lambda screen=self: screen.button_drop(),
+                                 text="Identify", id='button_drop', image=game.all_images["ICON_IDENTIFY"])
         self.widgets.append(button_equip)
         self.widgets.append(button_unequip)
         self.widgets.append(button_use)
@@ -99,7 +98,6 @@ class InventoryScreen(Screen):
                 self.selected_item.item.identify()
             self.selected_item = None
 
-
     def events(self):
         # catch all events here
         for event in pg.event.get():
@@ -129,8 +127,8 @@ class InventoryScreen(Screen):
                     has_usable = len(self.game.player.get_non_equipment_objects()) > 0
 
                     start_index_y_equipable = 6
-                    end_index_y_equipable = start_index_y_equipable + int(len(self.game.player.get_unequipped_objects()) /
-                                                                          self.objects_per_line)
+                    end_index_y_equipable = start_index_y_equipable + int(
+                        len(self.game.player.get_unequipped_objects()) / self.objects_per_line)
 
                     start_index_y_usable = end_index_y_equipable + 3
                     if not has_equipable:
@@ -145,7 +143,8 @@ class InventoryScreen(Screen):
                             and start_index_y_equipable <= index_y <= end_index_y_equipable \
                             and len(self.game.player.get_unequipped_objects()) > \
                                                     (index_y-start_index_y_equipable) * self.objects_per_line + index_x:
-                        self.handle_equipable_event((button1, button2, button3), index_x, index_y - start_index_y_equipable)
+                        self.handle_equipable_event((button1, button2, button3),
+                                                    index_x, index_y - start_index_y_equipable)
                     # Usable, but not equipment
                     elif has_usable \
                             and 0 <= index_x < self.objects_per_line \
@@ -480,25 +479,25 @@ class PlayingScreen(Screen):
 
         bt1 = Button((10, 10, 50, 20), None, text="CLICK", id='A')
         bt1.command = lambda player=self.game.player, screen=self: screen.test(player=player, widget=bt1.id)
-        bt2 = Button((10, 30, 50, 20), None, text="THIS IS A LONNG TEXT", id='B')
+        bt2 = Button((10, 30, 50, 20), None, text="THIS IS A LONG TEXT", id='B')
         bt2.command = lambda player=self.game.player, screen=self: screen.test(player=player, widget=bt2.id)
 
         self.widgets.append(game.textbox)
-        #self.widgets.append(bt1)
-        #self.widgets.append(bt2)
+        # self.widgets.append(bt1)
+        # self.widgets.append(bt2)
 
     def draw_health_bar(self, surf, x, y):
         # TODO: Health bar should be a widget
-        BAR_HEIGHT = 20
+        bar_height = 20
         fighter = self.game.player.fighter
         if fighter is not None:
-            BAR_WIDTH_HP = 100
-            BAR_WIDTH_BP = int(fighter.owner.base_body_points * BAR_WIDTH_HP / fighter.owner.base_hit_points)
+            bar_width_hp = 100
+            bar_width_bp = int(fighter.owner.base_body_points * bar_width_hp / fighter.owner.base_hit_points)
 
             pct_hp = fighter.hit_points / fighter.owner.base_hit_points
 
-            outline_rect_hp = pg.Rect(x + BAR_WIDTH_BP, y, BAR_WIDTH_HP, BAR_HEIGHT)
-            fill_rect_hp = pg.Rect(x + BAR_WIDTH_BP, y, pct_hp * BAR_WIDTH_HP, BAR_HEIGHT)
+            outline_rect_hp = pg.Rect(x + bar_width_bp, y, bar_width_hp, bar_height)
+            fill_rect_hp = pg.Rect(x + bar_width_bp, y, pct_hp * bar_width_hp, bar_height)
             col = GREEN
             if 0.3 <= pct_hp < 0.6:
                 col = YELLOW
@@ -509,8 +508,8 @@ class PlayingScreen(Screen):
             pg.draw.rect(surf, WHITE, outline_rect_hp, 2)
 
             pct_bp = fighter.body_points / fighter.owner.base_body_points
-            outline_rect_bp = pg.Rect(x, y, BAR_WIDTH_BP, BAR_HEIGHT)
-            fill_rect_bp = pg.Rect(x, y, pct_bp * BAR_WIDTH_BP, BAR_HEIGHT)
+            outline_rect_bp = pg.Rect(x, y, bar_width_bp, bar_height)
+            fill_rect_bp = pg.Rect(x, y, pct_bp * bar_width_bp, bar_height)
             pg.draw.rect(surf, GREEN, fill_rect_bp)
             pg.draw.rect(surf, WHITE, outline_rect_bp, 2)
 
@@ -562,15 +561,9 @@ class PlayingScreen(Screen):
             if map_rebuild:
                 self.game.minimap.build_background(minimap=True,
                                                    center_player=True)
-                map_rebuild = False
             self.game.screen.blit(self.game.minimap.background_mini_map,
                                   (self.game.screen.get_width() -
                                    self.game.minimap.background_mini_map.get_width() - 10, 10))
-
-        # Text -> First line is to remove background
-        #self.game.screen.fill(BGCOLOR, self.game.textbox._ktext.rect)
-        #pg.draw.rect(self.game.screen, WHITE, self.game.textbox._ktext.rect.inflate(6, 6), 2)
-        #self.game.textbox.draw(self.game.screen)
 
         # Generic Modal Widgets?
         for widget in self.widgets:
@@ -582,120 +575,120 @@ class PlayingScreen(Screen):
 
         # catch all events here
 
-            for event in pg.event.get():
-                handled = False
-                for widget in self.widgets:
-                    if not handled:
-                        handled = widget.get_event(event)
-                if handled:
-                    return
-                if event.type == pg.USEREVENT + 1:
-                    self.game.soundfiles = self.game.soundfiles[1:] + [self.game.soundfiles[0]] # move current song to the back of the list
-                    pg.mixer.music.load(self.game.soundfiles[0])
-                    print("Now playing: {}".format(self.game.soundfiles[0]))
-                    pg.mixer.music.play()
-                if event.type == pg.QUIT:
+        for event in pg.event.get():
+            handled = False
+            for widget in self.widgets:
+                if not handled:
+                    handled = widget.get_event(event)
+            if handled:
+                return
+            if event.type == pg.USEREVENT + 1:
+                # move current song to the back of the list
+                self.game.soundfiles = self.game.soundfiles[1:] + [self.game.soundfiles[0]]
+                pg.mixer.music.load(self.game.soundfiles[0])
+                print("Now playing: {}".format(self.game.soundfiles[0]))
+                pg.mixer.music.play()
+            if event.type == pg.QUIT:
+                self.game.quit()
+            if event.type == pg.VIDEORESIZE:
+                old_rect = self.game.screen.get_rect()
+                self.game.screen = pg.display.set_mode((event.w, event.h),
+                                                       pg.RESIZABLE)
+                self.game.player.invalidate_fog_of_war = True
+                self.game.textbox.resize(old_rect.width, old_rect.height, event.w, event.h)
+
+            if event.type == pg.KEYDOWN:
+                if event.key == pg.K_ESCAPE:
                     self.game.quit()
-                if event.type == pg.VIDEORESIZE:
-                    old_rect = self.game.screen.get_rect()
-                    self.game.screen = pg.display.set_mode((event.w, event.h),
-                                                           pg.RESIZABLE)
-                    self.game.player.invalidate_fog_of_war = True
-                    self.game.textbox.resize(old_rect.width, old_rect.height, event.w, event.h)
+                if event.key in (pg.K_LEFT, pg.K_q, pg.K_KP4):
+                    self.game.player.move(dx=-1)
+                if event.key in (pg.K_RIGHT, pg.K_d, pg.K_KP6):
+                    self.game.player.move(dx=1)
+                if event.key in (pg.K_UP, pg.K_z, pg.K_KP8):
+                    self.game.player.move(dy=-1)
+                if event.key in (pg.K_DOWN, pg.K_x, pg.K_KP2):
+                    self.game.player.move(dy=1)
+                if event.key in (pg.K_KP7, pg.K_a):
+                    self.game.player.move(dx=-1, dy=-1)
+                if event.key in (pg.K_KP9, pg.K_e):
+                    self.game.player.move(dx=1, dy=-1)
+                if event.key in (pg.K_KP1, pg.K_w):
+                    self.game.player.move(dx=-1, dy=1)
+                if event.key in (pg.K_KP3, pg.K_c):
+                    self.game.player.move(dx=1, dy=1)
+                if event.key == pg.K_m:
+                    self.game.minimap_enable = not self.game.minimap_enable
+                    print("Minimap state: {}".format(self.game.minimap_enable))
+                if event.key == pg.K_p:
+                    self.game.game_state = c.GAME_STATE_MAP
+                if event.key == pg.K_f:
+                    self.game.game_state = c.GAME_STATE_CHARACTER
+                if event.key == pg.K_i:
+                    self.game.game_state = c.GAME_STATE_INVENTORY
+                if event.key == pg.K_g:
+                    for item in self.game.objects:
+                        if (item.x, item.y) == (self.game.player.x, self.game.player.y) and item.item:
+                            item.item.pick_up()
 
-                if event.type == pg.KEYDOWN:
-                    if event.key == pg.K_ESCAPE:
-                        self.game.quit()
-                    if event.key in (pg.K_LEFT, pg.K_q, pg.K_KP4):
-                        self.game.player.move(dx=-1)
-                    if event.key in (pg.K_RIGHT, pg.K_d, pg.K_KP6):
-                        self.game.player.move(dx=1)
-                    if event.key in (pg.K_UP, pg.K_z, pg.K_KP8):
-                        self.game.player.move(dy=-1)
-                    if event.key in (pg.K_DOWN, pg.K_x, pg.K_KP2):
-                        self.game.player.move(dy=1)
-                    if event.key in (pg.K_KP7, pg.K_a):
-                        self.game.player.move(dx=-1, dy=-1)
-                    if event.key in (pg.K_KP9, pg.K_e):
-                        self.game.player.move(dx=1, dy=-1)
-                    if event.key in (pg.K_KP1, pg.K_w):
-                        self.game.player.move(dx=-1, dy=1)
-                    if event.key in (pg.K_KP3, pg.K_c):
-                        self.game.player.move(dx=1, dy=1)
-                    if event.key == pg.K_m:
-                        self.game.minimap_enable = not self.game.minimap_enable
-                        print("Minimap state: {}".format(self.game.minimap_enable))
-                    if event.key == pg.K_p:
-                        self.game.game_state = c.GAME_STATE_MAP
-                    if event.key == pg.K_f:
-                        self.game.game_state = c.GAME_STATE_CHARACTER
-                    if event.key == pg.K_i:
-                        self.game.game_state = c.GAME_STATE_INVENTORY
-                    if event.key == pg.K_g:
-                        for item in self.game.objects:
-                            if (item.x, item.y) == (self.game.player.x, self.game.player.y) and item.item:
-                                item.item.pick_up()
+                if event.key == pg.K_y:
+                    ThrowableHelper(self.game, self.game.player.pos, "FIREBALL", (1, 0),
+                                    ThrowableHelper.light_damage,
+                                    stopped_by=[c.T_WALL, c.T_VOID])
 
-                    if event.key == pg.K_y:
-                        ThrowableHelper(self.game, self.game.player.pos, "FIREBALL", (1, 0),
-                                        ThrowableHelper.light_damage,
-                                        stopped_by=[c.T_WALL, c.T_VOID])
+                if event.key == pg.K_n:
+                    self.game.go_next_level()
+                    return
 
-                    if event.key == pg.K_n:
-                        self.game.go_next_level()
-                        return
+                if event.key == pg.K_h:
+                    (x, y) = self.game.player.pos
+                    x += 1
+                    NPCHelper(self.game, "Companion", (x, y), "DOG")
+                if event.key == pg.K_r:
+                    # First, make sure that the music system is unabled
+                    if not hasattr(self.game, "soundfiles"):
+                        self.game.load_music()
 
-                    if event.key == pg.K_h:
-                        (x, y) = self.game.player.pos
-                        x += 1
-                        NPCHelper(self.game, "Companion", (x, y), "DOG")
-                    if event.key == pg.K_r:
-                        # First, make sure that the music system is unabled
-                        if not hasattr(self.game, "soundfiles"):
-                            self.game.load_music()
+                    if self.game.music_playing:
+                        pg.mixer.music.pause()
+                    else:
+                        pg.mixer.music.unpause()
+                    self.game.music_playing = not self.game.music_playing
 
-                        if self.game.music_playing:
-                            pg.mixer.music.pause()
-                        else:
-                            pg.mixer.music.unpause()
-                        self.game.music_playing = not self.game.music_playing
+                if event.key == pg.K_s:
+                    print("SAVING and EXIT")
+                    # We cleanup all objects
+                    for entities in self.game.objects:
+                        entities.clean_before_save()
+                    self.game.map.clean_before_save()
+                    for entities in self.game.player.inventory:
+                        entities.clean_before_save()
+                    with open("savegame", "wb") as f:
+                        pick.dump([self.game.objects, self.game.map, self.game.player.name, self.game.all_groups], f)
+                    self.game.quit()
 
-                    if event.key == pg.K_s:
-                        print("SAVING and EXIT")
-                        # We cleanup all objects
-                        for entities in self.game.objects:
-                            entities.clean_before_save()
-                        self.game.map.clean_before_save()
-                        for entities in self.game.player.inventory:
-                            entities.clean_before_save()
-                        with open("savegame", "wb") as f:
-                            pick.dump([self.game.objects, self.game.map, self.game.player.name, self.game.all_groups], f)
-                        self.game.quit()
+                if event.key in (pg.K_l, pg.K_KP5):
+                    self.game.textbox.add = str(self.game.player)
+                    room = self.game.map.get_room_at(self.game.player.x, self.game.player.y)
+                    if room is not None:
+                        self.game.textbox.add = room.name
+                    self.game.textbox.add = "Objects:"
+                    for entity in self.game.objects:
+                        if entity.x == self.game.player.x and entity.y == self.game.player.y:
+                            self.game.textbox.add = entity.name
 
-                    if event.key in (pg.K_l, pg.K_KP5):
-                        self.game.textbox.add = str(self.game.player)
-                        room = self.game.map.get_room_at(self.game.player.x, self.game.player.y)
+            if event.type == pg.MOUSEBUTTONDOWN:
+                (button1, button2, button3) = pg.mouse.get_pressed()
+                (x, y) = pg.mouse.get_pos()
+                if button1:
+                    (rev_x, rev_y) = self.game.camera.reverse((x, y))
+                    (x, y) = (int(rev_x / TILESIZE_SCREEN), int(rev_y / TILESIZE_SCREEN))
+                    if self.game.map.tiles[x][y].explored and self.game.map.tiles[x][y].tile_type != c.T_VOID:
+                        room = self.game.map.get_room_at(x, y)
                         if room is not None:
                             self.game.textbox.add = room.name
-                        self.game.textbox.add = "Objects:"
                         for entity in self.game.objects:
-                            if entity.x == self.game.player.x and entity.y == self.game.player.y:
+                            if entity.x == x and entity.y == y:
                                 self.game.textbox.add = entity.name
-
-                if event.type == pg.MOUSEBUTTONDOWN:
-                    (button1, button2, button3) = pg.mouse.get_pressed()
-                    (x, y) = pg.mouse.get_pos()
-                    if button1:
-                        (rev_x, rev_y) = self.game.camera.reverse((x, y))
-                        (x, y) = (int(rev_x / TILESIZE_SCREEN), int(rev_y / TILESIZE_SCREEN))
-                        if self.game.map.tiles[x][y].explored and self.game.map.tiles[x][y].tile_type != c.T_VOID:
-                            room = self.game.map.get_room_at(x, y)
-                            if room is not None:
-                                self.game.textbox.add = room.name
-                            for entity in self.game.objects:
-                                if entity.x == x and entity.y == y:
-                                    self.game.textbox.add = entity.name
-
 
     def update(self):
         # Update actions
