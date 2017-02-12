@@ -367,7 +367,17 @@ class LogBox:
         self.drag_drop_text_box = False
         self.force_render = True
         self._render_texts = None
-        self.old_mouse_x, self.old_mouse_y = 0, 0
+        # Prepare the filters..
+        rect_dimension = 10
+        self.filters = {c.P_CAT_FIGHT: True, c.P_CAT_ITEM: True, c.P_CAT_ENV: True}
+        self.color = {c.P_CAT_FIGHT: st.RED, c.P_CAT_ITEM: st.YELLOW, c.P_CAT_ENV: st.WHITE}
+        rectangle = pg.Rect(self.rect.right + self.border,
+                       self.rect.top - rect_dimension - self.border,
+                       rect_dimension,
+                       rect_dimension)
+        self.filter_recs = {c.P_CAT_FIGHT: rectangle.copy().move(-rect_dimension, 0),
+                            c.P_CAT_ITEM: rectangle.copy().move(-3 * rect_dimension, 0),
+                            c.P_CAT_ENV: rectangle.copy().move(-5 * rect_dimension, 0)}
 
     @classmethod
     def wordTooLong(cls, word, font, max_length, justify_chars=0):
@@ -414,10 +424,9 @@ class LogBox:
         if self.force_render:
             self._render_texts = []
             i = 0
-            color = {c.P_CAT_FIGHT: st.RED, c.P_CAT_ITEM: st.YELLOW, c.P_CAT_ENV: st.WHITE}
             msg_list = self._prepare_message_list()
             for line, category in msg_list:
-                self._render_texts.append(self.font.render(line, 1, color[category], st.BGCOLOR))
+                self._render_texts.append(self.font.render(line, 1, self.color[category], st.BGCOLOR))
                 i += 1
 
         pg.draw.rect(surface, self.border_color, self.rect.inflate(self.border, self.border))
@@ -426,39 +435,50 @@ class LogBox:
         for render_surf in self._render_texts:
             surface.blit(render_surf, (self.rect.left, self.rect.top + i * self.font.get_height()))
             i += 1
+        for key in self.filters:
+            pg.draw.rect(surface, self.color[key], self.filter_recs[key])
+            if not self.filters[key]:
+                pg.draw.rect(surface, st.BGCOLOR, self.filter_recs[key].inflate(-2, -2))
 
     def _prepare_message_list(self):
         message_for_display = []
         rw = self.rect.width
         for message_info in self.messages:
             text, category = message_info
-            lw, lh = self.font.size(text)
-            if lw>rw:
-                text_list = self.normalizeTextLength(text,
-                                     self.font,
-                                     self.rect.width,
-                                     justify_chars=0)
-                for line in text_list:
-                    message_for_display.append([line, category])
-            else:
-                message_for_display.append(message_info)
+            if self.filters[category]:
+                lw, lh = self.font.size(text)
+                if lw>rw:
+                    text_list = self.normalizeTextLength(text,
+                                         self.font,
+                                         self.rect.width,
+                                         justify_chars=0)
+                    for line in text_list:
+                        message_for_display.append([line, category])
+                else:
+                    message_for_display.append(message_info)
 
         if self.delta < -len(message_for_display) + self.limit_lines:
             self.delta = -len(message_for_display) + self.limit_lines
         return message_for_display[- self.limit_lines + self.delta:len(message_for_display) + self.delta]
 
     def get_event(self, event):
-        if event.type == pg.MOUSEBUTTONUP and self.rect.collidepoint(event.pos):
-            (x, y) = pg.mouse.get_pos()
-            pos_in_chat = y - self.rect.y
-            if pos_in_chat > self.rect.height / 2:
-                self.delta += 1
-                if self.delta > 0:
-                    self.delta = 0
-            else:
-                self.delta -= 1 # the delta will be adapted in the prepare message method
-            self.force_render = True
-            return True # Event consumed...
+        if event.type == pg.MOUSEBUTTONUP:
+            if self.rect.collidepoint(event.pos):
+                (x, y) = pg.mouse.get_pos()
+                pos_in_chat = y - self.rect.y
+                if pos_in_chat > self.rect.height / 2:
+                    self.delta += 1
+                    if self.delta > 0:
+                        self.delta = 0
+                else:
+                    self.delta -= 1 # the delta will be adapted in the prepare message method
+                self.force_render = True
+                return True # Event consumed...
+            for key in self.filter_recs:
+                if self.filter_recs[key].collidepoint(event.pos):
+                    self.filters[key] = not self.filters[key]
+                    self.force_render = True
+                    return True  # Event Consumed
         return False
 
     def update(self):
@@ -545,10 +565,16 @@ class LogBox:
             print("UNKNOWN MESSAGE: {}".format(message))
 
     def resize(self, old_width, old_height, new_width, new_height):
+        old_right = self.rect.right
         self.rect.y += new_height - old_height
         self.rect.width += new_width - old_width
         self.rect.centerx = int(new_width / 2)
+        new_right = self.rect.right
 
+        # Now we move the filter rectangles
+        for key in self.filter_recs:
+            self.filter_recs[key].right += new_right - old_right
+            self.filter_recs[key].y += new_height - old_height
         self.delta = 0
         self.force_render = True
 
