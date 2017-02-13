@@ -99,7 +99,7 @@ class MonsterFighter(FighterEntity):
 
     def monster_death(self):
         # Attribute the xp
-        self.owner.game.player.experience += self.experience
+        self.owner.game.player.gain_experience(self.experience)
         # TODO: the gold amount needs to be from the monster characteristics...
         gold = rd.randint(1,10)
         self.owner.game.player.wealth += gold

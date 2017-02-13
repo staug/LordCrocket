@@ -10,6 +10,7 @@ import pygame
 import random as rd
 from math import sqrt
 import constants as c
+import utilities as ut
 
 
 class Entity(Sprite):
@@ -406,6 +407,16 @@ class DoorHelper(Entity):
 
     @staticmethod
     def open_door(bus, door, entity_that_actioned):
+        # By default doors are forced
+        roll = ut.roll(20)
+        if roll > entity_that_actioned.strength:
+            # Failure when opening doors
+            bus.publish(door, {"object": door, "operator": entity_that_actioned, "result": c.FAILURE},
+                        main_category=c.P_CAT_ENV,
+                        sub_category=c.AC_ENV_OPEN)
+            return False
+
+        # Door is successfully opened
         door.blocks = False
         door.actionable = None
         bus.publish(door, {"object": door, "operator": entity_that_actioned, "result":c.SUCCESS},
@@ -414,6 +425,7 @@ class DoorHelper(Entity):
         door.image_ref = door.image_refs[door.index + 1 % 4]
         door.image = door.game.all_images[door.image_ref]
         door.set_in_spritegroup(-1)
+        return True
 
     def __str__(self):
         return "Door {} opened:{}".format(self.name, not self.blocks)
@@ -446,6 +458,7 @@ class StairHelper(Entity):
     def next_level(bus, stair, entity_that_actioned):
         stair.game.textbox.add = "The stair {} has been used by {}".format(stair.name, entity_that_actioned.name)
         stair.game.go_next_level()
+        return True
 
     def __str__(self):
         return "Stairs {} to next level".format(self.name)
@@ -511,12 +524,18 @@ class OpenableObjectHelper(Entity):
     @staticmethod
     def manipulate(bus, openable_object, entity_that_actioned):
         OpenableObjectHelper._manipulate_generic(openable_object, entity_that_actioned)
-        openable_object.game.textbox.add = "The {} has been opened by {}".format(openable_object.name, entity_that_actioned.name)
+        bus.publish(entity_that_actioned, {"result": c.SUCCESS,
+                                           "operator": entity_that_actioned,
+                                           "object":openable_object},
+                             main_category=c.P_CAT_ENV,
+                             sub_category=c.AC_ENV_OPEN)
+        return True
 
     @staticmethod
     def manipulate_empty(bus, openable_object, entity_that_actioned):
         OpenableObjectHelper._manipulate_generic(openable_object, entity_that_actioned)
         openable_object.game.textbox.add = "The {} has been opened by {} but it was empty".format(openable_object.name, entity_that_actioned.name)
+        return True
 
     @staticmethod
     def manipulate_trap(bus, openable_object, entity_that_actioned):
@@ -524,6 +543,7 @@ class OpenableObjectHelper(Entity):
         damage = rd.randint(1, 5)
         openable_object.game.textbox.add = "The {} has been opened by {} but it was a trap, causing {} damages".format(openable_object.name, entity_that_actioned.name, damage)
         entity_that_actioned.fighter.take_damage(damage)
+        return True
 
     @staticmethod
     def manipulate_treasure(bus, openable_object, entity_that_actioned):
@@ -531,6 +551,7 @@ class OpenableObjectHelper(Entity):
         wealth = rd.randint(10, 50)
         openable_object.game.textbox.add = "The {} has been opened by {}, it contained {} wealth".format(openable_object.name, entity_that_actioned.name, wealth)
         entity_that_actioned.wealth += wealth
+        return True
 
     @staticmethod
     def manipulate_vampire(bus, openable_object, entity_that_actioned):
@@ -541,6 +562,7 @@ class OpenableObjectHelper(Entity):
                                                                 openable_object.game.objects)
 
         MonsterFactory.instantiate_monster(openable_object.game, "VAMPIRE_SLAVE", pos)
+        return True
 
 
 class EquipmentHelper(Entity):

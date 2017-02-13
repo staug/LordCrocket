@@ -32,6 +32,6 @@ class ActionableEntity:
         else:
             if self.actionable_by_player_only:
                 if entity_that_actioned == self.owner.game.player:
-                    self.function(self.owner.game.bus, self.owner, entity_that_actioned)
+                    return self.function(self.owner.game.bus, self.owner, entity_that_actioned)
             else:
-                self.function(self.owner.game.bus, entity_that_actioned)
+                return self.function(self.owner.game.bus, entity_that_actioned)

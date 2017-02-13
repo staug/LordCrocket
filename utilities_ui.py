@@ -478,6 +478,7 @@ class LogBox:
                 if self.filter_recs[key].collidepoint(event.pos):
                     self.filters[key] = not self.filters[key]
                     self.force_render = True
+                    self.delta = 0
                     return True  # Event Consumed
         return False
 
@@ -552,8 +553,7 @@ class LogBox:
         elif message["MAIN_CATEGORY"] == c.P_CAT_ENV:
             if message["SUB_CATEGORY"] == c.AC_ENV_OPEN:
                 if message["result"] == c.SUCCESS:
-                    self._record_message("{} has been opened by {}".format(message["object"].name,
-                                                                           message["operator"].name),
+                    self._record_message("{} opened {}".format(message["operator"].name, message["object"].name),
                                      c.P_CAT_ENV)
                 else:
                     self._record_message("{} tried opening {} but failed".format(message["operator"].name,

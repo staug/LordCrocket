@@ -124,9 +124,13 @@ class PlayerHelper(Entity):
                             (self.x + dx, self.y + dy) in entity.actionable.action_field:
                 self.x += dx
                 self.y += dy
-                entity.actionable.action(self)
+                result = entity.actionable.action(self)
                 self.x -= dx
                 self.y -= dy
+                if result is not None and result == False:
+                    print("The return function prevented us to move there.")
+                    self.game.ticker.ticks_to_advance += self.speed_cost_for(c.AC_ENV_MOVE)
+                    return False
 
         # collision test: enemy
         for entity in self.game.objects:
@@ -269,7 +273,9 @@ class KillQuest(Quest):
                 self.state = c.QUEST_FINISHED
                 self.message_bus.unregister_all(self)
                 self.handle_rewards()
-                self.message_bus.publish(self.quest_owner, {"quest": self, "result": c.QUEST_FINISHED},
+                self.message_bus.publish(self.quest_owner, {"quest": self,
+                                                            "rewards": self.rewards,
+                                                            "result": c.QUEST_FINISHED},
                                          main_category=c.P_CAT_ENV,
                                          sub_category=c.AC_QUEST)
 
