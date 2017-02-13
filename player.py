@@ -14,6 +14,7 @@ class PlayerHelper(Entity):
     def __init__(self, game, pos):
 
         self.inventory = []
+        self.quest_list = []
 
         # Rolling base stats
         self.base_strength = ut.roll(6, 3)
@@ -45,7 +46,10 @@ class PlayerHelper(Entity):
 
         self.invalidate_fog_of_war = True
 
-        quest = KillQuest(game.bus, "BAT", 2, "Kill at least 2 bats")
+        # TODO Remove the following tests in real life
+        self.quest_list.append(KillQuest(self, game.bus, "BAT", 2, "Kill at least 2 bats", rewards={"target":self,
+                                                                                             "wealth":10,
+                                                                                             "xp":5}))
 
     @property
     def strength(self):
@@ -149,6 +153,10 @@ class PlayerHelper(Entity):
             return True
 
         return False
+    # xp related function
+    def gain_experience(self, amount):
+        self.experience += amount
+        # TODO level up function
 
     # inventory functions
 
@@ -203,19 +211,29 @@ class PlayerHelper(Entity):
 
 
 class Quest:
-    def __init__(self, message_bus, long_text):
+    def __init__(self, quest_owner, message_bus, long_text, rewards, quest_origin):
         self.message_bus = message_bus
         self.state = c.QUEST_SUBSCRIBED
         self.long_text = long_text
+        self.rewards = rewards
+        self.quest_owner = quest_owner
+        self.quest_origin = quest_origin
 
     def cancel(self):
         self.state = c.QUEST_CANCELLED
 
+    def handle_rewards(self):
+        if self.rewards is not None:
+            # todo handle the item being given as part of quests?
+            if "xp" in self.rewards:
+                self.quest_owner.gain_experience(self.rewards["xp"])
+            if "wealth" in self.rewards:
+                self.quest_owner.wealth += self.rewards["wealth"]
 
 class KillQuest(Quest):
 
-    def __init__(self, message_bus, enemy_type, limit_for_success, long_text):
-        Quest.__init__(self, message_bus, long_text)
+    def __init__(self, quest_owner, message_bus, enemy_type, limit_for_success, long_text, rewards=None, quest_origin=None):
+        Quest.__init__(self, quest_owner, message_bus, long_text, rewards, quest_origin)
 
         self.enemy_type = enemy_type
         self.current_kill = 0
@@ -226,23 +244,34 @@ class KillQuest(Quest):
                                   sub_category=c.AC_FIGHT_KILL,
                                   function_to_call=self.new_kill)
 
+        self.message_bus.publish(self.quest_owner, {"result": c.QUEST_SUBSCRIBED, "quest": self},
+                             main_category=c.P_CAT_ENV,
+                             sub_category=c.AC_QUEST)
 
     def new_kill(self, message):
         print("KILLLLLL")
         if self.state == c.QUEST_SUBSCRIBED:
             monster = message['defender']
-            if monster.monster_type == self.enemy_type:
+            if self.enemy_type == "ANY" or monster.monster_type == self.enemy_type:
                 self.current_kill += 1
-                print("CORRECT MONSTER")
+                self.message_bus.publish(self.quest_owner, {"message": "one more kill",
+                                                            "quest": self,
+                                                            "result": c.QUEST_UPDATED},
+                                         main_category=c.P_CAT_ENV,
+                                         sub_category=c.AC_QUEST)
             else:
-                print("WRONG ENEMY TYPE")
+                pass
             self.update()
 
     def update(self):
         if self.state == c.QUEST_SUBSCRIBED:
             if self.current_kill >= self.limit_for_success:
-                print("FINISHED")
                 self.state = c.QUEST_FINISHED
                 self.message_bus.unregister_all(self)
+                self.handle_rewards()
+                self.message_bus.publish(self.quest_owner, {"quest": self, "result": c.QUEST_FINISHED},
+                                         main_category=c.P_CAT_ENV,
+                                         sub_category=c.AC_QUEST)
+
 
 

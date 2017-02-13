@@ -559,6 +559,19 @@ class LogBox:
                     self._record_message("{} tried opening {} but failed".format(message["operator"].name,
                                                                                  message["object"].name),
                                          c.P_CAT_ENV)
+            elif message["SUB_CATEGORY"] == c.AC_QUEST:
+                quest = message["quest"]
+                if message["result"] == c.QUEST_SUBSCRIBED:
+                    self._record_message("{} decided to {}".format(quest.quest_owner.name, quest.long_text),
+                                         c.P_CAT_ENV)
+                elif message["result"] == c.QUEST_UPDATED:
+                    self._record_message("{} for {}".format(message["message"], quest.long_text),
+                                         c.P_CAT_ENV)
+                elif message["result"] == c.QUEST_FINISHED:
+                    self._record_message("{} is done. Rewards: {}".format(quest.long_text, message["rewards"]),
+                                         c.P_CAT_ENV)
+                else:
+                    print("UNKNOWN MESSAGE: {}".format(message))
             else:
                 print("UNKNOWN MESSAGE: {}".format(message))
         else:

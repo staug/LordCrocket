@@ -159,7 +159,7 @@ class Game:
         self.level += 1
 
         # initializing map structure
-        self.map = MapFactory("Map of the dead - Level {}".format(self.level), self.all_images).map
+        self.map = MapFactory("Cave of LordCrocket - Level {}".format(self.level), self.all_images).map
         self.minimap = Minimap(self)
 
         # Field of view

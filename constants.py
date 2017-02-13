@@ -80,8 +80,10 @@ P_CAT_ENV = "environment"
 # Sub
 AC_ENV_MOVE = "move"  # Used for quest purpose, and also to heal
 AC_ENV_OPEN = "open"  # Door
+AC_QUEST = "quest"
 
 # QUESTS STATES
 QUEST_SUBSCRIBED = "quest_subscribed"
+QUEST_UPDATED = "quest_updated"
 QUEST_CANCELLED = "quest_cancelled"
 QUEST_FINISHED = "quest_finished"
