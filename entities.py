@@ -367,7 +367,10 @@ class ItemHelper(Entity):
 
         # heal the entity - if already at max xp we don't do anything
         if entity.fighter.hit_points == entity.base_hit_points:
-            entity.game.textbox.add = 'You are already at full health.'
+            entity.game.bus.publish(entity, {"result": c.FAILURE,
+                                                     "message": 'You are already at full health.'},
+                                        main_category=c.AC_ITEM,
+                                        sub_category=c.AC_ITEM_USE)
             return ItemEntity.FUNCTION_CANCELLED
 
         entity.game.textbox.add = 'Your wounds start to feel better!'

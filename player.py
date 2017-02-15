@@ -47,9 +47,15 @@ class PlayerHelper(Entity):
         self.invalidate_fog_of_war = True
 
         # TODO Remove the following tests in real life
-        self.quest_list.append(KillQuest(self, game.bus, "BAT", 2, "Kill at least 2 bats", rewards={"target":self,
-                                                                                             "wealth":10,
-                                                                                             "xp":5}))
+        self.quest_list.append(KillQuest(self, game.bus, "BAT", 2, "kill at least 2 bats", rewards={"target":self,
+                                                                                             "wealth":20,
+                                                                                             "xp":10}))
+        self.quest_list.append(KillQuest(self, game.bus, "ANY", 5, "kill five enemies", rewards={"target": self,
+                                                                                                    "wealth": 15,
+                                                                                                    "xp": 20}))
+        self.quest_list.append(KillQuest(self, game.bus, "ANY", 1, "kill whatever creature", rewards={"target": self,
+                                                                                                    "wealth": 10,
+                                                                                                    "xp": 15}))
 
     @property
     def strength(self):
@@ -111,6 +117,8 @@ class PlayerHelper(Entity):
             return self.speed
         elif action == c.P_CAT_FIGHT:
             return int(self.speed * 0.8)
+        elif action == c.AC_ENV_OPEN:
+            return int(self.speed * 0.3)
         elif action == c.AC_SPELL:
             return int(self.speed * 2)
         else:
@@ -118,6 +126,9 @@ class PlayerHelper(Entity):
 
     def move(self, dx=0, dy=0):
         """Try to move the player. Return True if an action was done (either move or attack)"""
+        # We keep the old position
+        old_pos = self.pos
+
         # Action test
         for entity in self.game.objects:
             if entity != self and entity.actionable is not None and\
@@ -129,7 +140,7 @@ class PlayerHelper(Entity):
                 self.y -= dy
                 if result is not None and result == False:
                     print("The return function prevented us to move there.")
-                    self.game.ticker.ticks_to_advance += self.speed_cost_for(c.AC_ENV_MOVE)
+                    self.game.ticker.ticks_to_advance += self.speed_cost_for(c.AC_ENV_OPEN)
                     return False
 
         # collision test: enemy
@@ -154,6 +165,15 @@ class PlayerHelper(Entity):
             self.invalidate_fog_of_war = True
 
             self.game.ticker.ticks_to_advance += self.speed_cost_for(c.AC_ENV_MOVE)
+            # Did we change room?
+            old_room = self.game.map.get_room_at(old_pos[0], old_pos[1])
+            new_room = self.game.map.get_room_at(self.pos[0], self.pos[1])
+            if old_room is not None and old_room != new_room:
+                self.game.bus.publish(self, {"room":new_room, "operator": self}, main_category=c.P_CAT_ENV,
+                                         sub_category=c.AC_ENV_MOVE)
+            else:
+                self.game.bus.publish(self, {"operator": self}, main_category=c.P_CAT_ENV,
+                                         sub_category=c.AC_ENV_MOVE)
             return True
 
         return False
@@ -253,7 +273,6 @@ class KillQuest(Quest):
                              sub_category=c.AC_QUEST)
 
     def new_kill(self, message):
-        print("KILLLLLL")
         if self.state == c.QUEST_SUBSCRIBED:
             monster = message['defender']
             if self.enemy_type == "ANY" or monster.monster_type == self.enemy_type:

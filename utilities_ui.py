@@ -559,6 +559,11 @@ class LogBox:
                     self._record_message("{} tried opening {} but failed".format(message["operator"].name,
                                                                                  message["object"].name),
                                          c.P_CAT_ENV)
+            elif message["SUB_CATEGORY"] == c.AC_ENV_MOVE:
+
+                if "room" in message:
+                    self._record_message("{} entered {}".format(message["operator"].name, message["room"].name),
+                                         c.P_CAT_ENV)
             elif message["SUB_CATEGORY"] == c.AC_QUEST:
                 quest = message["quest"]
                 if message["result"] == c.QUEST_SUBSCRIBED:

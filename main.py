@@ -154,7 +154,6 @@ class Game:
         for entity in self.objects[:]:
             if entity != self.player:
                 entity.remove_completely_object()
-        print("Ticker now empty: {}".format(self.ticker.schedule))
 
         self.level += 1
 
