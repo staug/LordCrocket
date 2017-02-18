@@ -1514,12 +1514,43 @@ def build_listing_oryx(img_root):
     # ITEMS
     ratio_item = 16 / st.TILESIZE_SCREEN
     
-    images["REMAINS"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 1, 7, width=16, height=16, adapt_ratio=ratio_item)
+    images["REMAINS"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 1, 7,
+                                   width=16, height=16, adapt_ratio=ratio_item)
+    images["POTION_B_S"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 1, 1, width=16,
+                                      height=16, adapt_ratio=ratio_item)
+    images["POTION_P_S"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 2, 1, width=16,
+                                      height=16, adapt_ratio=ratio_item)
     images["POTION_R_S"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 3, 1, width=16,
+                                      height=16, adapt_ratio=ratio_item)
+    images["POTION_G_S"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 4, 1, width=16,
+                                      height=16, adapt_ratio=ratio_item)
+    images["POTION_Y_S"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 5, 1, width=16,
+                                      height=16, adapt_ratio=ratio_item)
+    images["POTION_W_S"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 6, 1, width=16,
+                                      height=16, adapt_ratio=ratio_item)
+    images["POTION_B_N"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 7, 1, width=16,
+                                      height=16, adapt_ratio=ratio_item)
+    images["POTION_P_N"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 8, 1, width=16,
                                       height=16, adapt_ratio=ratio_item)
     images["POTION_R_N"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 9, 1, width=16,
                                       height=16, adapt_ratio=ratio_item)
+    images["POTION_G_N"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 10, 1, width=16,
+                                      height=16, adapt_ratio=ratio_item)
+    images["POTION_Y_N"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 11, 1, width=16,
+                                      height=16, adapt_ratio=ratio_item)
+    images["POTION_W_N"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 12, 1, width=16,
+                                      height=16, adapt_ratio=ratio_item)
+    images["POTION_B_L"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 13, 1, width=16,
+                                      height=16, adapt_ratio=ratio_item)
+    images["POTION_P_L"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 14, 1, width=16,
+                                      height=16, adapt_ratio=ratio_item)
     images["POTION_R_L"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 15, 1, width=16,
+                                      height=16, adapt_ratio=ratio_item)
+    images["POTION_G_L"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 16, 1, width=16,
+                                      height=16, adapt_ratio=ratio_item)
+    images["POTION_Y_L"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 17, 1, width=16,
+                                      height=16, adapt_ratio=ratio_item)
+    images["POTION_W_L"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 18, 1, width=16,
                                       height=16, adapt_ratio=ratio_item)
 
     # FX
