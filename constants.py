@@ -87,3 +87,8 @@ QUEST_SUBSCRIBED = "quest_subscribed"
 QUEST_UPDATED = "quest_updated"
 QUEST_CANCELLED = "quest_cancelled"
 QUEST_FINISHED = "quest_finished"
+
+# IDENTIFICATION CRITERIA
+NOT_IDENTIFIED_NAME = "not_identified_name"
+NOT_IDENTIFIED_DESC = "not_identified_description"
+IDENTIFICATION_MODIFIER = "identification_modifier"

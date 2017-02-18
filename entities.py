@@ -77,13 +77,21 @@ class Entity(Sprite):
         self.item = item
         if self.item:  # let the Item component know who owns it
             self.item.owner = self
+            if not self.item.identified:
+                assert c.NOT_IDENTIFIED_DESC in self.item.identification, \
+                    "Missing not identified text for {}".format(name)
+                self.long_desc_after = self.long_desc
+                self.long_desc = self.item.identification[c.NOT_IDENTIFIED_DESC]
+                assert c.NOT_IDENTIFIED_NAME in self.item.identification, \
+                    "Missing not identified name for {}".format(name)
+                self.name_after = self.name
+                self.name = self.item.identification[c.NOT_IDENTIFIED_NAME]
 
         self.equipment = equipment
         if self.equipment:  # let the Equipment component know who owns it
             self.equipment.owner = self
             # there must be an Item component for the Equipment component to work properly
-            from item import ItemEntity
-            self.item = ItemEntity()
+            self.item = self.equipment.item
             self.item.owner = self
 
         self.actionable = actionable
@@ -323,6 +331,7 @@ class Entity(Sprite):
         self.game.objects.remove(self)
 
         self.kill()
+
 
 class SpecialVisualEffect(Entity):
     def __init__(self, game, pos, image, seconds):

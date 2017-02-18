@@ -1,6 +1,7 @@
 import constants as c
 import settings as st
 import random as rd
+import utilities as ut
 
 import entities
 
@@ -14,9 +15,12 @@ class ItemEntity:
     FUNCTION_CANCELLED = 'cancelled'
 
     # an item that can be picked up and used.
-    def __init__(self, use_function=None):
+    def __init__(self, use_function=None, identification=None, number_use=1):
         self.use_function = use_function
         self.owner = None
+        self.identification = identification
+        self.identified = self.identification is None
+        self.number_use = number_use
 
     def pick_up(self):
         # add to the player's inventory and remove from the map
@@ -29,7 +33,7 @@ class ItemEntity:
             for group in self.owner.game.all_groups:
                 group.remove(self.owner)
         self.owner.game.bus.publish(self.owner, {"item": self.owner,
-                                                 "result":result},
+                                                 "result": result},
                                     main_category=c.P_CAT_ITEM,
                                     sub_category=c.AC_ITEM_GRAB)
 
@@ -65,29 +69,56 @@ class ItemEntity:
                                         sub_category=c.AC_ITEM_USE)
         else:
             if self.use_function() != ItemEntity.FUNCTION_CANCELLED:
-                self.owner.game.player.inventory.remove(self.owner)  # destroy after use, unless it was cancelled
+                self.number_use -= 1
+                if self.number_use == 0:
+                    self.owner.game.player.inventory.remove(self.owner)  # destroy after use, unless it was cancelled
 
-    def identify(self):
-        # TODO pass
-        print("NOT IMPLEMENTED YET")
+    def identify(self, force=False):
+
+        if self.identified:
+            return True
+        else:
+            # TODO Make it real
+            if not force:
+                modifier = 0
+                if c.IDENTIFICATION_MODIFIER in self.identification:
+                    modifier = self.identification["identification_modifier"]
+
+                # Test: can we identify
+                roll = ut.roll(20) + modifier
+                if roll > self.owner.game.player.mind:
+                    print("Impossible to identify")
+                    return False
+
+            self.identified = True
+            assert self.owner is not None, "Item doesn't seem to have an owner??"
+            self.owner.long_desc = self.owner.long_desc_after
+            self.owner.name = self.owner.name_after
+            return True
 
 
 class ItemHelper(entities.Entity):
     """
     Class used to create an Item
     """
-    def __init__(self, game, name, pos, image_ref, use_function, long_desc=None):
+    def __init__(self, game, name, pos, image_ref, use_function, long_desc=None, identification=None, number_use=1):
         """
         Initialization method
         :param game: reference to the game variable
         :param name: the name of the Item
         :param pos: the pos (as tuple) of the item
         :param image_ref: the reference for the image
-        :param use_function: the function to be used.
+        :param use_function: the function to be used
+        :param long_desc: the full description of the item
+        :param identification: the settings for identification
+        :param number_use: the number of times the item can be used
         Sample: use_function=lambda player=self.player: Item.cast_heal(player)
         """
         entities.Entity.__init__(self, game, name, pos, image_ref, blocks=False,
-                        item=ItemEntity(use_function=use_function), long_desc=long_desc)
+                                 item=ItemEntity(use_function=use_function,
+                                                 identification=identification,
+                                                 number_use=number_use),
+                                 long_desc=long_desc)
         self.set_in_spritegroup(-1)
 
     @staticmethod
@@ -98,9 +129,9 @@ class ItemHelper(entities.Entity):
         # heal the entity - if already at max xp we don't do anything
         if entity.fighter.hit_points == entity.base_hit_points:
             entity.game.bus.publish(entity, {"result": c.FAILURE,
-                                                     "message": 'You are already at full health.'},
-                                        main_category=c.P_CAT_ITEM,
-                                        sub_category=c.AC_ITEM_USE)
+                                             "message": 'You are already at full health.'},
+                                    main_category=c.P_CAT_ITEM,
+                                    sub_category=c.AC_ITEM_USE)
             return ItemEntity.FUNCTION_CANCELLED
 
         entity.game.bus.publish(entity, {"result": c.SUCCESS,
@@ -177,7 +208,7 @@ class ItemFactory:
                                                                   max=number_item+1)
         assert number_item < len(pos_list), \
             "Number of item generated {} must be greater than available positions {}".format(number_item,
-                                                                                                len(pos_list))
+                                                                                             len(pos_list))
 
         print("Total number of item requested: {}".format(number_item))
         for i in range(number_item):
@@ -188,32 +219,47 @@ class ItemFactory:
     def instantiate_item(game, item, pos):
         if item == "CHEST_GOLD":
             entities.OpenableObjectHelper(game, pos, "CHEST_CLOSED", "CHEST_OPEN_GOLD", name="Chest",
-                                 use_function=entities.OpenableObjectHelper.manipulate_treasure)
+                                          use_function=entities.OpenableObjectHelper.manipulate_treasure)
         elif item == "CHEST_TRAP":
             entities.OpenableObjectHelper(game, pos, "CHEST_CLOSED", "CHEST_OPEN_TRAP", name="Chest",
-                                 use_function=entities.OpenableObjectHelper.manipulate_trap)
+                                          use_function=entities.OpenableObjectHelper.manipulate_trap)
         elif item == "CHEST_EMPTY":
             entities.OpenableObjectHelper(game, pos, "CHEST_CLOSED", "CHEST_OPEN_EMPTY", name="Chest",
-                                 use_function=entities.OpenableObjectHelper.manipulate_empty)
+                                          use_function=entities.OpenableObjectHelper.manipulate_empty)
         elif item == "COFFIN":
             entities.OpenableObjectHelper(game, pos, "COFFIN_CLOSED", "COFFIN_OPEN", name="Chest",
-                                 use_function=entities.OpenableObjectHelper.manipulate_vampire)
-        # Potions
+                                          use_function=entities.OpenableObjectHelper.manipulate_vampire)
+        # Potions: 70% chance 1 dose, otherwise 1d6 dose
         elif item == "HEALING_POTION_S":
+            dose = 1
+            long_desc = "a red glow is a promise of a small healing"
+            if ut.roll(100) > 70:
+                dose = ut.roll(5) + 1
+                long_desc = "a red glow is a promise of a small healing, enough for {} uses".format(dose)
+
             ItemHelper(game, "Small Healing Potion", pos, "POTION_R_S",
                        use_function=lambda player=game.player, value=rd.randint(3, 8):
                        ItemHelper.cast_heal(player, heal_amount=value),
-                       long_desc="A red glow is a promise of a small healing")
+                       long_desc="a red glow is a promise of a small healing",
+                       number_use=dose,
+                       identification={c.NOT_IDENTIFIED_NAME: "potion",
+                                       c.NOT_IDENTIFIED_DESC: "reddish liquid",
+                                       c.IDENTIFICATION_MODIFIER: -2})
         elif item == "HEALING_POTION_N":
             ItemHelper(game, "Healing Potion", pos, "POTION_R_N",
                        use_function=lambda player=game.player, value=rd.randint(5, 11):
                        ItemHelper.cast_heal(player, heal_amount=value),
-                       long_desc="Better for your health in large than in small")
+                       long_desc="better for your health in large than in small",
+                       identification={c.NOT_IDENTIFIED_NAME: "potion",
+                                       c.NOT_IDENTIFIED_DESC: "large quantity of reddish liquid"})
         elif item == "HEALING_POTION_L":
             ItemHelper(game, "Large Healing Potion", pos, "POTION_R_L",
                        use_function=lambda player=game.player, value=rd.randint(6, 14):
                        ItemHelper.cast_heal(player, heal_amount=value),
-                       long_desc="The best money can buy, don't waste it")
+                       long_desc="the best money can buy, don't waste it",
+                       identification={c.NOT_IDENTIFIED_NAME: "potion",
+                                       c.NOT_IDENTIFIED_DESC: "slightly red",
+                                       c.IDENTIFICATION_MODIFIER: 4})
         # Equipments
         elif item == "BASIC_SWORD":
             EquipmentHelper(game, "Basic Sword", pos, "SWORD", slot=c.SLOT_HAND_RIGHT, modifiers={c.BONUS_STR: 2})
@@ -242,8 +288,8 @@ class EquipmentHelper(entities.Entity):
         Sample: {"AC": 2}
         """
         entities.Entity.__init__(self, game, name, pos, image_ref, blocks=False,
-                        equipment=EquipmentEntity(slot=slot, modifiers=modifiers),
-                        long_desc=long_desc)
+                                 equipment=EquipmentEntity(slot=slot, modifiers=modifiers),
+                                 long_desc=long_desc)
         self.set_in_spritegroup(-1)
 
 
@@ -255,6 +301,9 @@ class EquipmentEntity:
         self.slot = slot
         self.is_equipped = False
         self.modifiers = modifiers
+
+        # an equipment has an item object attached
+        self.item = ItemEntity()
 
         self.owner = None
 
@@ -284,7 +333,3 @@ class EquipmentEntity:
         self.owner.game.bus.publish(self.owner, {"item": self.owner, "slot": self.slot},
                                     main_category=c.P_CAT_ITEM,
                                     sub_category=c.AC_ITEM_UNEQUIP)
-
-
-
-

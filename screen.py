@@ -60,8 +60,8 @@ class InventoryScreen(Screen):
                              lambda screen=self: screen.button_drop(),
                              text="Drop", id='button_drop', image=game.all_images["ICON_DROP"])
         button_identify = Button((x_icon, 9 * self.tile_size, 0, 0),
-                                 lambda screen=self: screen.button_drop(),
-                                 text="Identify", id='button_drop', image=game.all_images["ICON_IDENTIFY"])
+                                 lambda screen=self: screen.button_identify(),
+                                 text="Identify", id='button_identify', image=game.all_images["ICON_IDENTIFY"])
         self.widgets.append(button_equip)
         self.widgets.append(button_unequip)
         self.widgets.append(button_use)
@@ -96,7 +96,6 @@ class InventoryScreen(Screen):
         if self.selected_item is not None:
             if self.selected_item.item is not None:
                 self.selected_item.item.identify()
-            self.selected_item = None
 
     def events(self):
         # catch all events here
