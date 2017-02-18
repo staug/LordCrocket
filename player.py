@@ -141,7 +141,7 @@ class PlayerHelper(Entity):
                 self.x -= dx
                 self.y -= dy
                 if result is not None and result == False:
-                    print("The return function prevented us to move there.")
+                    # We triggered an object, it prevented the move (like a door not opening)
                     self.game.ticker.ticks_to_advance += self.speed_cost_for(c.AC_ENV_OPEN)
                     return False
 

@@ -524,7 +524,9 @@ class LogBox:
                 self._record_message(message["message"], c.P_CAT_FIGHT)
             else:
                 print("UNKNOWN MESSAGE: {}".format(message))
+
         elif message["MAIN_CATEGORY"] == c.P_CAT_ITEM:
+
             if message["SUB_CATEGORY"] == c.AC_ITEM_GRAB:
                 if message["result"] == c.SUCCESS:
                     if message["item"].long_desc is not None:
@@ -536,29 +538,45 @@ class LogBox:
                 else:
                     self._record_message("Grabbing up {} was too difficult for you".format(message["item"].name),
                                          c.P_CAT_ITEM)
+
             elif message["SUB_CATEGORY"] == c.AC_ITEM_DUMP:
                 self._record_message("You carelessly dropped a {}".format(message["item"].name), c.P_CAT_ITEM)
+
             elif message["SUB_CATEGORY"] == c.AC_ITEM_USE:
                 if message["result"] == c.FAILURE:
                     self._record_message("Unfortunately the {} cannot be used".format(message["item"].name),
                                          c.P_CAT_ITEM)
+                elif message["result"] == c.SUCCESS:
+                    self._record_message("{}".format(message["message"]),
+                                        c.P_CAT_ITEM)
+
             elif message["SUB_CATEGORY"] == c.AC_ITEM_EQUIP:
                 self._record_message("You successfully equipped a {} on {}".format(message["item"].name,
                                                                                    message["slot"]), c.P_CAT_ITEM)
+
             elif message["SUB_CATEGORY"] == c.AC_ITEM_UNEQUIP:
                 self._record_message("You removed a {} from {}".format(message["item"].name,
                                                                        message["slot"]), c.P_CAT_ITEM)
             else:
                 print("UNKNOWN MESSAGE: {}".format(message))
+
         elif message["MAIN_CATEGORY"] == c.P_CAT_ENV:
+
             if message["SUB_CATEGORY"] == c.AC_ENV_OPEN:
                 if message["result"] == c.SUCCESS:
-                    self._record_message("{} opened {}".format(message["operator"].name, message["object"].name),
+                    if "precision" in message:
+                        self._record_message("{} opened {}; {}".format(message["operator"].name,
+                                                                       message["object"].name,
+                                                                       message["precision"]),
+                                             c.P_CAT_ENV)
+                    else:
+                        self._record_message("{} opened {}".format(message["operator"].name, message["object"].name),
                                      c.P_CAT_ENV)
                 else:
                     self._record_message("{} tried opening {} but failed".format(message["operator"].name,
                                                                                  message["object"].name),
                                          c.P_CAT_ENV)
+
             elif message["SUB_CATEGORY"] == c.AC_ENV_MOVE:
 
                 if "room" in message and hasattr(message["room"], "name"):

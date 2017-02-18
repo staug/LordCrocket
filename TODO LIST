@@ -6,7 +6,6 @@ NPC
 
 GENERAL GAME
 * CLean up UI
-* Redesign the text box
 * Redesign the question box, make a generic pattern (type, sentence, list of choice, list of call backs with variable parameters)
 
 INVENTORY SCREEN
@@ -15,7 +14,8 @@ INVENTORY SCREEN
 MONSTER
 * More characteristics to hero and monster - http://www.roguebasin.com/index.php?title=A_Better_Monster_AI
 * Better AI and more personality to monster
-* Monster drops gold and xp!
+* Monster may flee the combat if morale is not good
+* Better gold distribution when the monsters are dead
 
 ITEM
 * Each item has a weight
@@ -28,21 +28,15 @@ Spells and potions
 
 BUGS
 * In save, make sure the floor is always the same...
-* Textbox: if a line is multi line, then the number of messages displayed in the textbox is incorrect
-* Textbox: if teh window has been resized, the textbox may be used to display text out of surface!
-* [Done] Potion heals only hit opints, not body points
 
-Notes:
-Heal from exploration
+Quests and journal:
+* Create a quest screen, showing all current quests and statuses
+* Create a journal of enemies killed
+* Implement more quest types
 
 Short list:
-* [DONE] Monster type and legend
-* [DONE] Add at least three monster types
-* [DONE] Monsters have special abilities that may deal extra damage
-* Player heal
-* Add more items to be picked up
-* [DONE] Fix sound
+* Player heal from exploration
+* Add more items to be picked up and more monsters
 * Events: each screen should handle some events in the same way
-* Quests system
 * Player level up
 * SPlit the entities files in multiple reusable ones

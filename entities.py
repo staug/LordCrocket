@@ -369,11 +369,14 @@ class ItemHelper(Entity):
         if entity.fighter.hit_points == entity.base_hit_points:
             entity.game.bus.publish(entity, {"result": c.FAILURE,
                                                      "message": 'You are already at full health.'},
-                                        main_category=c.AC_ITEM,
+                                        main_category=c.P_CAT_ITEM,
                                         sub_category=c.AC_ITEM_USE)
             return ItemEntity.FUNCTION_CANCELLED
 
-        entity.game.textbox.add = 'Your wounds start to feel better!'
+        entity.game.bus.publish(entity, {"result": c.SUCCESS,
+                                         "message": 'Your wounds start to feel better.'},
+                                main_category=c.P_CAT_ITEM,
+                                sub_category=c.AC_ITEM_USE)
         entity.fighter.heal(heal_amount)
 
 
@@ -537,14 +540,24 @@ class OpenableObjectHelper(Entity):
     @staticmethod
     def manipulate_empty(bus, openable_object, entity_that_actioned):
         OpenableObjectHelper._manipulate_generic(openable_object, entity_that_actioned)
-        openable_object.game.textbox.add = "The {} has been opened by {} but it was empty".format(openable_object.name, entity_that_actioned.name)
+        bus.publish(entity_that_actioned, {"result": c.SUCCESS,
+                                           "operator": entity_that_actioned,
+                                           "object": openable_object,
+                                           "precision": "it was empty"},
+                    main_category=c.P_CAT_ENV,
+                    sub_category=c.AC_ENV_OPEN)
         return True
 
     @staticmethod
     def manipulate_trap(bus, openable_object, entity_that_actioned):
         OpenableObjectHelper._manipulate_generic(openable_object, entity_that_actioned)
         damage = rd.randint(1, 5)
-        openable_object.game.textbox.add = "The {} has been opened by {} but it was a trap, causing {} damages".format(openable_object.name, entity_that_actioned.name, damage)
+        bus.publish(entity_that_actioned, {"result": c.SUCCESS,
+                                           "operator": entity_that_actioned,
+                                           "object": openable_object,
+                                           "precision": "it was a trap"},
+                    main_category=c.P_CAT_ENV,
+                    sub_category=c.AC_ENV_OPEN)
         entity_that_actioned.fighter.take_damage(damage)
         return True
 
@@ -552,14 +565,24 @@ class OpenableObjectHelper(Entity):
     def manipulate_treasure(bus, openable_object, entity_that_actioned):
         OpenableObjectHelper._manipulate_generic(openable_object, entity_that_actioned)
         wealth = rd.randint(10, 50)
-        openable_object.game.textbox.add = "The {} has been opened by {}, it contained {} wealth".format(openable_object.name, entity_that_actioned.name, wealth)
+        bus.publish(entity_that_actioned, {"result": c.SUCCESS,
+                                           "operator": entity_that_actioned,
+                                           "object": openable_object,
+                                           "precision": "it reveals a shiny treasure"},
+                    main_category=c.P_CAT_ENV,
+                    sub_category=c.AC_ENV_OPEN)
         entity_that_actioned.wealth += wealth
         return True
 
     @staticmethod
     def manipulate_vampire(bus, openable_object, entity_that_actioned):
         OpenableObjectHelper._manipulate_generic(openable_object, entity_that_actioned)
-        openable_object.game.textbox.add = "The {} has been opened by {}, disturbing a vampire".format(openable_object.name, entity_that_actioned.name)
+        bus.publish(entity_that_actioned, {"result": c.SUCCESS,
+                                           "operator": entity_that_actioned,
+                                           "object": openable_object,
+                                           "precision": "a vampire gets in the way"},
+                    main_category=c.P_CAT_ENV,
+                    sub_category=c.AC_ENV_OPEN)
         pos = openable_object.game.map.get_close_available_tile(openable_object.pos,
                                                                 c.T_FLOOR,
                                                                 openable_object.game.objects)
