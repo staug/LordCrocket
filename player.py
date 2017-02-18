@@ -56,7 +56,9 @@ class PlayerHelper(Entity):
         self.quest_list.append(KillQuest(self, game.bus, "ANY", 1, "kill whatever creature", rewards={"target": self,
                                                                                                     "wealth": 10,
                                                                                                     "xp": 15}))
-
+        self.quest_list.append(KillAllQuest(self, game.bus, game.objects, rewards={"target": self,
+                                                                                   "wealth": 100,
+                                                                                   "xp": 150}))
     @property
     def strength(self):
         return self.base_strength + self.get_bonus(c.BONUS_STR)
@@ -233,6 +235,48 @@ class PlayerHelper(Entity):
                 non_equipment.append(item)
         return non_equipment
 
+"""
+QUESTS RELATED STUFF
+THE ADVENTURER
+- Reach a certain location
+- Map a location and bring the map to a person or location
+- Find n objects and bring them to a person or location
+- Find or catch n creatures and bring them to a person or location
+- Something strange is going on. Track the source and stop it
+- Escape from the trap (dungeon)
+
+THE HERO
+- Get n followers (of a specific type)
+- Gather forces (beings and/or objects) and lead/bring them to a person or
+  location
+
+THE WARRIOR
+- Kill n monsters (of a certain type) -> DONE
+- Clear a location from monsters -> DONE
+
+THE MERCHANT
+- Manage a business to get beyond a certain limit (time/money)
+
+COMPETING WITH THE ENEMY/ARCHENEMY
+- Reach a location before the archenemy
+- Get an object from a person before the archenemy
+- Get an object from a location before the archenemy
+- Find an object before the archenemy
+- Steal an object from the enemy
+
+PROTECT FROM THE ENEMY/ARCHENEMY
+- Protect a location from the enemy (until civilians have escaped)
+- Protect a person from the enemy
+- Find and protect a person from the enemy
+- Guide/protect a person on the way from one location to another
+
+Try to vary the number of ways in which the PC can enter into quests. It can be
+so much more interesting to be travelling the countryside and hear a maiden's
+wails than to be told exactly what the quest is & where to go, etc. by some
+'questmonger' in town.
+
+"""
+
 
 class Quest:
     def __init__(self, quest_owner, message_bus, long_text, rewards, quest_origin):
@@ -254,9 +298,11 @@ class Quest:
             if "wealth" in self.rewards:
                 self.quest_owner.wealth += self.rewards["wealth"]
 
+
 class KillQuest(Quest):
 
-    def __init__(self, quest_owner, message_bus, enemy_type, limit_for_success, long_text, rewards=None, quest_origin=None):
+    def __init__(self, quest_owner, message_bus, enemy_type,
+                 limit_for_success, long_text, rewards=None, quest_origin=None):
         Quest.__init__(self, quest_owner, message_bus, long_text, rewards, quest_origin)
 
         self.enemy_type = enemy_type
@@ -299,4 +345,49 @@ class KillQuest(Quest):
                                          sub_category=c.AC_QUEST)
 
 
+class KillAllQuest(Quest):
 
+    def __init__(self, quest_owner, message_bus, game_objects,
+                 long_text="clear floor of all enemies",
+                 rewards=None, quest_origin=None):
+
+        Quest.__init__(self, quest_owner, message_bus, long_text, rewards, quest_origin)
+        self.game_objects = game_objects
+        self.current_kill = 0
+
+        self.message_bus.register(self,
+                                  main_category=c.P_CAT_FIGHT,
+                                  sub_category=c.AC_FIGHT_KILL,
+                                  function_to_call=self.new_kill)
+
+        self.message_bus.publish(self.quest_owner, {"result": c.QUEST_SUBSCRIBED, "quest": self},
+                                 main_category=c.P_CAT_ENV,
+                                 sub_category=c.AC_QUEST)
+
+    def new_kill(self, message):
+        if self.state == c.QUEST_SUBSCRIBED:
+            self.current_kill += 1
+            self.message_bus.publish(self.quest_owner, {"message": "one more kill",
+                                                            "quest": self,
+                                                            "result": c.QUEST_UPDATED},
+                                         main_category=c.P_CAT_ENV,
+                                         sub_category=c.AC_QUEST)
+        self.update()
+
+    def update(self):
+        # Some enemies may have spawned...
+        entity_count = 0
+        for entities in self.game_objects:
+            if entities.fighter is not None and entities != self.quest_owner:
+                entity_count += 1
+
+        if self.state == c.QUEST_SUBSCRIBED:
+            if entity_count == 0:  # TODO: check if this is really the case, and remove NPC!
+                self.state = c.QUEST_FINISHED
+                self.message_bus.unregister_all(self)
+                self.handle_rewards()
+                self.message_bus.publish(self.quest_owner, {"quest": self,
+                                                            "rewards": self.rewards,
+                                                            "result": c.QUEST_FINISHED},
+                                         main_category=c.P_CAT_ENV,
+                                         sub_category=c.AC_QUEST)

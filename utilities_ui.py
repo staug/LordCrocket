@@ -561,7 +561,7 @@ class LogBox:
                                          c.P_CAT_ENV)
             elif message["SUB_CATEGORY"] == c.AC_ENV_MOVE:
 
-                if "room" in message:
+                if "room" in message and hasattr(message["room"], "name"):
                     self._record_message("{} entered {}".format(message["operator"].name, message["room"].name),
                                          c.P_CAT_ENV)
             elif message["SUB_CATEGORY"] == c.AC_QUEST:

@@ -47,6 +47,8 @@ class Publisher(object):
 
     def __init__(self):
         self._specialized_list = {}  # Subscribe to main and a list of sub_category
+        self.in_publish = False
+        self.delayed_unregister = []
 
     def register(self,
                  object_to_register,
@@ -83,16 +85,24 @@ class Publisher(object):
     def unregister_all(self, object_to_unregister):
         # We need to parse all the lists..
         # and the same object may have been registered with different functions
-        for key in self._specialized_list.keys():
-            list_to_remove = []
-            list_to_parse = self._specialized_list[key]
-            for function in list_to_parse:
-                if function.__self__ == object_to_unregister:
-                    list_to_remove.append(function)
-            for function in list_to_remove:
-                self._specialized_list[key].remove(function)
+        if self.in_publish:
+            self.delayed_unregister.append(object_to_unregister)
+        else:
+            for key in self._specialized_list.keys():
+                list_to_remove = []
+                list_to_parse = self._specialized_list[key]
+                for function in list_to_parse:
+                    if function.__self__ == object_to_unregister:
+                        list_to_remove.append(function)
+                for function in list_to_remove:
+                    self._specialized_list[key].remove(function)
+
+    def handle_delayed_unregister_all(self):
+        for object_to_unregister in self.delayed_unregister:
+            self.unregister_all(object_to_unregister)
 
     def publish(self, source, message, main_category=c.P_ALL, sub_category=c.P_ALL):
+        self.in_publish = True
         assert type(message) is dict, "Message {} is not a dict".format(message)
         message["SOURCE"] = source
         broadcasted_list = []
@@ -119,6 +129,8 @@ class Publisher(object):
                         if function not in broadcasted_list:  # Need to be sure not to send two times the message
                             function(message)
                             broadcasted_list.append(function)
+        self.in_publish = False
+        self.handle_delayed_unregister_all()
 
 """
 Utilities Functions.
