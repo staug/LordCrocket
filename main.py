@@ -6,7 +6,8 @@ import pygame as pg
 
 import constants as c
 
-from entities import MonsterFactory, ItemFactory, DoorHelper, StairHelper
+from entities import MonsterFactory, DoorHelper, StairHelper
+from item import ItemFactory
 from player import PlayerHelper
 from settings import *
 from tilemap import MapFactory, Camera, FieldOfView, Minimap
