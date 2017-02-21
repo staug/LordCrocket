@@ -1512,7 +1512,7 @@ def build_listing_oryx(img_root):
     images["DOG"] = load_creature_oryx(image_src_list, img_root, "oryx_16bit_fantasy_creatures_trans.png", [(14, 13), (14, 14)], width=24, height=24)
 
     # ITEMS
-    ratio_item = 16 / st.TILESIZE_SCREEN
+    ratio_item = 16 / 24
     
     images["REMAINS"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 1, 7,
                                    width=16, height=16, adapt_ratio=ratio_item)
