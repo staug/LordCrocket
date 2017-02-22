@@ -74,11 +74,16 @@ class ItemEntity:
                     self.owner.game.player.inventory.remove(self.owner)  # destroy after use, unless it was cancelled
 
     def identify(self, force=False):
+        """
+        Identify an item. Not that there is a chance that identification results in breaking the item...
+        :param force: if set to True then the item will always be identified
+        :return: True if the item is identified, False otherwise
+        """
 
         if self.identified:
             return True
         else:
-            # TODO Make it real
+
             if not force:
                 modifier = 0
                 if c.IDENTIFICATION_MODIFIER in self.identification:
@@ -87,13 +92,23 @@ class ItemEntity:
                 # Test: can we identify
                 roll = ut.roll(20) + modifier
                 if roll > self.owner.game.player.mind:
-                    print("Impossible to identify")
+                    # Failure in identifying the object may result in breaking it...
+                    roll = ut.roll(20) + modifier
+                    if roll > self.owner.game.player.dexterity:
+                        # We broke it...
+                        self.owner.game.bus.publish(self.owner, {"item": self.owner, "result": c.FAILURE},
+                                                    main_category=c.P_CAT_ITEM,
+                                                    sub_category=c.AC_ITEM_IDENTIFY)
+                        self.owner.game.player.inventory.remove(self.owner)  # destroy it
                     return False
 
             self.identified = True
             assert self.owner is not None, "Item doesn't seem to have an owner??"
             self.owner.long_desc = self.owner.long_desc_after
             self.owner.name = self.owner.name_after
+            self.owner.game.bus.publish(self.owner, {"item": self.owner, "result":c.SUCCESS},
+                                        main_category=c.P_CAT_ITEM,
+                                        sub_category=c.AC_ITEM_IDENTIFY)
             return True
 
 
@@ -136,9 +151,9 @@ class ItemHelper(entities.Entity):
                 return ItemEntity.FUNCTION_CANCELLED
 
             entity.game.bus.publish(entity, {"result": c.SUCCESS,
-                                                 "message": 'your wounds start to feel better'},
-                                        main_category=c.P_CAT_ITEM,
-                                        sub_category=c.AC_ITEM_USE)
+                                             "message": 'your wounds start to feel better'},
+                                    main_category=c.P_CAT_ITEM,
+                                    sub_category=c.AC_ITEM_USE)
 
             if expression == "FIX":
                 entity.fighter.heal(heal_amount)
@@ -256,36 +271,35 @@ class ItemFactory:
         elif "POTION" in item:
             # Potions: 70% chance 1 dose, otherwise 1d6 dose
             dose = 1
-            if ut.roll(100) > 70:
-                dose = ut.roll(5) + 1
+            if ut.roll(100) > st.POTION_MONODOSE_CHANCE:
+                dose = ut.roll(6)
 
             if item == "HEALING_POTION_S":
                 long_desc = "a red glow is a promise of a small healing"
                 if dose > 1:
                     long_desc += ", enough for {} uses".format(dose)
-                if ut.roll(100) > 10:
+                if ut.roll(100) < st.POTION_DECAYING_CHANCE:
                     # Potion has decayed
-                    if ut.roll(100) > 90:
-                        ItemHelper(game, "Potion of delusion", pos, "POTION_R_S",
+                    if ut.roll(100) < st.POTION_POISON_CHANCE:
+                        ItemHelper(game, "poison", pos, "POTION_R_S",
                                    use_function=lambda player=game.player, value=rd.randint(3, 8):
-                                   ItemHelper.cast_heal(player, heal_amount=0),
-                                   long_desc="Taste like the regular, but does nothing",
+                                   ItemHelper.cast_heal(player, heal_amount=-0.25, expression="PERCENTAGE"),
+                                   long_desc="would cost you your life...",
                                    number_use=1,
                                    identification={c.NOT_IDENTIFIED_NAME: "potion",
                                                    c.NOT_IDENTIFIED_DESC: "reddish liquid",
                                                    c.IDENTIFICATION_MODIFIER: -2})
                     else:
-                        ItemHelper(game, "Poison", pos, "POTION_R_S",
+                        ItemHelper(game, "potion of delusion", pos, "POTION_R_S",
                                    use_function=lambda player=game.player, value=rd.randint(3, 8):
-                                   ItemHelper.cast_heal(player, heal_amount=-0.5, expression="PERCENTAGE"),
-                                   long_desc="Would cost you your life...",
+                                   ItemHelper.cast_heal(player, heal_amount=0),
+                                   long_desc="taste like the regular, but does nothing",
                                    number_use=1,
                                    identification={c.NOT_IDENTIFIED_NAME: "potion",
                                                    c.NOT_IDENTIFIED_DESC: "reddish liquid",
                                                    c.IDENTIFICATION_MODIFIER: -2})
-
                 else:
-                    ItemHelper(game, "Small Healing Potion", pos, "POTION_R_S",
+                    ItemHelper(game, "small healing potion", pos, "POTION_R_S",
                                use_function=lambda player=game.player, value=rd.randint(3, 8):
                                ItemHelper.cast_heal(player, heal_amount=value),
                                long_desc=long_desc,
@@ -293,24 +307,66 @@ class ItemFactory:
                                identification={c.NOT_IDENTIFIED_NAME: "potion",
                                                c.NOT_IDENTIFIED_DESC: "reddish liquid",
                                                c.IDENTIFICATION_MODIFIER: -2})
-
             elif item == "HEALING_POTION_N":
-                ItemHelper(game, "Healing Potion", pos, "POTION_R_N",
-                           use_function=lambda player=game.player, value=rd.randint(5, 11):
-                           ItemHelper.cast_heal(player, heal_amount=value),
-                           long_desc="better for your health in large than in small",
-                           number_use=dose,
-                           identification={c.NOT_IDENTIFIED_NAME: "potion",
-                                           c.NOT_IDENTIFIED_DESC: "large quantity of reddish liquid"})
+                if ut.roll(100) < st.POTION_DECAYING_CHANCE:
+                    # Potion has decayed
+                    if ut.roll(100) < st.POTION_POISON_CHANCE:
+                        ItemHelper(game, "Poison", pos, "POTION_R_S",
+                                   use_function=lambda player=game.player:
+                                   ItemHelper.cast_heal(player, heal_amount=-0.45, expression="PERCENTAGE"),
+                                   long_desc="Would cost you your life...",
+                                   number_use=1,
+                                   identification={c.NOT_IDENTIFIED_NAME: "potion",
+                                                   c.NOT_IDENTIFIED_DESC: "large quantity of reddish liquid",
+                                                   c.IDENTIFICATION_MODIFIER: 1})
+                    else:
+                        ItemHelper(game, "Potion of delusion", pos, "POTION_R_S",
+                                   use_function=lambda player=game.player:
+                                   ItemHelper.cast_heal(player, heal_amount=0),
+                                   long_desc="Taste like the regular, but does nothing",
+                                   number_use=1,
+                                   identification={c.NOT_IDENTIFIED_NAME: "potion",
+                                                   c.NOT_IDENTIFIED_DESC: "large quantity of reddish liquid",
+                                                   c.IDENTIFICATION_MODIFIER: 1})
+                else:
+                    ItemHelper(game, "Healing Potion", pos, "POTION_R_N",
+                               use_function=lambda player=game.player, value=rd.randint(5, 11):
+                               ItemHelper.cast_heal(player, heal_amount=value),
+                               long_desc="better for your health in large than in small",
+                               number_use=dose,
+                               identification={c.NOT_IDENTIFIED_NAME: "potion",
+                                               c.NOT_IDENTIFIED_DESC: "large quantity of reddish liquid",
+                                               c.IDENTIFICATION_MODIFIER: 1})
             elif item == "HEALING_POTION_L":
-                ItemHelper(game, "Large Healing Potion", pos, "POTION_R_L",
-                           use_function=lambda player=game.player, value=rd.randint(6, 14):
-                           ItemHelper.cast_heal(player, heal_amount=value),
-                           long_desc="the best money can buy, don't waste it",
-                           number_use=dose,
-                           identification={c.NOT_IDENTIFIED_NAME: "potion",
-                                           c.NOT_IDENTIFIED_DESC: "slightly red",
-                                           c.IDENTIFICATION_MODIFIER: 4})
+                if ut.roll(100) < st.POTION_DECAYING_CHANCE:
+                    # Potion has decayed
+                    if ut.roll(100) < st.POTION_POISON_CHANCE:
+                        ItemHelper(game, "Poison", pos, "POTION_R_S",
+                                   use_function=lambda player=game.player:
+                                   ItemHelper.cast_heal(player, heal_amount=-0.6, expression="PERCENTAGE"),
+                                   long_desc="Would cost you your life...",
+                                   number_use=1,
+                                   identification={c.NOT_IDENTIFIED_NAME: "potion",
+                                                   c.NOT_IDENTIFIED_DESC: "slightly red",
+                                                   c.IDENTIFICATION_MODIFIER: 2})
+                    else:
+                        ItemHelper(game, "Potion of delusion", pos, "POTION_R_S",
+                                   use_function=lambda player=game.player:
+                                   ItemHelper.cast_heal(player, heal_amount=0),
+                                   long_desc="Taste like the regular, but does nothing",
+                                   number_use=1,
+                                   identification={c.NOT_IDENTIFIED_NAME: "potion",
+                                                   c.NOT_IDENTIFIED_DESC: "slightly red",
+                                                   c.IDENTIFICATION_MODIFIER: 2})
+                else:
+                    ItemHelper(game, "Large Healing Potion", pos, "POTION_R_L",
+                               use_function=lambda player=game.player, value=rd.randint(6, 14):
+                               ItemHelper.cast_heal(player, heal_amount=value),
+                               long_desc="the best money can buy, don't waste it",
+                               number_use=dose,
+                               identification={c.NOT_IDENTIFIED_NAME: "potion",
+                                               c.NOT_IDENTIFIED_DESC: "slightly red",
+                                               c.IDENTIFICATION_MODIFIER: 3})
         # Equipments
         elif item == "BASIC_SWORD":
             EquipmentHelper(game, "Basic Sword", pos, "SWORD", slot=c.SLOT_HAND_RIGHT, modifiers={c.BONUS_STR: 2})

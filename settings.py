@@ -1,6 +1,6 @@
 # GAME
 GAME_TITLE = "Lord Crocket"
-GAME_VER = "0.18"
+GAME_VER = "0.20"
 #IMG_STYLE = "DAWNLIKE"
 IMG_STYLE = "ORYX"
 
@@ -46,3 +46,9 @@ SOUND_FOLDER = 'sound'
 FONT_FOLDER = 'font'
 # FONT_NAME = 'unispace.ttf'
 FONT_NAME = 'ProFontWindows.ttf'
+
+# ITEMS CHARACTERISTICS
+# POTIONS (these are percentage)
+POTION_MONODOSE_CHANCE = 70
+POTION_DECAYING_CHANCE = 5
+POTION_POISON_CHANCE = 40

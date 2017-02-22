@@ -556,6 +556,11 @@ class LogBox:
             elif message["SUB_CATEGORY"] == c.AC_ITEM_UNEQUIP:
                 self._record_message("You removed a {} from {}".format(message["item"].name,
                                                                        message["slot"]), c.P_CAT_ITEM)
+            elif message["SUB_CATEGORY"] == c.AC_ITEM_IDENTIFY:
+                if message["result"] == c.SUCCESS:
+                    self._record_message("You successfully identified a {}".format(message["item"].name), c.P_CAT_ITEM)
+                elif message["result"] == c.FAILURE:
+                    self._record_message("You broke the object", c.P_CAT_ITEM)
             else:
                 print("UNKNOWN MESSAGE: {}".format(message))
 
