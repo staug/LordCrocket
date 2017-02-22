@@ -40,3 +40,4 @@ Short list:
 * Events: each screen should handle some events in the same way
 * Player level up
 * SPlit the entities files in multiple reusable ones
+* [DONE] Player can be poisonned...

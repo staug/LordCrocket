@@ -36,6 +36,35 @@ class Ticker(object):
                     self.schedule[key].remove(obj)
 
 
+class TemporaryAction():
+    # A very simple buf system
+    # A function that is called regularly
+    def __init__(self, gameticker, function, speed, number_turn=1, always_on=False, register_target=None):
+        self.speed = speed  # the speed will be used for the scheduling
+        self.gameticker = gameticker
+        self.function = function
+        self.speed = speed
+        self.number_turn_remaining = number_turn
+        self.always_on = always_on
+        self.gameticker.schedule_turn(self.speed, self)
+        self.register_target = register_target
+        if self.register_target is not None:
+            self.register_target.register(self)
+
+    def take_turn(self):
+        if self.function is not None:
+            self.function()
+        if self.always_on:
+            self.gameticker.schedule_turn(self.speed, self)
+        else:
+            self.number_turn_remaining -= 1
+            if self.number_turn_remaining > 0:
+                self.gameticker.schedule_turn(self.speed, self)
+            else:
+                if self.register_target is not None:
+                    self.register_target.unregister(self)
+
+
 class Publisher(object):
     """
     Dispatch messages

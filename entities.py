@@ -6,6 +6,7 @@ from fighter import MonsterFighter
 from ai import AIEntity, FollowingAIEntity
 from tilemap import FieldOfView
 from os import path
+from utilities import TemporaryAction
 
 import pygame
 import random as rd
@@ -685,8 +686,8 @@ class MonsterFactory:
         self.monster_chances = {}
         if IMG_STYLE == c.IM_STYLE_ORYX:
             self.monster_chances["BAT"] = 10
-            self.monster_chances["GREY_RAT"] = 10
-            self.monster_chances["BROWN_RAT"] = 10
+            self.monster_chances["GREY_RAT"] = 50
+            self.monster_chances["BROWN_RAT"] = 50
             self.monster_chances["DOG"] = self.from_dungeon_level([[10, 3], [15, 5]])
             self.monster_chances["SKELETON"] = 10
             self.monster_chances["SKELETON_WARRIOR"] = 8
@@ -795,8 +796,8 @@ class MonsterSpecials:
     @staticmethod
     def poison_player(player, chance_percentage):
         if rd.randint(1, 100) <= chance_percentage:
-            # TODO define the function
-            print("PLAYER IS POISONNNNNNNNED")
+            TemporaryAction(player.game.ticker, lambda: player.fighter.take_damage(2), player.speed, number_turn=5,
+                            register_target=player)
 
 
 class NPCHelper(Entity):

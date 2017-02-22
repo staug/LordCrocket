@@ -15,6 +15,7 @@ class PlayerHelper(Entity):
 
         self.inventory = []
         self.quest_list = []
+        self.registered_actions = []  # use for buf and debuf
 
         # Rolling base stats
         self.base_strength = ut.roll(6, 3)
@@ -96,6 +97,13 @@ class PlayerHelper(Entity):
             return int((self.charisma - 10) / 3)
 
     # FUNCTIONS
+
+    def register(self, function):
+        # we register the function (like a poinsoning) to be able to remove it later...
+        self.registered_actions.append(function)
+
+    def unregister(self, function):
+        self.registered_actions.remove(function)
 
     def get_bonus(self, bonus_type):
         bonus = 0

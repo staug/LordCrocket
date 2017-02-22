@@ -490,10 +490,13 @@ class HealthBarWidget:
             total_health = self.fighter.body_points + self.fighter.hit_points
             current_bar_width = int(total_health * bar_width_total / total_health_possible)
             color = GREEN
+            color_text = BLACK
             if 0.3 * bar_width_total <= current_bar_width < 0.6 * bar_width_total:
                 color = YELLOW
+                color_text = RED
             elif 0 <= current_bar_width < 0.3 * bar_width_total:
                 color = RED
+                color_text = WHITE
             pg.draw.rect(surface, color, pg.Rect(x, y, current_bar_width, bar_height))
             # Now we create the exterior rectangles
             pg.draw.rect(surface, WHITE, pg.Rect(x, y, bar_width_total, bar_height), 2)
@@ -501,7 +504,7 @@ class HealthBarWidget:
                                total_health_possible)
             pg.draw.rect(surface, WHITE, pg.Rect(x, y, bar_width_bp, bar_height), 2)
             # And last, some text
-            label_surface = self.font.render("{}/{}".format(total_health, total_health_possible), 1, WHITE)
+            label_surface = self.font.render("{}/{}".format(total_health, total_health_possible), 1, color_text)
             label_rect = label_surface.get_rect()
             label_rect.center = (x + int(bar_width_bp / 2), y + int(bar_height / 2))
             surface.blit(label_surface, label_rect)
