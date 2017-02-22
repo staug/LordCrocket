@@ -164,7 +164,6 @@ class ItemHelper(entities.Entity):
                 entity.fighter.take_damage(abs(damage_value))
 
 
-
 class ItemFactory:
     """
     Used to generate a list of Items
@@ -255,11 +254,10 @@ class ItemFactory:
                                           use_function=entities.OpenableObjectHelper.manipulate_vampire)
         #  ************ POTION ***********
         elif "POTION" in item:
-        # Potions: 70% chance 1 dose, otherwise 1d6 dose
+            # Potions: 70% chance 1 dose, otherwise 1d6 dose
             dose = 1
             if ut.roll(100) > 70:
                 dose = ut.roll(5) + 1
-
 
             if item == "HEALING_POTION_S":
                 long_desc = "a red glow is a promise of a small healing"
@@ -269,34 +267,32 @@ class ItemFactory:
                     # Potion has decayed
                     if ut.roll(100) > 90:
                         ItemHelper(game, "Potion of delusion", pos, "POTION_R_S",
-                               use_function=lambda player=game.player, value=rd.randint(3, 8):
-                               ItemHelper.cast_heal(player, heal_amount=0),
-                               long_desc="Taste like the regular, but does nothing",
-                               number_use=dose,
-                               identification={c.NOT_IDENTIFIED_NAME: "potion",
-                                               c.NOT_IDENTIFIED_DESC: "reddish liquid",
-                                               c.IDENTIFICATION_MODIFIER: -2})
+                                   use_function=lambda player=game.player, value=rd.randint(3, 8):
+                                   ItemHelper.cast_heal(player, heal_amount=0),
+                                   long_desc="Taste like the regular, but does nothing",
+                                   number_use=1,
+                                   identification={c.NOT_IDENTIFIED_NAME: "potion",
+                                                   c.NOT_IDENTIFIED_DESC: "reddish liquid",
+                                                   c.IDENTIFICATION_MODIFIER: -2})
                     else:
                         ItemHelper(game, "Poison", pos, "POTION_R_S",
                                    use_function=lambda player=game.player, value=rd.randint(3, 8):
                                    ItemHelper.cast_heal(player, heal_amount=-0.5, expression="PERCENTAGE"),
                                    long_desc="Would cost you your life...",
-                                   number_use=dose,
+                                   number_use=1,
                                    identification={c.NOT_IDENTIFIED_NAME: "potion",
                                                    c.NOT_IDENTIFIED_DESC: "reddish liquid",
                                                    c.IDENTIFICATION_MODIFIER: -2})
 
                 else:
                     ItemHelper(game, "Small Healing Potion", pos, "POTION_R_S",
-                           use_function=lambda player=game.player, value=rd.randint(3, 8):
-                           ItemHelper.cast_heal(player, heal_amount=value),
-                           long_desc=long_desc,
-                           number_use=dose,
-                           identification={c.NOT_IDENTIFIED_NAME: "potion",
-                                           c.NOT_IDENTIFIED_DESC: "reddish liquid",
-                                           c.IDENTIFICATION_MODIFIER: -2})
-
-
+                               use_function=lambda player=game.player, value=rd.randint(3, 8):
+                               ItemHelper.cast_heal(player, heal_amount=value),
+                               long_desc=long_desc,
+                               number_use=dose,
+                               identification={c.NOT_IDENTIFIED_NAME: "potion",
+                                               c.NOT_IDENTIFIED_DESC: "reddish liquid",
+                                               c.IDENTIFICATION_MODIFIER: -2})
 
             elif item == "HEALING_POTION_N":
                 ItemHelper(game, "Healing Potion", pos, "POTION_R_N",

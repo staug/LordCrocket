@@ -470,6 +470,39 @@ class CharacterScreen(Screen):
             self.build_surface()
 
 
+class HealthBarWidget:
+
+    def __init__(self, position, player_fighter):
+        self.position = position
+        self.fighter = player_fighter
+
+    def get_event(self, event):
+        pass
+
+    def draw(self, surface):
+        x, y = self.position
+        bar_height = 20
+        if self.fighter is not None:
+            bar_width_total = 200
+            # First, we create the interior rectangle
+            total_health_possible = self.fighter.owner.base_body_points + self.fighter.owner.base_hit_points
+            total_health = self.fighter.body_points + self.fighter.hit_points
+            current_bar_width = int(total_health * bar_width_total / total_health_possible)
+            color = GREEN
+            if 0.3 * bar_width_total <= current_bar_width < 0.6 * bar_width_total:
+                color = YELLOW
+            elif 0 <= current_bar_width < 0.3 * bar_width_total:
+                color = RED
+            pg.draw.rect(surface, color, pg.Rect(x, y, current_bar_width, bar_height))
+            # Now we create the exterior rectangles
+            pg.draw.rect(surface, WHITE, pg.Rect(x, y, bar_width_total, bar_height), 2)
+            bar_width_bp = int(self.fighter.owner.base_body_points * bar_width_total /
+                               total_health_possible)
+            pg.draw.rect(surface, WHITE, pg.Rect(x, y, bar_width_bp, bar_height), 2)
+
+    def update(self):
+        pass
+
 class PlayingScreen(Screen):
 
     def __init__(self, game, default_back_state):
@@ -482,35 +515,9 @@ class PlayingScreen(Screen):
         bt2.command = lambda player=self.game.player, screen=self: screen.test(player=player, widget=bt2.id)
 
         self.widgets.append(game.textbox)
+        self.widgets.append(HealthBarWidget((10, 10), game.player.fighter))
         # self.widgets.append(bt1)
         # self.widgets.append(bt2)
-
-    def draw_health_bar(self, surf, x, y):
-        # TODO: Health bar should be a widget
-        bar_height = 20
-        fighter = self.game.player.fighter
-        if fighter is not None:
-            bar_width_hp = 100
-            bar_width_bp = int(fighter.owner.base_body_points * bar_width_hp / fighter.owner.base_hit_points)
-
-            pct_hp = fighter.hit_points / fighter.owner.base_hit_points
-
-            outline_rect_hp = pg.Rect(x + bar_width_bp, y, bar_width_hp, bar_height)
-            fill_rect_hp = pg.Rect(x + bar_width_bp, y, pct_hp * bar_width_hp, bar_height)
-            col = GREEN
-            if 0.3 <= pct_hp < 0.6:
-                col = YELLOW
-            if 0 <= pct_hp < 0.3:
-                col = RED
-
-            pg.draw.rect(surf, col, fill_rect_hp)
-            pg.draw.rect(surf, WHITE, outline_rect_hp, 2)
-
-            pct_bp = fighter.body_points / fighter.owner.base_body_points
-            outline_rect_bp = pg.Rect(x, y, bar_width_bp, bar_height)
-            fill_rect_bp = pg.Rect(x, y, pct_bp * bar_width_bp, bar_height)
-            pg.draw.rect(surf, GREEN, fill_rect_bp)
-            pg.draw.rect(surf, WHITE, outline_rect_bp, 2)
 
     def draw(self):
         # Erase All
@@ -554,7 +561,7 @@ class PlayingScreen(Screen):
         self.game.screen.blit(self.fog_of_war_mask, (0, 0))
         # --- HUD SECTION ---
         # Player health
-        self.draw_health_bar(self.game.screen, 10, 10)
+        # self.draw_health_bar(self.game.screen, 10, 10)
         # Mini map
         if self.game.minimap_enable:
             if map_rebuild:

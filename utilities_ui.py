@@ -489,7 +489,6 @@ class LogBox:
         print("TTTEXXXTTT NOT PROPERLY SET {}".format(text))
     add = property(lambda self: self._text, _setText, doc="""The text to be displayed""")
 
-
     def _record_message(self, text, category):
         self.messages.append([text, category])
         self.force_render = True
