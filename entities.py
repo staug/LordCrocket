@@ -5,6 +5,7 @@ from actionable import ActionableEntity
 from fighter import MonsterFighter
 from ai import AIEntity, FollowingAIEntity
 from tilemap import FieldOfView
+from os import path
 
 import pygame
 import random as rd
@@ -172,24 +173,28 @@ class Entity(Sprite):
         elif not in_inventory:
             self.add(self.game.player_sprite_group)
 
-        image = self.game.all_images[self.image_ref]
-        if type(image) is tuple:
-            # for decode purpose
-            self.image = Surface((TILESIZE_SCREEN, TILESIZE_SCREEN))
-            self.image.fill(image)
-        elif type(image) is list or type(image) is dict:
-            self.animated = True
-            self.current_frame = 0
-            self.last_update = 0
-            if type(image) is list:
-                self.list_image = image
-                self.image = self.list_image[self.current_frame]
-            else:
-                self.last_direction = (1, 0)
-                self.dict_image = image
-                self.image = self.dict_image['E'][self.current_frame]
+        if type(self.image_ref) is pygame.Surface:
+            # This is the case for the special visual effect
+            self.image = self.image_ref
         else:
-            self.image = image
+            image = self.game.all_images[self.image_ref]
+            if type(image) is tuple:
+                # for decode purpose
+                self.image = Surface((TILESIZE_SCREEN, TILESIZE_SCREEN))
+                self.image.fill(image)
+            elif type(image) is list or type(image) is dict:
+                self.animated = True
+                self.current_frame = 0
+                self.last_update = 0
+                if type(image) is list:
+                    self.list_image = image
+                    self.image = self.list_image[self.current_frame]
+                else:
+                    self.last_direction = (1, 0)
+                    self.dict_image = image
+                    self.image = self.dict_image['E'][self.current_frame]
+            else:
+                self.image = image
         self.rect = self.image.get_rect()
         self.rect.centerx = self.x * TILESIZE_SCREEN + int(TILESIZE_SCREEN / 2)  # initial position for the camera
         self.rect.centery = self.y * TILESIZE_SCREEN + int(TILESIZE_SCREEN / 2)
@@ -342,7 +347,7 @@ class SpecialVisualEffect(Entity):
     def update(self):
         now = pygame.time.get_ticks()
         if now > self.end:
-            self.game.player_plus1_sprite_group.remove(self)
+            # self.game.player_plus1_sprite_group.remove(self)
             self.game.objects.remove(self)
             self.kill()
         else:
@@ -352,6 +357,35 @@ class SpecialVisualEffect(Entity):
             self.rect.y = self.y * TILESIZE_SCREEN
 
 
+class SpecialVisualTextEffect(Entity):
+    """
+    Small text, attached to an entity, display damage...
+    """
+    def __init__(self, game, pos, text, seconds=2, color=WHITE, rel_pos="MIDTOP"):
+        self.font = pygame.font.Font(path.join(path.join(path.dirname(__file__), FONT_FOLDER), FONT_NAME), 10)
+        image = self.font.render(text, 1, color)
+        Entity.__init__(self, game, "Effect", pos, image, groups=game.player_plus1_sprite_group)
+        now = pygame.time.get_ticks()
+        self.end = now + 1000 * seconds
+        self.rel_pos = rel_pos
+        if self.rel_pos == "MIDTOP":
+            self.rect.x += int(TILESIZE_SCREEN / 2) - int(self.rect.width / 2)
+            self.rect.y -= int(TILESIZE_SCREEN / 2) - int(self.rect.height / 2)
+
+    def update(self):
+        now = pygame.time.get_ticks()
+        if now > self.end:
+            # self.game.player_plus1_sprite_group.remove(self)
+            self.game.objects.remove(self)
+            self.kill()
+        else:
+            if self.animated:
+                self.animate()
+            self.rect.x = self.x * TILESIZE_SCREEN
+            self.rect.y = self.y * TILESIZE_SCREEN
+            if self.rel_pos == "MIDTOP":
+                self.rect.x += int(TILESIZE_SCREEN / 2) - int(self.rect.width / 2)
+                self.rect.y -= int(TILESIZE_SCREEN / 2) - int(self.rect.height / 2)
 
 
 class DoorHelper(Entity):

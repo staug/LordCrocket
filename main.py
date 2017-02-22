@@ -107,8 +107,8 @@ class Game:
         self.visible_player_array = self.fov.get_vision_matrix_for(self.player, flag_explored=True)
 
         # place monsters and items
-        ItemFactory(self).build_list(220) # 220
-        MonsterFactory(self).build_list(25)
+        ItemFactory(self).build_list(20) # 220
+        MonsterFactory(self).build_list(120)
 
         # And we end with the screens...
         self.screens = {
@@ -181,7 +181,7 @@ class Game:
                              self.map.tile_height * TILESIZE_SCREEN)
         # place monsters
         ItemFactory(self).build_list(50)
-        MonsterFactory(self).build_list(30)
+        MonsterFactory(self).build_list(130)
 
 
     def load(self, filename="savegame"):

@@ -1,6 +1,8 @@
 import utilities as ut
 import constants as c
+import settings as st
 import random as rd
+import entities
 
 class FighterEntity:
     """
@@ -35,6 +37,7 @@ class FighterEntity:
                 self.body_points -= points_on_body
             else:
                 self.hit_points -= damage
+            entities.SpecialVisualTextEffect(self.owner.game, self.owner.pos, str(-damage), color=st.RED)
 
         # check for death. if there's a death function, call it
         if self.hit_points <= 0 and self.body_points <= 0:

@@ -475,6 +475,7 @@ class HealthBarWidget:
     def __init__(self, position, player_fighter):
         self.position = position
         self.fighter = player_fighter
+        self.font = pg.font.Font(path.join(path.join(path.dirname(__file__), FONT_FOLDER), FONT_NAME), 10)
 
     def get_event(self, event):
         pass
@@ -499,6 +500,11 @@ class HealthBarWidget:
             bar_width_bp = int(self.fighter.owner.base_body_points * bar_width_total /
                                total_health_possible)
             pg.draw.rect(surface, WHITE, pg.Rect(x, y, bar_width_bp, bar_height), 2)
+            # And last, some text
+            label_surface = self.font.render("{}/{}".format(total_health, total_health_possible), 1, WHITE)
+            label_rect = label_surface.get_rect()
+            label_rect.center = (x + int(bar_width_bp / 2), y + int(bar_height / 2))
+            surface.blit(label_surface, label_rect)
 
     def update(self):
         pass
