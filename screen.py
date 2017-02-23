@@ -5,7 +5,7 @@ import dill as pick
 from settings import *
 from os import path
 from entities import ThrowableHelper, NPCHelper
-from utilities_ui import Button
+from utilities_ui import Button, LogBox
 
 
 class Screen:
@@ -67,6 +67,10 @@ class InventoryScreen(Screen):
         self.widgets.append(button_use)
         self.widgets.append(button_drop)
         self.widgets.append(button_identify)
+        log = LogBox(game.bus, (0, GAME_HEIGHT - TEXT_PART_HEIGHT))
+        log.filters = {c.P_CAT_FIGHT: False, c.P_CAT_ITEM: True, c.P_CAT_ENV: False}
+        self.widgets.append(log)
+
 
     def button_use(self):
         if self.selected_item is not None:
@@ -100,57 +104,59 @@ class InventoryScreen(Screen):
     def events(self):
         # catch all events here
         for event in pg.event.get():
+            handled = False
+            for widget in self.widgets:
+                if not handled:
+                    handled = widget.get_event(event)
+            if handled:
+                return
+
+
             if event.type == pg.QUIT:
                 self.game.quit()
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_ESCAPE:
                     self.game.game_state = self.default_back_state
             if event.type == pg.MOUSEBUTTONDOWN:
-                handled = False
-                for widget in self.widgets:
-                    if not handled:
-                        handled = widget.get_event(event)
+                (button1, button2, button3) = (event.button == 1, event.button == 2, event.button == 3)
+                (x, y) = event.pos
+                # Test where the mouse is..
+                tile_size = self.tile_size
+                orig_x = self.original_pos[0]
+                top_x, top_y = orig_x, self.original_pos[1]
 
-                if not handled:
-                    (button1, button2, button3) = (event.button == 1, event.button == 2, event.button == 3)
-                    (x, y) = event.pos
-                    # Test where the mouse is..
-                    tile_size = self.tile_size
-                    orig_x = self.original_pos[0]
-                    top_x, top_y = orig_x, self.original_pos[1]
+                index_x = int((x - top_x) / tile_size)
+                index_y = int((y - top_y) / tile_size)
 
-                    index_x = int((x - top_x) / tile_size)
-                    index_y = int((y - top_y) / tile_size)
+                has_equipable = len(self.game.player.get_unequipped_objects()) > 0
+                has_usable = len(self.game.player.get_non_equipment_objects()) > 0
 
-                    has_equipable = len(self.game.player.get_unequipped_objects()) > 0
-                    has_usable = len(self.game.player.get_non_equipment_objects()) > 0
+                start_index_y_equipable = 6
+                end_index_y_equipable = start_index_y_equipable + int(
+                    len(self.game.player.get_unequipped_objects()) / self.objects_per_line)
 
-                    start_index_y_equipable = 6
-                    end_index_y_equipable = start_index_y_equipable + int(
-                        len(self.game.player.get_unequipped_objects()) / self.objects_per_line)
+                start_index_y_usable = end_index_y_equipable + 3
+                if not has_equipable:
+                    start_index_y_usable = 6
+                end_index_y_usable = start_index_y_usable + int(len(self.game.player.get_non_equipment_objects()) /
+                                                                self.objects_per_line)
 
-                    start_index_y_usable = end_index_y_equipable + 3
-                    if not has_equipable:
-                        start_index_y_usable = 6
-                    end_index_y_usable = start_index_y_usable + int(len(self.game.player.get_non_equipment_objects()) /
-                                                                    self.objects_per_line)
-
-                    if 0 <= index_x < 4 and 0 <= index_y < 5:
-                        self.handle_equipped_event((button1, button2, button3), index_x, index_y)
-                    elif has_equipable \
-                            and 0 <= index_x < self.objects_per_line \
-                            and start_index_y_equipable <= index_y <= end_index_y_equipable \
-                            and len(self.game.player.get_unequipped_objects()) > \
-                                                    (index_y-start_index_y_equipable) * self.objects_per_line + index_x:
-                        self.handle_equipable_event((button1, button2, button3),
-                                                    index_x, index_y - start_index_y_equipable)
-                    # Usable, but not equipment
-                    elif has_usable \
-                            and 0 <= index_x < self.objects_per_line \
-                            and start_index_y_usable <= index_y <= end_index_y_usable \
-                            and len(self.game.player.get_non_equipment_objects()) > \
-                                                    (index_y - start_index_y_usable) * self.objects_per_line + index_x:
-                        self.handle_usable_event((button1, button2, button3), index_x, index_y - start_index_y_usable)
+                if 0 <= index_x < 4 and 0 <= index_y < 5:
+                    self.handle_equipped_event((button1, button2, button3), index_x, index_y)
+                elif has_equipable \
+                        and 0 <= index_x < self.objects_per_line \
+                        and start_index_y_equipable <= index_y <= end_index_y_equipable \
+                        and len(self.game.player.get_unequipped_objects()) > \
+                                                (index_y-start_index_y_equipable) * self.objects_per_line + index_x:
+                    self.handle_equipable_event((button1, button2, button3),
+                                                index_x, index_y - start_index_y_equipable)
+                # Usable, but not equipment
+                elif has_usable \
+                        and 0 <= index_x < self.objects_per_line \
+                        and start_index_y_usable <= index_y <= end_index_y_usable \
+                        and len(self.game.player.get_non_equipment_objects()) > \
+                                                (index_y - start_index_y_usable) * self.objects_per_line + index_x:
+                    self.handle_usable_event((button1, button2, button3), index_x, index_y - start_index_y_usable)
 
     def handle_equipable_event(self, buttons, index_x, index_y):
         listing = self.game.player.get_unequipped_objects()
@@ -512,6 +518,7 @@ class HealthBarWidget:
     def update(self):
         pass
 
+
 class PlayingScreen(Screen):
 
     def __init__(self, game, default_back_state):
@@ -523,7 +530,9 @@ class PlayingScreen(Screen):
         bt2 = Button((10, 30, 50, 20), None, text="THIS IS A LONG TEXT", id='B')
         bt2.command = lambda player=self.game.player, screen=self: screen.test(player=player, widget=bt2.id)
 
-        self.widgets.append(game.textbox)
+        self.widgets.append(LogBox(game.bus,
+                                   (0, GAME_HEIGHT - TEXT_PART_HEIGHT),
+                                   initial_message="LordCrocket laughs... How dare you trepass?"))
         self.widgets.append(HealthBarWidget((10, 10), game.player.fighter))
         # self.widgets.append(bt1)
         # self.widgets.append(bt2)
@@ -700,10 +709,10 @@ class PlayingScreen(Screen):
                     if self.game.map.tiles[x][y].explored and self.game.map.tiles[x][y].tile_type != c.T_VOID:
                         room = self.game.map.get_room_at(x, y)
                         if room is not None:
-                            self.game.textbox.add = room.name
+                            print(room.name)
                         for entity in self.game.objects:
                             if entity.x == x and entity.y == y:
-                                self.game.textbox.add = entity.name
+                                print(entity.name)
 
     def update(self):
         # Update actions

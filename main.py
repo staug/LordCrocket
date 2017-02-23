@@ -71,10 +71,6 @@ class Game:
         self.objects = []
         self.level = 1
 
-        # Loading fonts and initialize text system
-        # TODO: the textbox is just a widget of the playing part
-        self.textbox = LogBox(self.bus, (0, GAME_HEIGHT - TEXT_PART_HEIGHT))
-
         # initializing map structure
         self.map = MapFactory("LordCroket Caves - Level {}".format(self.level), self.all_images).map
         self.minimap = Minimap(self)

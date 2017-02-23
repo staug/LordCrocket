@@ -348,7 +348,7 @@ class LogBox:
                  position,
                  limit_lines=8,
                  border=2,
-                 border_color=st.WHITE):
+                 border_color=st.WHITE, initial_message=None):
 
         self.font = pg.font.Font(path.join(path.join(path.dirname(__file__), st.FONT_FOLDER), st.FONT_NAME), 10)
         self.border = border
@@ -378,6 +378,8 @@ class LogBox:
         self.filter_recs = {c.P_CAT_FIGHT: rectangle.copy().move(-rect_dimension, 0),
                             c.P_CAT_ITEM: rectangle.copy().move(-3 * rect_dimension, 0),
                             c.P_CAT_ENV: rectangle.copy().move(-5 * rect_dimension, 0)}
+        if initial_message is not None:
+            self._record_message(initial_message, c.P_CAT_ENV)
 
     @classmethod
     def wordTooLong(cls, word, font, max_length, justify_chars=0):
@@ -471,7 +473,7 @@ class LogBox:
                     if self.delta > 0:
                         self.delta = 0
                 else:
-                    self.delta -= 1 # the delta will be adapted in the prepare message method
+                    self.delta -= 1  # the delta will be adapted in the prepare message method
                 self.force_render = True
                 return True # Event consumed...
             for key in self.filter_recs:
