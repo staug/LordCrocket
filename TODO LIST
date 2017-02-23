@@ -35,9 +35,9 @@ Quests and journal:
 * Implement more quest types
 
 Short list:
-* Player heal from exploration
+* [DONE] Player heal from exploration
 * Add more items to be picked up and more monsters
 * Events: each screen should handle some events in the same way
-* Player level up
+* [Partially done] Player level up
 * SPlit the entities files in multiple reusable ones
 * [DONE] Player can be poisonned...

@@ -37,7 +37,6 @@ class PlayerHelper(Entity):
         self.experience = 0
         self.level = 1
 
-
         Entity.__init__(self, game, MName.name(), pos, "PLAYER", vision=4,
                         fighter=PlayerFighter(hit_points=self.base_hit_points, body_points=self.base_body_points,
                                               physical_combat_bonus=1, magical_combat_bonus=0))
@@ -47,19 +46,25 @@ class PlayerHelper(Entity):
 
         self.invalidate_fog_of_war = True
 
+        # Player needs to heal from exploration
+        self.time_before_next_heal = 10  # in 10 turn, recover strength bonus health
+        game.bus.register(self, main_category=c.P_CAT_ENV, sub_category=c.AC_ENV_MOVE,
+                          function_to_call=self.exploration_heal)
+
         # TODO Remove the following tests in real life
-        self.quest_list.append(KillQuest(self, game.bus, "BAT", 2, "kill at least 2 bats", rewards={"target":self,
-                                                                                             "wealth":20,
-                                                                                             "xp":10}))
+        self.quest_list.append(KillQuest(self, game.bus, "BAT", 2, "kill at least 2 bats", rewards={"target": self,
+                                                                                                    "wealth": 20,
+                                                                                                    "xp": 10}))
         self.quest_list.append(KillQuest(self, game.bus, "ANY", 5, "kill five enemies", rewards={"target": self,
-                                                                                                    "wealth": 15,
-                                                                                                    "xp": 20}))
+                                                                                                 "wealth": 15,
+                                                                                                 "xp": 20}))
         self.quest_list.append(KillQuest(self, game.bus, "ANY", 1, "kill whatever creature", rewards={"target": self,
-                                                                                                    "wealth": 10,
-                                                                                                    "xp": 15}))
+                                                                                                      "wealth": 10,
+                                                                                                      "xp": 15}))
         self.quest_list.append(KillAllQuest(self, game.bus, game.objects, rewards={"target": self,
                                                                                    "wealth": 100,
                                                                                    "xp": 150}))
+
     @property
     def strength(self):
         return self.base_strength + self.get_bonus(c.BONUS_STR)
@@ -111,16 +116,6 @@ class PlayerHelper(Entity):
             bonus += equipped_object.equipment.modifiers.get(bonus_type, 0)
         return bonus
 
-    def __str__(self):
-        return ("{}, Position [{},{}], "
-                "STR={} DEX={} MIND={} CHA={}, "
-                "HP={}/{} BP={}/{} AC={} vision={}".format(self.name, self.x, self.y, self.strength,
-                                                           self.dexterity, self.mind, self.charisma,
-                                                           self.fighter.hit_points, self.base_hit_points,
-                                                           self.fighter.body_points, self.base_body_points,
-                                                           self.fighter.armor_class, self.vision
-                                                           ))
-
     def speed_cost_for(self, action):
         # Assume base 1 = move
         if action == c.AC_ENV_MOVE:
@@ -134,6 +129,20 @@ class PlayerHelper(Entity):
         else:
             assert 0, "Action speed not recognized - action type {}".format(action)
 
+    def exploration_heal(self, message):
+        """
+        This function is called for each movement. It is responsible for healing the player.
+        Healing effectively happen every 10 movements (fixed).
+        The healing value depends on the player strength bonus.
+        :param message: Unused, this is the message from the message bus
+        :return:
+        """
+        self.time_before_next_heal -= 1
+        if self.time_before_next_heal == 0:
+            heal_amount = max(1, self.get_stat_bonus(c.STR_NAME))
+            self.fighter.heal(heal_amount)
+            self.time_before_next_heal = 10  # in 10 turn, recover strength bonus health
+
     def move(self, dx=0, dy=0):
         """Try to move the player. Return True if an action was done (either move or attack)"""
         # We keep the old position
@@ -141,14 +150,14 @@ class PlayerHelper(Entity):
 
         # Action test
         for entity in self.game.objects:
-            if entity != self and entity.actionable is not None and\
+            if entity != self and entity.actionable is not None and \
                             (self.x + dx, self.y + dy) in entity.actionable.action_field:
                 self.x += dx
                 self.y += dy
                 result = entity.actionable.action(self)
                 self.x -= dx
                 self.y -= dy
-                if result is not None and result == False:
+                if result is not None and not result:
                     # We triggered an object, it prevented the move (like a door not opening)
                     self.game.ticker.ticks_to_advance += self.speed_cost_for(c.AC_ENV_OPEN)
                     return False
@@ -179,17 +188,30 @@ class PlayerHelper(Entity):
             old_room = self.game.map.get_room_at(old_pos[0], old_pos[1])
             new_room = self.game.map.get_room_at(self.pos[0], self.pos[1])
             if old_room is not None and old_room != new_room:
-                self.game.bus.publish(self, {"room":new_room, "operator": self}, main_category=c.P_CAT_ENV,
-                                         sub_category=c.AC_ENV_MOVE)
+                self.game.bus.publish(self, {"room": new_room, "operator": self}, main_category=c.P_CAT_ENV,
+                                      sub_category=c.AC_ENV_MOVE)
             else:
                 self.game.bus.publish(self, {"operator": self}, main_category=c.P_CAT_ENV,
-                                         sub_category=c.AC_ENV_MOVE)
+                                      sub_category=c.AC_ENV_MOVE)
             return True
 
         return False
+
     # xp related function
     def gain_experience(self, amount):
         self.experience += amount
+        if self.level == 1 and self.experience > 3100:
+            self.level = 2
+            self.base_hit_points += ut.roll(8)
+            self.fighter.physical_combat_bonus = 2
+            self.fighter.magical_combat_bonus = 1
+            self.saving_throw = 12
+            # We fully heal the player
+            self.fighter.body_points = self.base_body_points
+            self.fighter.hit_points = self.base_hit_points
+            print("LEVEL UP")
+        elif self.level == 2 and self.experience > 12500:
+            self.level = 3
         # TODO level up function
 
     # inventory functions
@@ -323,8 +345,8 @@ class KillQuest(Quest):
                                   function_to_call=self.new_kill)
 
         self.message_bus.publish(self.quest_owner, {"result": c.QUEST_SUBSCRIBED, "quest": self},
-                             main_category=c.P_CAT_ENV,
-                             sub_category=c.AC_QUEST)
+                                 main_category=c.P_CAT_ENV,
+                                 sub_category=c.AC_QUEST)
 
     def new_kill(self, message):
         if self.state == c.QUEST_SUBSCRIBED:
@@ -376,10 +398,10 @@ class KillAllQuest(Quest):
         if self.state == c.QUEST_SUBSCRIBED:
             self.current_kill += 1
             self.message_bus.publish(self.quest_owner, {"message": "one more kill",
-                                                            "quest": self,
-                                                            "result": c.QUEST_UPDATED},
-                                         main_category=c.P_CAT_ENV,
-                                         sub_category=c.AC_QUEST)
+                                                        "quest": self,
+                                                        "result": c.QUEST_UPDATED},
+                                     main_category=c.P_CAT_ENV,
+                                     sub_category=c.AC_QUEST)
         self.update()
 
     def update(self):

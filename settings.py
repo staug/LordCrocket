@@ -12,6 +12,7 @@ LIGHTGREY = (100, 100, 100)
 GREEN = (0, 255, 0)
 RED = (255, 0, 0)
 YELLOW = (255, 255, 0)
+BLUE = (0, 0, 255)
 
 # game settings
 PLAYABLE_WIDTH = 768   # 16 * 64 or 32 * 32 or 64 * 16
@@ -45,7 +46,7 @@ SOUND_FOLDER = 'sound'
 
 FONT_FOLDER = 'font'
 # FONT_NAME = 'unispace.ttf'
-FONT_NAME = 'ProFontWindows.ttf'
+FONT_NAME = 'SourceCodePro-Regular.otf'
 
 # ITEMS CHARACTERISTICS
 # POTIONS (these are percentage)

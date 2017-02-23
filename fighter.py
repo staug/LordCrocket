@@ -129,6 +129,7 @@ class PlayerFighter(FighterEntity):
 
     def heal(self, amount):
         # heal by the given amount, without going over the maximum
+        entities.SpecialVisualTextEffect(self.owner.game, self.owner.pos, str(amount), color=st.BLUE)
         delta_body = self.owner.base_body_points - self.body_points
         if delta_body > amount:
             self.body_points += amount

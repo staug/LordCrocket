@@ -372,9 +372,9 @@ class LogBox:
         self.filters = {c.P_CAT_FIGHT: True, c.P_CAT_ITEM: True, c.P_CAT_ENV: True}
         self.color = {c.P_CAT_FIGHT: st.RED, c.P_CAT_ITEM: st.YELLOW, c.P_CAT_ENV: st.WHITE}
         rectangle = pg.Rect(self.rect.right + self.border,
-                       self.rect.top - rect_dimension - self.border,
-                       rect_dimension,
-                       rect_dimension)
+                            self.rect.top - rect_dimension - self.border,
+                            rect_dimension,
+                            rect_dimension)
         self.filter_recs = {c.P_CAT_FIGHT: rectangle.copy().move(-rect_dimension, 0),
                             c.P_CAT_ITEM: rectangle.copy().move(-3 * rect_dimension, 0),
                             c.P_CAT_ENV: rectangle.copy().move(-5 * rect_dimension, 0)}
@@ -449,9 +449,9 @@ class LogBox:
                 lw, lh = self.font.size(text)
                 if lw>rw:
                     text_list = self.normalizeTextLength(text,
-                                         self.font,
-                                         self.rect.width,
-                                         justify_chars=0)
+                                                         self.font,
+                                                         self.rect.width,
+                                                         justify_chars=0)
                     for line in text_list:
                         message_for_display.append([line, category])
                 else:
@@ -490,6 +490,7 @@ class LogBox:
     add = property(lambda self: self._text, _setText, doc="""The text to be displayed""")
 
     def _record_message(self, text, category):
+        text = text[0].capitalize() + text[1:]
         self.messages.append([text, category])
         self.force_render = True
         self.delta = 0
@@ -509,16 +510,18 @@ class LogBox:
                                                                                      message["defender"].name,
                                                                                      message["attack_type"],
                                                                                      rd.choice(("failed miserably",
-                                                                                   "it was blocked",
-                                                                                   "this was a pitiful attempt"))),
+                                                                                                "it was blocked",
+                                                                                                "this was a pitiful "
+                                                                                                "attempt"))),
                                          c.P_CAT_FIGHT)
             elif message["SUB_CATEGORY"] == c.AC_FIGHT_KILL:
-                self._record_message("After a short fight, {} killed {} " \
-                           "- LordCrocket awards {} experience point and {} gold".format(message["attacker"].name,
-                                                                                        message["defender"].name,
-                                                                                        message["xp"],
-                                                                                        message["gold"]),
-                                     c.P_CAT_FIGHT)
+                self._record_message("After a short fight, {} killed {} - LordCrocket awards {} experience point and "
+                                     "{} gold".format(
+                    message["attacker"].name,
+                    message["defender"].name,
+                    message["xp"],
+                    message["gold"]),
+                    c.P_CAT_FIGHT)
             elif message["SUB_CATEGORY"] == c.AC_FIGHT_VARIOUS:
                 self._record_message(message["message"], c.P_CAT_FIGHT)
             else:
@@ -547,7 +550,7 @@ class LogBox:
                                          c.P_CAT_ITEM)
                 elif message["result"] == c.SUCCESS:
                     self._record_message("{}".format(message["message"]),
-                                        c.P_CAT_ITEM)
+                                         c.P_CAT_ITEM)
 
             elif message["SUB_CATEGORY"] == c.AC_ITEM_EQUIP:
                 self._record_message("You successfully equipped a {} on {}".format(message["item"].name,
@@ -575,7 +578,7 @@ class LogBox:
                                              c.P_CAT_ENV)
                     else:
                         self._record_message("{} opened {}".format(message["operator"].name, message["object"].name),
-                                     c.P_CAT_ENV)
+                                             c.P_CAT_ENV)
                 else:
                     self._record_message("{} tried opening {} but failed".format(message["operator"].name,
                                                                                  message["object"].name),
@@ -586,6 +589,7 @@ class LogBox:
                 if "room" in message and hasattr(message["room"], "name"):
                     self._record_message("{} entered {}".format(message["operator"].name, message["room"].name),
                                          c.P_CAT_ENV)
+
             elif message["SUB_CATEGORY"] == c.AC_QUEST:
                 quest = message["quest"]
                 if message["result"] == c.QUEST_SUBSCRIBED:
@@ -595,8 +599,10 @@ class LogBox:
                     self._record_message("{} for {}".format(message["message"], quest.long_text),
                                          c.P_CAT_ENV)
                 elif message["result"] == c.QUEST_FINISHED:
-                    self._record_message("{} is done. Rewards: {}".format(quest.long_text, message["rewards"]),
-                                         c.P_CAT_ENV)
+                    self._record_message("{} is done. LordCrocket grants {} {} experience points and {} wealth".format(
+                        quest.long_text, message["rewards"]["target"].name, message["rewards"]["xp"],
+                        message["rewards"]["wealth"]),
+                        c.P_CAT_ENV)
                 else:
                     print("UNKNOWN MESSAGE: {}".format(message))
             else:
@@ -642,15 +648,15 @@ class ModalBox:
 
 class Input:
     """ A text input for pygame apps """
-    def __init__(self, game, pos, font_name=st.FONT_NAME, 
+    def __init__(self, game, pos, font_name=st.FONT_NAME,
                  font_size=10,
                  limit_message=-1, focus=False, callback=None):
         self.game = game
-        
+
         game_folder = path.dirname(__file__)
         font_folder = path.join(game_folder, st.FONT_FOLDER)
         font = pg.font.Font(path.join(font_folder, font_name), font_size)
-        
+
         self.x, self.y = pos
         self.font = font
         self.color = (0, 0, 0)
@@ -902,9 +908,11 @@ class Input:
 # Specialized class to load graphics
 
 
-def load_image_list_all(image_src_list, folder, image_name, width=st.TILESIZE_FILE, height=st.TILESIZE_FILE, adapt_ratio=1):
+def load_image_list_all(image_src_list, folder, image_name,
+                        width=st.TILESIZE_FILE, height=st.TILESIZE_FILE, adapt_ratio=1):
     """
     Load a set of consecutive image, to be used in animation. All images of files are read.
+    :param image_src_list: the actual dictionary that may already contain the source
     :param folder:
     :param image_name:
     :param width:
@@ -925,6 +933,7 @@ def load_image_list_all(image_src_list, folder, image_name, width=st.TILESIZE_FI
 def load_image_list(image_src_list, folder, image_name, listing, width=st.TILESIZE_FILE, height=st.TILESIZE_FILE, adapt_ratio=1):
     """
     Load a set of consecutive image, to be used in animation. All images of files are read.
+    :param image_src_list: the actual dictionary that may already contain the source
     :param folder:
     :param image_name:
     :param width:
@@ -940,7 +949,7 @@ def load_image_list(image_src_list, folder, image_name, listing, width=st.TILESI
             res.append(image_src.subsurface(pg.Rect(width * tile_x, height * tile_y, width, height)))
         else:
             res.append(pg.transform.scale(image_src.subsurface(pg.Rect(width * tile_x, height * tile_y, width, height)),
-                                       (int(st.TILESIZE_SCREEN * adapt_ratio), int(st.TILESIZE_SCREEN * adapt_ratio))))
+                                          (int(st.TILESIZE_SCREEN * adapt_ratio), int(st.TILESIZE_SCREEN * adapt_ratio))))
     return res
 
 
@@ -963,13 +972,14 @@ def load_image(image_src_list, folder, image_name, tile_x, tile_y, width=st.TILE
         return image_src.subsurface(pg.Rect(width * tile_x, height * tile_y, width, height))
     else:
         return pg.transform.scale(image_src.subsurface(pg.Rect(width * tile_x, height * tile_y, width, height)),
-                                      (int(st.TILESIZE_SCREEN * adapt_ratio), int(st.TILESIZE_SCREEN * adapt_ratio)))
+                                  (int(st.TILESIZE_SCREEN * adapt_ratio), int(st.TILESIZE_SCREEN * adapt_ratio)))
 
 
 def load_image_list_dawnlike(image_src_list, folder, image_name1, image_name2, tile_x, tile_y,
                              width=st.TILESIZE_FILE, height=st.TILESIZE_FILE):
     """
     Load an image list from two different files following dawnlike approach
+    :param image_src_list: the actual dictionary that may already contain the source
     :param img_folder_name: the folder where images are located
     :param image1: the first image file name
     :param image2: the second image file name
@@ -995,6 +1005,7 @@ def load_image_list_dawnlike(image_src_list, folder, image_name1, image_name2, t
 def load_wall_structure_dawnlike(image_src_list, folder, image_name):
     """
     Load the set of walls from dawnlike file
+    :param image_src_list: the actual dictionary that may already contain the source
     :param image_src:
     :return: a list of dictionary item following convention
     http://www.angryfishstudios.com/2011/04/adventures-in-bitmasking/
@@ -1025,7 +1036,7 @@ def load_wall_structure_dawnlike(image_src_list, folder, image_name):
 def load_floor_structure_dawnlike(image_src_list, folder, image_name):
     """
     Load the set of walls from dawnlike file and put it in a dictionary
-    :param image_src_list: the actual dictionary that may aldready contain the source
+    :param image_src_list: the actual dictionary that may already contain the source
     :param folder: the folder from which the image will be loaded
     :param the name of teh image file
     :return: a list of dictionary item following convention
@@ -1107,7 +1118,7 @@ def load_floor_structure_oryx(image_src_list, folder, image_name, width=24, heig
         for ref in refs:
             x, y = ref
             res.append(pg.transform.scale(image_src.subsurface(pg.Rect(x * width, y * width, width, height)),
-                                                 (st.TILESIZE_SCREEN, st.TILESIZE_SCREEN)))
+                                          (st.TILESIZE_SCREEN, st.TILESIZE_SCREEN)))
         return res
 
     image_src = get_image(image_src_list, folder, image_name)
@@ -1287,15 +1298,15 @@ def build_listing_icons(img_root, image_dict):
 
 
 def build_listing_oryx(img_root):
-    
+
     def _t(x, y):
         return [(x, y), (x, y + 1)]
-    
+
     img_root = path.join(img_root, st.IMG_ORYX_SUB)
 
     image_src_list = {}  # a cache for objects
     images = {}  # the actual list of images to be built
-    
+
 
     # PLAYER
     images["PLAYER"] = load_creature_oryx(image_src_list, img_root, "oryx_16bit_fantasy_creatures_trans.png", [(1, 1), (1, 2)], width=24, height=24, adapt_ratio=0.9)
@@ -1435,7 +1446,7 @@ def build_listing_oryx(img_root):
     images["PIGEON"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(16, 13), width=24, height=24)
     images["BLUE_BIRD"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(17, 13), width=24, height=24)
     images["RAVEN"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(18, 13), width=24, height=24)
-    
+
     images["GOBLIN_FIGHTER"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(1, 15), width=24, height=24)
     images["GOBLIN_ARCHER"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(2, 15), width=24, height=24)
     images["GOBLIN_CAPTAIN"] = load_creature_oryx(image_src_list, img_root, img_creature, _t(3, 15), width=24, height=24)
@@ -1517,7 +1528,7 @@ def build_listing_oryx(img_root):
 
     # ITEMS
     ratio_item = 16 / 24
-    
+
     images["REMAINS"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 1, 7,
                                    width=16, height=16, adapt_ratio=ratio_item)
     images["POTION_B_S"] = load_image(image_src_list, img_root, "oryx_16bit_fantasy_items_trans.png", 1, 1, width=16,
@@ -1602,8 +1613,8 @@ def build_listing_oryx(img_root):
     ]
     images["DOOR_H_OPEN_LIST"] = images["DOOR_V_OPEN_LIST"]
     images["STAIRS_LIST"] = load_image_list(image_src_list, img_root,
-                                           "oryx_16bit_fantasy_world_trans.png",
-                                           [(9, 13), (9, 5), (9, 7), (9, 19), (9, 3), (9, 8), (9, 15), (9, 14), (9, 6)],
+                                            "oryx_16bit_fantasy_world_trans.png",
+                                            [(9, 13), (9, 5), (9, 7), (9, 19), (9, 3), (9, 8), (9, 15), (9, 14), (9, 6)],
                                             width=24, height=24)
     images["FLOOR_DECO_LIST"] = [
         load_image(image_src_list, img_root, "oryx_16bit_fantasy_world_trans.png", 32, 1, width=24, height=24),
