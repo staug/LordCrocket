@@ -820,16 +820,19 @@ class ThrowableHelper(Entity):
             stopped_by = []
 
         Entity.__init__(self, game, "", pos, image_ref)
-        self.direction = direction
+        self.direction = self.last_direction = direction
         self.function_hit = function_hit
         self.target_list = target_list
         self.stopped_by = stopped_by
 
-        Entity.__init__(self, game, "", pos, image_ref)
+        #Entity.__init__(self, game, "", pos, image_ref)
         self.set_in_spritegroup(1)
         self.next_motion = pygame.time.get_ticks() - 1
 
     def update(self):
+        if self.animated:
+            self.animate()
+
         now = pygame.time.get_ticks()
         if now > self.next_motion:
             self.x += self.direction[0]
@@ -847,7 +850,6 @@ class ThrowableHelper(Entity):
             # TODO Proper testing between NPC and monster
             for entity in self.game.objects:
                 # last check is to avoid "remains" of monster to act like entities...
-                # TODO remove the last check, by transferring entities to new objects instead
                 if entity.pos == self.pos and isinstance(entity, MonsterHelper) and entity.fighter is not None:
                     self.function_hit(entity)
                     self.remove_object()
@@ -867,4 +869,14 @@ class ThrowableHelper(Entity):
 
     @staticmethod
     def light_damage(target):
-        target.fighter.take_damage(20)
+        # We test if we have a saving throw from the entity standpoint
+        saving = ut.roll(20)
+        if saving == 1 or saving <= target.fighter.saving_throw:
+            # success
+            target.game.bus.publish(target, {"defender": target, "result": c.SUCCESS, "spell_type": "fireball"},
+                                    main_category=c.P_CAT_FIGHT, sub_category=c.AC_SPELL)
+            target.fighter.take_damage(20)
+        else:
+            # failure
+            target.game.bus.publish(target, {"defender": target, "result": c.FAILURE, "spell_type": "fireball"},
+                                    main_category=c.P_CAT_FIGHT, sub_category=c.AC_SPELL)

@@ -525,17 +525,13 @@ class PlayingScreen(Screen):
         Screen.__init__(self, game, default_back_state)
         self.fog_of_war_mask = None
 
-        bt1 = Button((10, 10, 50, 20), None, text="CLICK", id='A')
-        bt1.command = lambda player=self.game.player, screen=self: screen.test(player=player, widget=bt1.id)
-        bt2 = Button((10, 30, 50, 20), None, text="THIS IS A LONG TEXT", id='B')
-        bt2.command = lambda player=self.game.player, screen=self: screen.test(player=player, widget=bt2.id)
-
         self.widgets.append(LogBox(game.bus,
                                    (0, GAME_HEIGHT - TEXT_PART_HEIGHT),
                                    initial_message="LordCrocket laughs... How dare you trepass?"))
+
         self.widgets.append(HealthBarWidget((10, 10), game.player.fighter))
-        # self.widgets.append(bt1)
-        # self.widgets.append(bt2)
+        self.in_spell_mode = False
+
 
     def draw(self):
         # Erase All
@@ -621,9 +617,56 @@ class PlayingScreen(Screen):
                 self.game.player.invalidate_fog_of_war = True
                 self.game.textbox.resize(old_rect.width, old_rect.height, event.w, event.h)
 
-            if event.type == pg.KEYDOWN:
-                if event.key == pg.K_ESCAPE:
-                    self.game.quit()
+            if self.in_spell_mode and event.type == pg.KEYDOWN:
+                if event.key in (pg.K_LEFT, pg.K_q, pg.K_KP4):
+                    ThrowableHelper(self.game, self.game.player.pos, "FIREBALL", (-1, 0),
+                                    ThrowableHelper.light_damage,
+                                    stopped_by=[c.T_WALL, c.T_VOID])
+                    self.in_spell_mode = False
+
+                if event.key in (pg.K_RIGHT, pg.K_d, pg.K_KP6):
+                    ThrowableHelper(self.game, self.game.player.pos, "FIREBALL", (1, 0),
+                                    ThrowableHelper.light_damage,
+                                    stopped_by=[c.T_WALL, c.T_VOID])
+                    self.in_spell_mode = False
+
+                if event.key in (pg.K_UP, pg.K_z, pg.K_KP8):
+                    ThrowableHelper(self.game, self.game.player.pos, "FIREBALL", (0, -1),
+                                    ThrowableHelper.light_damage,
+                                    stopped_by=[c.T_WALL, c.T_VOID])
+                    self.in_spell_mode = False
+
+                if event.key in (pg.K_DOWN, pg.K_x, pg.K_KP2):
+                    ThrowableHelper(self.game, self.game.player.pos, "FIREBALL", (0, 1),
+                                    ThrowableHelper.light_damage,
+                                    stopped_by=[c.T_WALL, c.T_VOID])
+                    self.in_spell_mode = False
+
+                if event.key in (pg.K_KP7, pg.K_a):
+                    ThrowableHelper(self.game, self.game.player.pos, "FIREBALL", (-1, -1),
+                                    ThrowableHelper.light_damage,
+                                    stopped_by=[c.T_WALL, c.T_VOID])
+                    self.in_spell_mode = False
+
+                if event.key in (pg.K_KP9, pg.K_e):
+                    ThrowableHelper(self.game, self.game.player.pos, "FIREBALL", (1, -1),
+                                    ThrowableHelper.light_damage,
+                                    stopped_by=[c.T_WALL, c.T_VOID])
+                    self.in_spell_mode = False
+
+                if event.key in (pg.K_KP1, pg.K_w):
+                    ThrowableHelper(self.game, self.game.player.pos, "FIREBALL", (-1, 1),
+                                    ThrowableHelper.light_damage,
+                                    stopped_by=[c.T_WALL, c.T_VOID])
+                    self.in_spell_mode = False
+
+                if event.key in (pg.K_KP3, pg.K_c):
+                    ThrowableHelper(self.game, self.game.player.pos, "FIREBALL", (1, 1),
+                                    ThrowableHelper.light_damage,
+                                    stopped_by=[c.T_WALL, c.T_VOID])
+                    self.in_spell_mode = False
+
+            elif event.type == pg.KEYDOWN:
                 if event.key in (pg.K_LEFT, pg.K_q, pg.K_KP4):
                     self.game.player.move(dx=-1)
                 if event.key in (pg.K_RIGHT, pg.K_d, pg.K_KP6):
@@ -655,9 +698,7 @@ class PlayingScreen(Screen):
                             item.item.pick_up()
 
                 if event.key == pg.K_y:
-                    ThrowableHelper(self.game, self.game.player.pos, "FIREBALL", (1, 0),
-                                    ThrowableHelper.light_damage,
-                                    stopped_by=[c.T_WALL, c.T_VOID])
+                    self.in_spell_mode = True
 
                 if event.key == pg.K_n:
                     self.game.go_next_level()

@@ -524,6 +524,16 @@ class LogBox:
                     message["xp"],
                     message["gold"]),
                     c.P_CAT_FIGHT)
+            elif message["SUB_CATEGORY"] == c.AC_SPELL:
+                if message["result"] == c.SUCCESS:
+                    self._record_message("{} was hit with {}".format(message["defender"].name,
+                                                                     message["spell_type"]),
+                                         c.P_CAT_FIGHT)
+                else:
+                    self._record_message("{} managed to escape from {}".format(message["defender"].name,
+                                                                     message["spell_type"]),
+                                         c.P_CAT_FIGHT)
+
             elif message["SUB_CATEGORY"] == c.AC_FIGHT_VARIOUS:
                 self._record_message(message["message"], c.P_CAT_FIGHT)
             else:
