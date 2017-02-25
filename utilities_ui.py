@@ -1196,10 +1196,20 @@ def load_creature_oryx(image_src_list, folder, image_name, ref_pos, width=st.TIL
 
 def load_fx_oryx(image_src_list, folder, image_name, ref_pos, width=st.TILESIZE_FILE, height=st.TILESIZE_FILE, adapt_ratio=1):
     x, y = ref_pos
-    result = {"S": (load_image(image_src_list, folder, image_name, x + 3, y, width=24, height=24, adapt_ratio=adapt_ratio),load_image(image_src_list, folder, image_name, x + 3, y, width=24, height=24, adapt_ratio=adapt_ratio)),
-              "W": (load_image(image_src_list, folder, image_name, x + 2, y, width=24, height=24, adapt_ratio=adapt_ratio),load_image(image_src_list, folder, image_name, x + 2, y, width=24, height=24, adapt_ratio=adapt_ratio)),
-              "E": (load_image(image_src_list, folder, image_name, x, y, width=24, height=24, adapt_ratio=adapt_ratio),load_image(image_src_list, folder, image_name, x, y, width=24, height=24, adapt_ratio=adapt_ratio)),
-              "N": (load_image(image_src_list, folder, image_name, x + 1, y, width=24, height=24, adapt_ratio=adapt_ratio),load_image(image_src_list, folder, image_name, x + 1, y, width=24, height=24, adapt_ratio=adapt_ratio))}
+    image_ref_east_1 = load_image(image_src_list, folder, image_name, x, y, width=24, height=24,
+                                  adapt_ratio=adapt_ratio)
+    image_ref_east_2 = load_image(image_src_list, folder, image_name, x, y, width=24, height=24,
+                                  adapt_ratio=0.5 * adapt_ratio)
+    directions = ("E", "SE", "S", "SW", "W", "NW", "N", "NE")
+    angle = 0
+    result = {}
+    for dir in directions:
+        result[dir] = (
+            pg.transform.rotate(image_ref_east_1.copy(), angle),
+            pg.transform.rotate(image_ref_east_2.copy(), angle)
+        )
+        angle -= 45
+
     return result
 
 def get_image(image_src_list, folder, image_name):

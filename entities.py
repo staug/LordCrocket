@@ -240,7 +240,15 @@ class Entity(Sprite):
                     reference = 'N'
                 if self.last_direction[1] > 0:
                     reference = 'S'
-
+                if "NW" in self.dict_image:
+                    if self.last_direction == (-1, -1):
+                        reference = "NW"
+                    elif self.last_direction == (1, 1):
+                        reference = "SE"
+                    elif self.last_direction == (-1, 1):
+                        reference = "SW"
+                    elif self.last_direction == (1, -1):
+                        reference = "NE"
                 self.current_frame = (self.current_frame + 1) % len(self.dict_image[reference])
                 self.image = self.dict_image[reference][self.current_frame]
             else:
