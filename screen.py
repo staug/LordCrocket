@@ -707,7 +707,7 @@ class PlayingScreen(Screen):
                 if event.key == pg.K_h:
                     (x, y) = self.game.player.pos
                     x += 1
-                    NPCHelper(self.game, "Companion", (x, y), "DOG")
+                    NPCHelper(self.game, "Companion", (x, y), "GUARD_M")
                 if event.key == pg.K_r:
                     # First, make sure that the music system is unabled
                     if not hasattr(self.game, "soundfiles"):

@@ -24,7 +24,8 @@ ITEM
 
 Spells and potions
 * Increase and decrease visibility radius
-* fireball -> First step done.
+* [DONE] fireball -> First step done.
+* Spells: when casting, prompt for the spell name and direction
 
 BUGS
 * In save, make sure the floor is always the same...
@@ -37,7 +38,7 @@ Quests and journal:
 Short list:
 * [DONE] Player heal from exploration
 * Add more items to be picked up and more monsters
-* Events: each screen should handle some events in the same way
+* [DONE] Events: each screen should handle some events in the same way
 * [Partially done] Player level up
 * SPlit the entities files in multiple reusable ones
 * [DONE] Player can be poisonned...
