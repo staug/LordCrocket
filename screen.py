@@ -623,48 +623,56 @@ class PlayingScreen(Screen):
                                     ThrowableHelper.light_damage,
                                     stopped_by=[c.T_WALL, c.T_VOID])
                     self.in_spell_mode = False
+                    self.game.ticker.ticks_to_advance += self.game.player.speed_cost_for(c.AC_SPELL)
 
                 if event.key in (pg.K_RIGHT, pg.K_d, pg.K_KP6):
                     ThrowableHelper(self.game, self.game.player.pos, "FIREBALL", (1, 0),
                                     ThrowableHelper.light_damage,
                                     stopped_by=[c.T_WALL, c.T_VOID])
                     self.in_spell_mode = False
+                    self.game.ticker.ticks_to_advance += self.game.player.speed_cost_for(c.AC_SPELL)
 
                 if event.key in (pg.K_UP, pg.K_z, pg.K_KP8):
                     ThrowableHelper(self.game, self.game.player.pos, "FIREBALL", (0, -1),
                                     ThrowableHelper.light_damage,
                                     stopped_by=[c.T_WALL, c.T_VOID])
                     self.in_spell_mode = False
+                    self.game.ticker.ticks_to_advance += self.game.player.speed_cost_for(c.AC_SPELL)
 
                 if event.key in (pg.K_DOWN, pg.K_x, pg.K_KP2):
                     ThrowableHelper(self.game, self.game.player.pos, "FIREBALL", (0, 1),
                                     ThrowableHelper.light_damage,
                                     stopped_by=[c.T_WALL, c.T_VOID])
                     self.in_spell_mode = False
+                    self.game.ticker.ticks_to_advance += self.game.player.speed_cost_for(c.AC_SPELL)
 
                 if event.key in (pg.K_KP7, pg.K_a):
                     ThrowableHelper(self.game, self.game.player.pos, "FIREBALL", (-1, -1),
                                     ThrowableHelper.light_damage,
                                     stopped_by=[c.T_WALL, c.T_VOID])
                     self.in_spell_mode = False
+                    self.game.ticker.ticks_to_advance += self.game.player.speed_cost_for(c.AC_SPELL)
 
                 if event.key in (pg.K_KP9, pg.K_e):
                     ThrowableHelper(self.game, self.game.player.pos, "FIREBALL", (1, -1),
                                     ThrowableHelper.light_damage,
                                     stopped_by=[c.T_WALL, c.T_VOID])
                     self.in_spell_mode = False
+                    self.game.ticker.ticks_to_advance += self.game.player.speed_cost_for(c.AC_SPELL)
 
                 if event.key in (pg.K_KP1, pg.K_w):
                     ThrowableHelper(self.game, self.game.player.pos, "FIREBALL", (-1, 1),
                                     ThrowableHelper.light_damage,
                                     stopped_by=[c.T_WALL, c.T_VOID])
                     self.in_spell_mode = False
+                    self.game.ticker.ticks_to_advance += self.game.player.speed_cost_for(c.AC_SPELL)
 
                 if event.key in (pg.K_KP3, pg.K_c):
                     ThrowableHelper(self.game, self.game.player.pos, "FIREBALL", (1, 1),
                                     ThrowableHelper.light_damage,
                                     stopped_by=[c.T_WALL, c.T_VOID])
                     self.in_spell_mode = False
+                    self.game.ticker.ticks_to_advance += self.game.player.speed_cost_for(c.AC_SPELL)
 
             elif event.type == pg.KEYDOWN:
                 if event.key in (pg.K_LEFT, pg.K_q, pg.K_KP4):
@@ -707,7 +715,7 @@ class PlayingScreen(Screen):
                 if event.key == pg.K_h:
                     (x, y) = self.game.player.pos
                     x += 1
-                    NPCHelper(self.game, "Companion", (x, y), "GUARD_M")
+                    NPCHelpe2r(self.game, "Companion", (x, y), "GUARD_M")
                 if event.key == pg.K_r:
                     # First, make sure that the music system is unabled
                     if not hasattr(self.game, "soundfiles"):
@@ -730,16 +738,6 @@ class PlayingScreen(Screen):
                     with open("savegame", "wb") as f:
                         pick.dump([self.game.objects, self.game.map, self.game.player.name, self.game.all_groups], f)
                     self.game.quit()
-
-                if event.key in (pg.K_l, pg.K_KP5):
-                    self.game.textbox.add = str(self.game.player)
-                    room = self.game.map.get_room_at(self.game.player.x, self.game.player.y)
-                    if room is not None:
-                        self.game.textbox.add = room.name
-                    self.game.textbox.add = "Objects:"
-                    for entity in self.game.objects:
-                        if entity.x == self.game.player.x and entity.y == self.game.player.y:
-                            self.game.textbox.add = entity.name
 
             if event.type == pg.MOUSEBUTTONDOWN:
                 (button1, button2, button3) = pg.mouse.get_pressed()
